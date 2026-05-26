@@ -6,6 +6,7 @@ export type PartyVersion = {
     is_current: boolean;
     created_at: string;
     updated_at: string;
+    pokemon?: PartyPokemon[];
 };
 
 export type PartyPokemon = {
@@ -24,6 +25,16 @@ export type PartyPokemon = {
     memo: string | null;
     created_at: string;
     updated_at: string;
+    role_tags?: {
+        id: number;
+        key: string;
+        name: string;
+        description: string;
+        examples: string[] | null;
+        lead_score: number;
+        switch_score: number;
+        finisher_score: number;
+    }[];
 };
 
 export type Party = {
