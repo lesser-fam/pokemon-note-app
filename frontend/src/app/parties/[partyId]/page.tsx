@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 export default function PartyDetailPage() {
     const params = useParams<{ partyId: string }>();
     const partyId = Number(params.partyId);
+    const isInvalidPartyId = Number.isNaN(partyId);
 
     const [party, setParty] = useState<Party | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -27,10 +28,22 @@ export default function PartyDetailPage() {
             }
         };
 
-        if (!Number.isNaN(partyId)) {
-            loadParty();
+        if (isInvalidPartyId) {
+            return;
         }
-    }, [partyId]);
+
+        loadParty();
+    }, [partyId, isInvalidPartyId]);
+
+    if (isInvalidPartyId) {
+        return (
+            <main className="mx-auto max-w-5x1 p-8">
+                <p className="rounded bg-red-100 p-3 text-red-700">
+                    パーティIDが正しくありません。
+                </p>
+            </main>
+        );
+    }
 
     if (isLoading) {
         return (

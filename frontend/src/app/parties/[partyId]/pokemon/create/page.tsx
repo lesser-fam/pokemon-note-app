@@ -1,5 +1,6 @@
 "use client";
 
+import { pokemonTypes } from "@/constants/pokemonTypes";
 import {
     fetchPokemonList,
     fetchRoleTags,
@@ -9,6 +10,7 @@ import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi"
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { RoleTag } from "@/types/roleTag";
+import { toHiragana } from "@/utils/kana";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -17,6 +19,7 @@ export default function CreatePartyPokemonPage() {
     const router = useRouter();
     const params = useParams<{ partyId: string }>();
     const partyId = Number(params.partyId);
+    const isInvalidPartyId = Number.isNaN(partyId);
 
     const [party, setParty] = useState<Party | null>(null);
     const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
@@ -24,6 +27,8 @@ export default function CreatePartyPokemonPage() {
 
     const [pokemonKey, setPokemonKey] = useState("");
     const [formKey, setFormKey] = useState("default");
+    const [searchKeyword, setSearchKeyword] = useState("");
+    const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
     const [nickname, setNickname] = useState("");
     const [item, setItem] = useState("");
     const [ability, setAbility] = useState("");
@@ -57,14 +62,42 @@ export default function CreatePartyPokemonPage() {
             }
         };
 
-        if (!Number.isNaN(partyId)) {
-            loadData();
+        if (isInvalidPartyId) {
+            return;
         }
-    }, [partyId]);
+
+        loadData();
+    }, [partyId, isInvalidPartyId]);
+
+    if (isInvalidPartyId) {
+        return (
+            <main className="mx-auto max-w-5x1 p-8">
+                <p className="rounded bg-red-100 p-3 text-red-700">
+                    パーティIDが正しくありません。
+                </p>
+            </main>
+        );
+    }
 
     const handleSelectPokemon = (pokemon: Pokemon) => {
         setPokemonKey(pokemon.key);
         setFormKey(pokemon.form_key);
+    };
+
+    const handleToggleType = (type: string) => {
+        setSelectedTypes((currentTypes) => {
+            if (currentTypes.includes(type)) {
+                return currentTypes.filter(
+                    (currentType) => currentType !== type,
+                );
+            }
+
+            if (currentTypes.length >= 2) {
+                return [currentTypes[1], type];
+            }
+
+            return [...currentTypes, type];
+        });
     };
 
     const handleToggleRoleTag = (roleTagId: number) => {
@@ -76,6 +109,24 @@ export default function CreatePartyPokemonPage() {
             return [...currentIds, roleTagId];
         });
     };
+
+    const normalizedKeyword = toHiragana(searchKeyword.trim());
+
+    const filteredPokemonList = pokemonList.filter((pokemon) => {
+        const normalizedName = toHiragana(pokemon.name);
+        const normalizedKana = toHiragana(pokemon.kana);
+
+        const matchesKeyword =
+            normalizedKeyword === "" ||
+            normalizedName.includes(normalizedKeyword) ||
+            normalizedKana.includes(normalizedKeyword);
+
+        const matchesTypes =
+            selectedTypes.length === 0 ||
+            selectedTypes.every((type) => pokemon.types.includes(type));
+
+        return matchesKeyword && matchesTypes;
+    });
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -155,11 +206,75 @@ export default function CreatePartyPokemonPage() {
                 <section className="rounded border p-6">
                     <h2 className="text-lg font-bold">ポケモン選択</h2>
                     <p className="mt-1 text-sm text-gray-600">
-                        まずは登録するポケモンを選びます。
+                        名前・かな・タイプから登録するポケモンを探せます。
                     </p>
 
+                    <div className="mt-4">
+                        <label className="block text-sm font-medium">
+                            ポケモン名で検索
+                        </label>
+                        <input
+                            className="mt-1 w-full rounded border p-3"
+                            value={searchKeyword}
+                            onChange={(event) =>
+                                setSearchKeyword(event.target.value)
+                            }
+                            placeholder="例：リザードン、りざ、ガブ"
+                        />
+                    </div>
+
+                    <div className="mt-5">
+                        <p className="text-sm font-medium">タイプで絞り込み</p>
+                        <p className="mt-1 text-xs text-gray-500">
+                            1つ選ぶと、そのタイプを含むポケモンを表示します。2つ選ぶと、その2タイプを両方持つポケモンを表示します。
+                        </p>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            {pokemonTypes.map((type) => {
+                                const isSelected = selectedTypes.includes(type);
+
+                                return (
+                                    <button
+                                        key={type}
+                                        type="button"
+                                        onClick={() => handleToggleType(type)}
+                                        className={`rounded-full border px-3 py-1 text-sm ${
+                                            isSelected
+                                                ? "border-black bg-black text-white"
+                                                : "hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        {type}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {selectedTypes.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => setSelectedTypes([])}
+                                className="mt-3 text-sm text-blue-600"
+                            >
+                                タイプ絞り込みを解除
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="mt-6 flex items-center justify-between">
+                        <p className="text-sm text-gray-600">
+                            候補：{filteredPokemonList.length}件
+                        </p>
+
+                        {pokemonKey && (
+                            <p className="text-sm font-medium">
+                                選択中：{pokemonKey} / {formKey}
+                            </p>
+                        )}
+                    </div>
+
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                        {pokemonList.map((pokemon) => {
+                        {filteredPokemonList.map((pokemon) => {
                             const isSelected =
                                 pokemon.key === pokemonKey &&
                                 pokemon.form_key === formKey;
@@ -169,9 +284,9 @@ export default function CreatePartyPokemonPage() {
                                     key={`${pokemon.key}-${pokemon.form_key}`}
                                     type="button"
                                     onClick={() => handleSelectPokemon(pokemon)}
-                                    className={`rounded border p-3 text-left ${
+                                    className={`rounded border p-3 text-left transition ${
                                         isSelected
-                                            ? "border-black bg-gray-100"
+                                            ? "border-black bg-gray-100 ring-2 ring-black"
                                             : "hover:bg-gray-50"
                                     }`}
                                 >
@@ -180,10 +295,10 @@ export default function CreatePartyPokemonPage() {
                                             <img
                                                 src={pokemon.image_url}
                                                 alt={pokemon.name}
-                                                className="h-14 w-14 object-contain"
+                                                className="h-16 w-16 object-contain"
                                             />
                                         ) : (
-                                            <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm">
+                                            <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-sm">
                                                 ?
                                             </div>
                                         )}
@@ -193,6 +308,9 @@ export default function CreatePartyPokemonPage() {
                                                 {pokemon.name}
                                             </p>
                                             <p className="text-xs text-gray-600">
+                                                {pokemon.kana}
+                                            </p>
+                                            <p className="mt-1 text-xs">
                                                 {pokemon.types.join(" / ")}
                                             </p>
                                         </div>
@@ -201,6 +319,12 @@ export default function CreatePartyPokemonPage() {
                             );
                         })}
                     </div>
+
+                    {filteredPokemonList.length === 0 && (
+                        <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                            条件に合うポケモンが見つかりません。
+                        </p>
+                    )}
                 </section>
 
                 <section className="rounded border p-6">

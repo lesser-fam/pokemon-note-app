@@ -3,7 +3,6 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PartyController;
 use App\Http\Controllers\Api\PartyPokemonController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/api/login', [AuthController::class, 'login']);
