@@ -39,6 +39,7 @@ export default function CreatePartyPokemonPage() {
     const [move4, setMove4] = useState("");
     const [memo, setMemo] = useState("");
     const [selectedRoleTagIds, setSelectedRoleTagIds] = useState<number[]>([]);
+    const [activeRoleTag, setActiveRoleTag] = useState<RoleTag | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -463,18 +464,33 @@ export default function CreatePartyPokemonPage() {
                             );
 
                             return (
-                                <button
+                                <div
                                     key={tag.id}
-                                    type="button"
-                                    onClick={() => handleToggleRoleTag(tag.id)}
-                                    className={`rounded-full border px-4 py-2 text-sm ${
-                                        isSelected
-                                            ? "border-black bg-black text-white"
-                                            : "hover:bg-gray-50"
-                                    }`}
+                                    className={`flex items-center overflow-hidden rounded-full border ${isSelected ? "border-black bg-black text-white" : "bg-white"}`}
                                 >
-                                    {tag.name}
-                                </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            handleToggleRoleTag(tag.id)
+                                        }
+                                        className={`px-4 py-2 text-sm ${
+                                            isSelected
+                                                ? "text-white"
+                                                : "hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        {tag.name}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveRoleTag(tag)}
+                                        className={`border-l px-3 py-2 text-sm ${isSelected ? "border-gray-600 text-white hover:bg-gray-800" : "text-gray-600 hover:bg-gray-50"}`}
+                                        aria-label={`${tag.name}の説明を見る`}
+                                    >
+                                        ?
+                                    </button>
+                                </div>
                             );
                         })}
                     </div>
@@ -488,6 +504,59 @@ export default function CreatePartyPokemonPage() {
                     {isSubmitting ? "登録中..." : "ポケモンを登録する"}
                 </button>
             </form>
+
+            {activeRoleTag && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                    <div className="w-full max-w-lg rounded bg-white p-6 shadow-lg">
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <h2 className="text-xl font-bold">
+                                    {activeRoleTag.name}
+                                </h2>
+                                <p className="mt-2 text-sm text-gray-700">
+                                    {activeRoleTag.description}
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => setActiveRoleTag(null)}
+                                className="rounded px-2 py-1 text-sm text-gray-500 hover:bg-gray-100"
+                            >
+                                閉じる
+                            </button>
+                        </div>
+
+                        {activeRoleTag.examples &&
+                            activeRoleTag.examples.length > 0 && (
+                                <div className="mt-5">
+                                    <h3 className="font-semibold">
+                                        付ける目安・技や型の例
+                                    </h3>
+
+                                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-700">
+                                        {activeRoleTag.examples.map(
+                                            (example) => (
+                                                <li key={example}>{example}</li>
+                                            ),
+                                        )}
+                                    </ul>
+                                </div>
+                            )}
+
+                        <div className="mt-5 rounded bg-gray-50 p-4 text-sm text-gray-700">
+                            <p className="font-semibold">
+                                おすすめ選出への影響
+                            </p>
+                            <p className="mt-1">
+                                初手：{activeRoleTag.lead_score}点 / 引き先：
+                                {activeRoleTag.switch_score}点 / 勝ち筋：
+                                {activeRoleTag.finisher_score}点
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }
