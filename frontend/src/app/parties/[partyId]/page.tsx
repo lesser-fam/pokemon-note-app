@@ -1,7 +1,9 @@
 "use client";
 
+import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import type { Party } from "@/types/party";
+import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,14 +14,20 @@ export default function PartyDetailPage() {
     const isInvalidPartyId = Number.isNaN(partyId);
 
     const [party, setParty] = useState<Party | null>(null);
+    const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
         const loadParty = async () => {
             try {
-                const data = await fetchParty(partyId);
-                setParty(data);
+                const [partyData, pokemonData] = await Promise.all([
+                    fetchParty(partyId),
+                    fetchPokemonList(),
+                ]);
+
+                setParty(partyData);
+                setPokemonList(pokemonData);
             } catch (error) {
                 console.error(error);
                 setErrorMessage("パーティ詳細の取得に失敗しました。");
@@ -44,6 +52,13 @@ export default function PartyDetailPage() {
             </main>
         );
     }
+
+    const findPokemonMaster = (pokemonKey: string, formKey: string) => {
+        return pokemonList.find(
+            (pokemon) =>
+                pokemon.key === pokemonKey && pokemon.form_key === formKey,
+        );
+    };
 
     if (isLoading) {
         return (
@@ -111,69 +126,98 @@ export default function PartyDetailPage() {
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                     {party.current_version?.pokemon &&
                     party.current_version.pokemon.length > 0 ? (
-                        party.current_version.pokemon.map((pokemon) => (
-                            <div
-                                key={pokemon.id}
-                                className="rounded border p-4"
-                            >
-                                <p className="font-bold">
-                                    {pokemon.nickname || pokemon.pokemon_key}
-                                </p>
+                        party.current_version.pokemon.map((pokemon) => {
+                            const pokemonMaster = findPokemonMaster(
+                                pokemon.pokemon_key,
+                                pokemon.form_key,
+                            );
 
-                                <p className="mt-1 text-sm text-gray-600">
-                                    key: {pokemon.pokemon_key} / form:{" "}
-                                    {pokemon.form_key}
-                                </p>
+                            return (
+                                <div
+                                    key={pokemon.id}
+                                    className="rounded border p-4"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        {pokemonMaster?.image_url ? (
+                                            <img
+                                                src={pokemonMaster.image_url}
+                                                alt={pokemonMaster.name}
+                                                className="h-20 w-20 object-contain"
+                                            />
+                                        ) : (
+                                            <div className="flex h-20 w-20 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
+                                                ?
+                                            </div>
+                                        )}
 
-                                {pokemon.item && (
-                                    <p className="mt-1 text-sm">
-                                        持ち物：{pokemon.item}
-                                    </p>
-                                )}
+                                        <div>
+                                            <p className="text-lg font-bold">
+                                                {pokemon.nickname ||
+                                                    pokemonMaster?.name ||
+                                                    pokemon.pokemon_key}
+                                            </p>
 
-                                {pokemon.ability && (
-                                    <p className="mt-1 text-sm">
-                                        特性：{pokemon.ability}
-                                    </p>
-                                )}
+                                            {pokemonMaster && (
+                                                <p className="mt-1 text-sm text-gray-600">
+                                                    {pokemonMaster.types.join(
+                                                        " / ",
+                                                    )}
+                                                </p>
+                                            )}
 
-                                {pokemon.nature && (
-                                    <p className="mt-1 text-sm">
-                                        性格：{pokemon.nature}
-                                    </p>
-                                )}
-
-                                <div className="mt-2 text-sm text-gray-700">
-                                    <p>技：</p>
-                                    <ul className="ml-4 list-disc">
-                                        {[
-                                            pokemon.move_1,
-                                            pokemon.move_2,
-                                            pokemon.move_3,
-                                            pokemon.move_4,
-                                        ]
-                                            .filter(Boolean)
-                                            .map((move) => (
-                                                <li key={move}>{move}</li>
-                                            ))}
-                                    </ul>
-                                </div>
-
-                                {pokemon.role_tags &&
-                                    pokemon.role_tags.length > 0 && (
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                            {pokemon.role_tags.map((tag) => (
-                                                <span
-                                                    key={tag.id}
-                                                    className="rounded bg-gray-100 px-2 py-1 text-xs"
-                                                >
-                                                    {tag.name}
-                                                </span>
-                                            ))}
+                                            <p className="mt-1 text-xs text-gray-400">
+                                                key: {pokemon.pokemon_key} /
+                                                form: {pokemon.form_key}
+                                            </p>
                                         </div>
-                                    )}
-                            </div>
-                        ))
+                                    </div>
+
+                                    <div className="mt-4 grid gap-2 text-sm text-gray-700">
+                                        {pokemon.item && (
+                                            <p>持ち物：{pokemon.item}</p>
+                                        )}
+                                        {pokemon.ability && (
+                                            <p>特性：{pokemon.ability}</p>
+                                        )}
+                                        {pokemon.nature && (
+                                            <p>性格：{pokemon.nature}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="mt-4 text-sm text-gray-700">
+                                        <p className="font-medium">技</p>
+                                        <ul className="mt-1 ml-4 list-disc">
+                                            {[
+                                                pokemon.move_1,
+                                                pokemon.move_2,
+                                                pokemon.move_3,
+                                                pokemon.move_4,
+                                            ]
+                                                .filter(Boolean)
+                                                .map((move) => (
+                                                    <li key={move}>{move}</li>
+                                                ))}
+                                        </ul>
+                                    </div>
+
+                                    {pokemon.role_tags &&
+                                        pokemon.role_tags.length > 0 && (
+                                            <div className="mt-4 flex flex-wrap gap-2">
+                                                {pokemon.role_tags.map(
+                                                    (tag) => (
+                                                        <span
+                                                            key={tag.id}
+                                                            className="rounded bg-gray-100 px-2 py-1 text-xs"
+                                                        >
+                                                            {tag.name}
+                                                        </span>
+                                                    ),
+                                                )}
+                                            </div>
+                                        )}
+                                </div>
+                            );
+                        })
                     ) : (
                         <p className="text-gray-600">
                             まだポケモンが登録されていません。
