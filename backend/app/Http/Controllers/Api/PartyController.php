@@ -64,6 +64,10 @@ class PartyController extends Controller
             'currentVersion.selectionTemplates.leadPokemon.roleTags',
             'currentVersion.selectionTemplates.switchPokemon.roleTags',
             'currentVersion.selectionTemplates.finisherPokemon.roleTags',
+            'currentVersion.battleLogs.selectedPokemon1.roleTags',
+            'currentVersion.battleLogs.selectedPokemon2.roleTags',
+            'currentVersion.battleLogs.selectedPokemon3.roleTags',
+            'currentVersion.battleLogs.neededPokemon.roleTags',
             'versions',
         ]);
 

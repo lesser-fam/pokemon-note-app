@@ -8,6 +8,7 @@ export type PartyVersion = {
     updated_at: string;
     pokemon?: PartyPokemon[];
     selection_templates?: SelectionTemplate[];
+    battle_logs?:BattleLog[];
 };
 
 export type PartyPokemon = {
