@@ -2,6 +2,7 @@
 
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
+import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
@@ -78,6 +79,9 @@ export default function PartyDetailPage() {
         );
     }
 
+    const currentPokemonList = party.current_version?.pokemon ?? [];
+    const suggestedSelection = suggestBasicSelection(currentPokemonList);
+
     return (
         <main className="mx-auto max-w-5xl p-8">
             <Link href="/parties" className="text-sm text-blue-600">
@@ -110,6 +114,95 @@ export default function PartyDetailPage() {
                     </div>
                 )}
             </div>
+
+            <section className="mt-8 rounded border p-6">
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <h2 className="text-xl font-bold">おすすめ基本選出</h2>
+                        <p className="mt-1 text-sm text-gray-600">
+                            役割タグの点数から、初手・引き先・勝ち筋を仮提案します。
+                        </p>
+                    </div>
+                </div>
+
+                {currentPokemonList.length < 3 ? (
+                    <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                        基本選出を提案するには、ポケモンを3匹以上登録してください。
+                    </p>
+                ) : (
+                    <div className="mt-4 grid gap-4 md:grid-cols-3">
+                        {suggestedSelection.map((suggestion) => {
+                            const pokemonMaster = suggestion.pokemon
+                                ? findPokemonMaster(
+                                      suggestion.pokemon.pokemon_key,
+                                      suggestion.pokemon.form_key,
+                                  )
+                                : null;
+
+                            return (
+                                <div
+                                    key={suggestion.role}
+                                    className="rounded border p-4"
+                                >
+                                    <p className="text-sm font-semibold text-gray-500">
+                                        {suggestion.label}
+                                    </p>
+
+                                    {suggestion.pokemon ? (
+                                        <>
+                                            <div className="mt-3 flex items-center gap-3">
+                                                {pokemonMaster?.image_url ? (
+                                                    <img
+                                                        src={
+                                                            pokemonMaster.image_url
+                                                        }
+                                                        alt={pokemonMaster.name}
+                                                        className="h-16 w-16 object-contain"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
+                                                        ?
+                                                    </div>
+                                                )}
+
+                                                <div>
+                                                    <p className="font-bold">
+                                                        {suggestion.pokemon
+                                                            .nickname ||
+                                                            pokemonMaster?.name ||
+                                                            suggestion.pokemon
+                                                                .pokemon_key}
+                                                    </p>
+
+                                                    {pokemonMaster && (
+                                                        <p className="mt-1 text-xs text-gray-600">
+                                                            {pokemonMaster.types.join(
+                                                                " / ",
+                                                            )}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <p className="mt-3 text-sm text-gray-700">
+                                                {suggestion.reason}
+                                            </p>
+
+                                            <p className="mt-2 text-xs text-gray-500">
+                                                点数：{suggestion.score}
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <p className="mt-3 text-sm text-gray-600">
+                                            候補がありません。
+                                        </p>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </section>
 
             <section className="mt-8 rounded border p-6">
                 <div className="flex items-center justify-between">
