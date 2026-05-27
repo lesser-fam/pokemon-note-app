@@ -283,7 +283,7 @@ export default function BattlePreviewPage() {
             </div>
 
             <section className="mt-8 rounded border p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                     <div>
                         <h2 className="text-xl font-bold">相手パーティ</h2>
                         <p className="mt-1 text-sm text-gray-600">
@@ -291,9 +291,27 @@ export default function BattlePreviewPage() {
                         </p>
                     </div>
 
-                    <p className="text-sm font-medium">
-                        {opponentPokemonList.length} / 6
-                    </p>
+                    <div className="flex items-center gap-3">
+                        <p className="text-sm font-medium">
+                            {opponentPokemonList.length} / 6
+                        </p>
+
+                        <Link
+                            href={`/parties/${party.id}/battle-logs/create?opponents=${opponentPokemonList
+                                .map(
+                                    (pokemon) =>
+                                        `${pokemon.key}:${pokemon.form_key}`,
+                                )
+                                .join(",")}`}
+                            className={`rounded px-4 py-2 text-sm text-white ${
+                                opponentPokemonList.length === 0
+                                    ? "pointer-events-none bg-gray-400"
+                                    : "bg-black"
+                            }`}
+                        >
+                            対戦ログ作成へ
+                        </Link>
+                    </div>
                 </div>
 
                 {opponentPokemonList.length === 0 ? (
