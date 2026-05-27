@@ -134,15 +134,24 @@ export default function PartyDetailPage() {
             </Link>
 
             <div className="mt-4 rounded border p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                     <h1 className="text-2xl font-bold">{party.name}</h1>
 
-                    {party.current_version && (
-                        <span className="rounded bg-gray-100 px-3 py-1 text-sm">
-                            現在のバージョン：v
-                            {party.current_version.version_number}
-                        </span>
-                    )}
+                    <div className="flex items-center gap-3">
+                        {party.current_version && (
+                            <span className="rounded bg-gray-100 px-3 py-1 text-sm">
+                                現在のバージョン：v
+                                {party.current_version.version_number}
+                            </span>
+                        )}
+
+                        <Link
+                            href={`/parties/${party.id}/battle-preview`}
+                            className="rounded bg-blue-600 px-4 py-2 text-sm text-white"
+                        >
+                            対戦前選出へ
+                        </Link>
+                    </div>
                 </div>
 
                 {party.concept && (
