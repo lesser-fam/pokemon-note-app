@@ -23,23 +23,23 @@ class StorePartyPokemonRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pokemon_key' => ['required', 'string', 'max:255'],
-            'form_key' => ['required', 'string', 'max:255'],
+            'pokemon_key'       => 'required|string|max:255',
+            'form_key'          => 'required|string|max:255',
 
-            'nickname' => ['nullable', 'string', 'max:255'],
-            'item' => ['nullable', 'string', 'max:255'],
-            'ability' => ['nullable', 'string', 'max:255'],
-            'nature' => ['nullable', 'string', 'max:255'],
+            'nickname'          => 'nullable|string|max:255',
+            'item'              => 'nullable|string|max:255',
+            'ability'           => 'nullable|string|max:255',
+            'nature'            => 'nullable|string|max:255',
 
-            'move_1' => ['nullable', 'string', 'max:255'],
-            'move_2' => ['nullable', 'string', 'max:255'],
-            'move_3' => ['nullable', 'string', 'max:255'],
-            'move_4' => ['nullable', 'string', 'max:255'],
+            'move_1'            => 'nullable|string|max:255',
+            'move_2'            => 'nullable|string|max:255',
+            'move_3'            => 'nullable|string|max:255',
+            'move_4'            => 'nullable|string|max:255',
 
-            'memo' => ['nullable', 'string'],
+            'memo'              => 'nullable|string',
 
-            'role_tag_ids' => ['nullable', 'array'],
-            'role_tag_ids.*' => ['integer', 'exists:role_tags,id'],
+            'role_tag_ids'      => 'nullable|array',
+            'role_tag_ids.*'    => 'integer|exists:role_tags,id',
         ];
     }
 }

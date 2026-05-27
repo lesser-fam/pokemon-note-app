@@ -21,4 +21,9 @@ class PartyVersion extends Model
     {
         return $this->hasMany(PartyPokemon::class);
     }
+
+    public function selectionTemplates()
+    {
+        return $this->hasMany(SelectionTemplate::class);
+    }
 }

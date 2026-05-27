@@ -8,6 +8,7 @@ import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { createSelectionTemplate } from "@/features/selectionTemplates/api/selectionTemplateApi";
 
 export default function PartyDetailPage() {
     const params = useParams<{ partyId: string }>();
@@ -17,6 +18,7 @@ export default function PartyDetailPage() {
     const [party, setParty] = useState<Party | null>(null);
     const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSavingSelection, setIsSavingSelection] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
@@ -82,6 +84,49 @@ export default function PartyDetailPage() {
     const currentPokemonList = party.current_version?.pokemon ?? [];
     const suggestedSelection = suggestBasicSelection(currentPokemonList);
 
+    const handleSaveSuggestedSelection = async () => {
+        if (!party.current_version) {
+            setErrorMessage("現在のバージョンが見つかりません。");
+            return;
+        }
+
+        const lead = suggestedSelection.find(
+            (suggestion) => suggestion.role === "lead",
+        );
+        const switchPokemon = suggestedSelection.find(
+            (suggestion) => suggestion.role === "switch",
+        );
+        const finisher = suggestedSelection.find(
+            (suggestion) => suggestion.role === "finisher",
+        );
+
+        if (!lead?.pokemon || !switchPokemon?.pokemon || !finisher?.pokemon) {
+            setErrorMessage("保存できる基本選出がありません。");
+            return;
+        }
+
+        setIsSavingSelection(true);
+        setErrorMessage("");
+
+        try {
+            await createSelectionTemplate(party.current_version.id, {
+                name: "おすすめ基本選出",
+                lead_pokemon_id: lead.pokemon.id,
+                switch_pokemon_id: switchPokemon.pokemon.id,
+                finisher_pokemon_id: finisher.pokemon.id,
+                memo: "役割タグの点数から自動提案された基本選出です。",
+            });
+
+            const refreshedParty = await fetchParty(party.id);
+            setParty(refreshedParty);
+        } catch (error) {
+            console.error(error);
+            setErrorMessage("基本選出の保存に失敗しました。");
+        } finally {
+            setIsSavingSelection(false);
+        }
+    };
+
     return (
         <main className="mx-auto max-w-5xl p-8">
             <Link href="/parties" className="text-sm text-blue-600">
@@ -123,6 +168,19 @@ export default function PartyDetailPage() {
                             役割タグの点数から、初手・引き先・勝ち筋を仮提案します。
                         </p>
                     </div>
+
+                    {currentPokemonList.length >= 3 && (
+                        <button
+                            type="button"
+                            onClick={handleSaveSuggestedSelection}
+                            disabled={isSavingSelection}
+                            className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+                        >
+                            {isSavingSelection
+                                ? "保存中..."
+                                : "この基本選出を保存"}
+                        </button>
+                    )}
                 </div>
 
                 {currentPokemonList.length < 3 ? (
@@ -201,6 +259,77 @@ export default function PartyDetailPage() {
                             );
                         })}
                     </div>
+                )}
+            </section>
+
+            <section className="mt-8 rounded border p-6">
+                <h2 className="text-xl font-bold">保存済み基本選出</h2>
+                <p className="mt-1 text-sm text-gray-600">
+                    保存した基本選出です。対戦前の選出候補として使います。
+                </p>
+
+                {party.current_version?.selection_templates &&
+                party.current_version.selection_templates.length > 0 ? (
+                    <div className="mt-4 space-y-4">
+                        {party.current_version.selection_templates.map(
+                            (template) => (
+                                <div
+                                    key={template.id}
+                                    className="rounded bg-gray-50 p-4"
+                                >
+                                    <p className="font-bold">{template.name}</p>
+
+                                    {template.memo && (
+                                        <p className="mt-1 text-sm text-gray-600">
+                                            {template.memo}
+                                        </p>
+                                    )}
+
+                                    <div className="mt-3 grid gap-3 md:grid-cols-3">
+                                        <div className="rounded bg-white p-3">
+                                            <p className="text-xs text-gray-500">
+                                                初手
+                                            </p>
+                                            <p className="font-semibold">
+                                                {template.lead_pokemon
+                                                    ?.nickname ||
+                                                    template.lead_pokemon
+                                                        ?.pokemon_key}
+                                            </p>
+                                        </div>
+
+                                        <div className="rounded bg-white p-3">
+                                            <p className="text-xs text-gray-500">
+                                                引き先
+                                            </p>
+                                            <p className="font-semibold">
+                                                {template.switch_pokemon
+                                                    ?.nickname ||
+                                                    template.switch_pokemon
+                                                        ?.pokemon_key}
+                                            </p>
+                                        </div>
+
+                                        <div className="rounded bg-white p-3">
+                                            <p className="text-xs text-gray-500">
+                                                勝ち筋
+                                            </p>
+                                            <p className="font-semibold">
+                                                {template.finisher_pokemon
+                                                    ?.nickname ||
+                                                    template.finisher_pokemon
+                                                        ?.pokemon_key}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ),
+                        )}
+                    </div>
+                ) : (
+                    <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                        まだ基本選出は保存されていません。
+                    </p>
                 )}
             </section>
 

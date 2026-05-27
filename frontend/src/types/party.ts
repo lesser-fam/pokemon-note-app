@@ -7,6 +7,7 @@ export type PartyVersion = {
     created_at: string;
     updated_at: string;
     pokemon?: PartyPokemon[];
+    selection_templates?: SelectionTemplate[];
 };
 
 export type PartyPokemon = {
@@ -35,6 +36,21 @@ export type PartyPokemon = {
         switch_score: number;
         finisher_score: number;
     }[];
+};
+
+export type SelectionTemplate = {
+    id: number;
+    party_version_id: number;
+    name: string;
+    lead_pokemon_id: number;
+    switch_pokemon_id: number;
+    finisher_pokemon_id: number;
+    memo: string | null;
+    created_at: string;
+    updated_at: string;
+    lead_pokemon?: PartyPokemon;
+    switch_pokemon?: PartyPokemon;
+    finisher_pokemon?: PartyPokemon;
 };
 
 export type Party = {

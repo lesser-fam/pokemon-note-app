@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PartyController;
 use App\Http\Controllers\Api\PartyPokemonController;
+use App\Http\Controllers\Api\SelectionTemplateController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/api/login', [AuthController::class, 'login']);
@@ -16,4 +17,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/api/parties/{party}', [PartyController::class, 'show']);
 
     Route::post('/api/party-versions/{partyVersion}/pokemon', [PartyPokemonController::class, 'store']);
+
+    Route::post('/api/party-versions/{partyVersion}/selection-templates', [SelectionTemplateController::class, 'store']);
 });

@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StorePartyRequest extends FormRequest
+class StoreSelectionTemplateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,9 +23,11 @@ class StorePartyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'      => 'required|string|max:255',
-            'concept'   => 'nullable|string',
-            'memo'      => 'nullable|string',
+            'name'                  => 'required|string|max:255',
+            'lead_pokemon_id'       => 'required|integer|exists:party_pokemon,id',
+            'switch_pokemon_id'     => 'required|integer|exists:party_pokemon,id',
+            'finisher_pokemon_id'   => 'required|integer|exists:party_pokemon,id',
+            'memo'                  => 'nullable|string',
         ];
     }
 }
