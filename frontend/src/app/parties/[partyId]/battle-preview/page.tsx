@@ -1,15 +1,16 @@
 "use client";
 
 import { pokemonTypes } from "@/constants/pokemonTypes";
+import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
+import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
 import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import { toHiragana } from "@/utils/kana";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
 
 export default function BattlePreviewPage() {
     const params = useParams<{ partyId: string }>();
@@ -116,6 +117,97 @@ export default function BattlePreviewPage() {
 
         return matchesKeyword && matchesTypes;
     });
+
+    const opponentAnalysis = analyzeOpponentParty(opponentPokemonList);
+
+    const renderPokemonIconRanking = (
+        pokemonList: {
+            key: string;
+            form_key: string;
+            name: string;
+            image_url: string | null;
+            value: number;
+        }[],
+        valueLabel: string,
+    ) => {
+        if (pokemonList.length === 0) {
+            return (
+                <p className="mt-3 text-sm text-gray-600">
+                    相手ポケモンを入力してください。
+                </p>
+            );
+        }
+
+        return (
+            <div className="mt-3 flex flex-wrap gap-3">
+                {pokemonList.map((pokemon) => (
+                    <div
+                        key={`${pokemon.key}-${pokemon.form_key}-${valueLabel}`}
+                        className="rounded bg-white p-3 text-center"
+                    >
+                        {pokemon.image_url ? (
+                            <img
+                                src={pokemon.image_url}
+                                alt={pokemon.name}
+                                className="mx-auto h-14 w-14 object-contain"
+                            />
+                        ) : (
+                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm">
+                                ?
+                            </div>
+                        )}
+
+                        <p className="mt-1 text-xs font-semibold">
+                            {pokemon.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                            {valueLabel}
+                            {pokemon.value}
+                        </p>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const renderRatioBar = (
+        leftLabel: string,
+        leftRate: number,
+        rightLabel: string,
+        rightRate: number,
+    ) => {
+        return (
+            <div className="mt-3">
+                <div className="mb-1 flex justify-between text-sm">
+                    <span>
+                        {leftLabel} {leftRate}%
+                    </span>
+                    <span>
+                        {rightLabel} {rightRate}%
+                    </span>
+                </div>
+
+                <div className="flex h-3 overflow-hidden rounded bg-gray-200">
+                    <div
+                        className="bg-gray-800"
+                        style={{ width: `${leftRate}%` }}
+                    />
+                    <div
+                        className="bg-gray-400"
+                        style={{ width: `${rightRate}%` }}
+                    />
+                </div>
+            </div>
+        );
+    };
+
+    const calculateRate = (value: number, total: number) => {
+        if (total === 0) {
+            return 0;
+        }
+
+        return Math.min(100, Math.round((value / total) * 100));
+    };
 
     const findPokemonMaster = (pokemonKey: string, formKey: string) => {
         return pokemonList.find(
@@ -235,6 +327,26 @@ export default function BattlePreviewPage() {
                                         <p className="text-xs text-gray-600">
                                             {pokemon.types.join(" / ")}
                                         </p>
+                                        <p className="mt-2 flex flex-wrap gap-1 text-xs text-gray-600">
+                                            <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                H{pokemon.base_stats.h}
+                                            </span>
+                                            <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                A{pokemon.base_stats.a}
+                                            </span>
+                                            <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                B{pokemon.base_stats.b}
+                                            </span>
+                                            <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                C{pokemon.base_stats.c}
+                                            </span>
+                                            <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                D{pokemon.base_stats.d}
+                                            </span>
+                                            <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                S{pokemon.base_stats.s}
+                                            </span>
+                                        </p>
                                     </div>
                                 </div>
 
@@ -249,6 +361,107 @@ export default function BattlePreviewPage() {
                                 </button>
                             </div>
                         ))}
+                    </div>
+                )}
+            </section>
+
+            <section className="mt-8 rounded border p-6">
+                <h2 className="text-xl font-bold">相手パーティ簡易分析</h2>
+                <p className="mt-1 text-sm text-gray-600">
+                    入力した相手ポケモンの種族値から、警戒したいポイントを見やすく表示します。
+                </p>
+
+                {opponentPokemonList.length === 0 ? (
+                    <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                        相手ポケモンを入力すると、ここに分析結果が表示されます。
+                    </p>
+                ) : (
+                    <div className="mt-4 space-y-6">
+                        <div className="rounded bg-gray-50 p-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-bold">素早さ順</h3>
+                                <p className="text-xs text-gray-500">
+                                    ← 速い　遅い →
+                                </p>
+                            </div>
+
+                            {renderPokemonIconRanking(
+                                opponentAnalysis.speedRanking,
+                                "S",
+                            )}
+                        </div>
+
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            <div className="rounded bg-gray-50 p-4">
+                                <h3 className="font-bold">
+                                    物理火力 A 上位3匹
+                                </h3>
+                                {renderPokemonIconRanking(
+                                    opponentAnalysis.attackTop3,
+                                    "A",
+                                )}
+                            </div>
+
+                            <div className="rounded bg-gray-50 p-4">
+                                <h3 className="font-bold">
+                                    特殊火力 C 上位3匹
+                                </h3>
+                                {renderPokemonIconRanking(
+                                    opponentAnalysis.specialAttackTop3,
+                                    "C",
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="rounded bg-gray-50 p-4">
+                            <h3 className="font-bold">火力傾向</h3>
+                            <p className="mt-1 text-sm text-gray-700">
+                                {opponentAnalysis.attackBiasLabel}
+                            </p>
+
+                            {renderRatioBar(
+                                "攻撃",
+                                opponentAnalysis.attackRate,
+                                "特攻",
+                                opponentAnalysis.specialAttackRate,
+                            )}
+                        </div>
+
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            <div className="rounded bg-gray-50 p-4">
+                                <h3 className="font-bold">
+                                    物理耐久 B 上位3匹
+                                </h3>
+                                {renderPokemonIconRanking(
+                                    opponentAnalysis.defenseTop3,
+                                    "B",
+                                )}
+                            </div>
+
+                            <div className="rounded bg-gray-50 p-4">
+                                <h3 className="font-bold">
+                                    特殊耐久 D 上位3匹
+                                </h3>
+                                {renderPokemonIconRanking(
+                                    opponentAnalysis.specialDefenseTop3,
+                                    "D",
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="rounded bg-gray-50 p-4">
+                            <h3 className="font-bold">耐久傾向</h3>
+                            <p className="mt-1 text-sm text-gray-700">
+                                {opponentAnalysis.defenseBiasLabel}
+                            </p>
+
+                            {renderRatioBar(
+                                "防御",
+                                opponentAnalysis.defenseRate,
+                                "特防",
+                                opponentAnalysis.specialDefenseRate,
+                            )}
+                        </div>
                     </div>
                 )}
             </section>
