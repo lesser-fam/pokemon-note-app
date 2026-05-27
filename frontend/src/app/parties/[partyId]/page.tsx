@@ -272,58 +272,182 @@ export default function PartyDetailPage() {
                 party.current_version.selection_templates.length > 0 ? (
                     <div className="mt-4 space-y-4">
                         {party.current_version.selection_templates.map(
-                            (template) => (
-                                <div
-                                    key={template.id}
-                                    className="rounded bg-gray-50 p-4"
-                                >
-                                    <p className="font-bold">{template.name}</p>
+                            (template) => {
+                                const leadMaster = template.lead_pokemon
+                                    ? findPokemonMaster(
+                                          template.lead_pokemon.pokemon_key,
+                                          template.lead_pokemon.form_key,
+                                      )
+                                    : null;
 
-                                    {template.memo && (
-                                        <p className="mt-1 text-sm text-gray-600">
-                                            {template.memo}
+                                const switchMaster = template.switch_pokemon
+                                    ? findPokemonMaster(
+                                          template.switch_pokemon.pokemon_key,
+                                          template.switch_pokemon.form_key,
+                                      )
+                                    : null;
+
+                                const finisherMaster = template.finisher_pokemon
+                                    ? findPokemonMaster(
+                                          template.finisher_pokemon.pokemon_key,
+                                          template.finisher_pokemon.form_key,
+                                      )
+                                    : null;
+
+                                return (
+                                    <div
+                                        key={template.id}
+                                        className="rounded bg-gray-50 p-4"
+                                    >
+                                        <p className="font-bold">
+                                            {template.name}
                                         </p>
-                                    )}
 
-                                    <div className="mt-3 grid gap-3 md:grid-cols-3">
-                                        <div className="rounded bg-white p-3">
-                                            <p className="text-xs text-gray-500">
-                                                初手
+                                        {template.memo && (
+                                            <p className="mt-1 text-sm text-gray-600">
+                                                {template.memo}
                                             </p>
-                                            <p className="font-semibold">
-                                                {template.lead_pokemon
-                                                    ?.nickname ||
-                                                    template.lead_pokemon
-                                                        ?.pokemon_key}
-                                            </p>
-                                        </div>
+                                        )}
 
-                                        <div className="rounded bg-white p-3">
-                                            <p className="text-xs text-gray-500">
-                                                引き先
-                                            </p>
-                                            <p className="font-semibold">
-                                                {template.switch_pokemon
-                                                    ?.nickname ||
-                                                    template.switch_pokemon
-                                                        ?.pokemon_key}
-                                            </p>
-                                        </div>
+                                        <div className="mt-3 grid gap-3 md:grid-cols-3">
+                                            <div className="rounded bg-white p-3">
+                                                <p className="text-xs text-gray-500">
+                                                    初手
+                                                </p>
 
-                                        <div className="rounded bg-white p-3">
-                                            <p className="text-xs text-gray-500">
-                                                勝ち筋
-                                            </p>
-                                            <p className="font-semibold">
-                                                {template.finisher_pokemon
-                                                    ?.nickname ||
-                                                    template.finisher_pokemon
-                                                        ?.pokemon_key}
-                                            </p>
+                                                <div className="mt-2 flex items-center gap-3">
+                                                    {leadMaster?.image_url ? (
+                                                        <img
+                                                            src={
+                                                                leadMaster.image_url
+                                                            }
+                                                            alt={
+                                                                leadMaster.name
+                                                            }
+                                                            className="h-14 w-14 object-contain"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
+                                                            ?
+                                                        </div>
+                                                    )}
+
+                                                    <div>
+                                                        <p className="font-semibold">
+                                                            {template
+                                                                .lead_pokemon
+                                                                ?.nickname ||
+                                                                leadMaster?.name ||
+                                                                template
+                                                                    .lead_pokemon
+                                                                    ?.pokemon_key ||
+                                                                "未設定"}
+                                                        </p>
+
+                                                        {leadMaster && (
+                                                            <p className="mt-1 text-xs text-gray-600">
+                                                                {leadMaster.types.join(
+                                                                    " / ",
+                                                                )}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="rounded bg-white p-3">
+                                                <p className="text-xs text-gray-500">
+                                                    引き先
+                                                </p>
+
+                                                <div className="mt-2 flex items-center gap-3">
+                                                    {switchMaster?.image_url ? (
+                                                        <img
+                                                            src={
+                                                                switchMaster.image_url
+                                                            }
+                                                            alt={
+                                                                switchMaster.name
+                                                            }
+                                                            className="h-14 w-14 object-contain"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
+                                                            ?
+                                                        </div>
+                                                    )}
+
+                                                    <div>
+                                                        <p className="font-semibold">
+                                                            {template
+                                                                .switch_pokemon
+                                                                ?.nickname ||
+                                                                switchMaster?.name ||
+                                                                template
+                                                                    .switch_pokemon
+                                                                    ?.pokemon_key ||
+                                                                "未設定"}
+                                                        </p>
+
+                                                        {switchMaster && (
+                                                            <p className="mt-1 text-xs text-gray-600">
+                                                                {switchMaster.types.join(
+                                                                    " / ",
+                                                                )}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="rounded bg-white p-3">
+                                                <p className="text-xs text-gray-500">
+                                                    勝ち筋
+                                                </p>
+
+                                                <div className="mt-2 flex items-center gap-3">
+                                                    {finisherMaster?.image_url ? (
+                                                        <img
+                                                            src={
+                                                                finisherMaster.image_url
+                                                            }
+                                                            alt={
+                                                                finisherMaster.name
+                                                            }
+                                                            className="h-14 w-14 object-contain"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
+                                                            ?
+                                                        </div>
+                                                    )}
+
+                                                    <div>
+                                                        <p className="font-semibold">
+                                                            {template
+                                                                .finisher_pokemon
+                                                                ?.nickname ||
+                                                                finisherMaster?.name ||
+                                                                template
+                                                                    .finisher_pokemon
+                                                                    ?.pokemon_key ||
+                                                                "未設定"}
+                                                        </p>
+
+                                                        {finisherMaster && (
+                                                            <p className="mt-1 text-xs text-gray-600">
+                                                                {finisherMaster.types.join(
+                                                                    " / ",
+                                                                )}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ),
+                                );
+                            },
                         )}
                     </div>
                 ) : (
