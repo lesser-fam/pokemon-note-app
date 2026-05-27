@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\SelectionTemplate;
 
 class PartyVersion extends Model
 {
@@ -25,5 +26,10 @@ class PartyVersion extends Model
     public function selectionTemplates()
     {
         return $this->hasMany(SelectionTemplate::class);
+    }
+
+    public function battleLogs()
+    {
+        return $this->hasMany(BattleLog::class);
     }
 }

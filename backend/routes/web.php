@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BattleLogController;
 use App\Http\Controllers\Api\PartyController;
 use App\Http\Controllers\Api\PartyPokemonController;
 use App\Http\Controllers\Api\SelectionTemplateController;
@@ -19,4 +20,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/api/party-versions/{partyVersion}/pokemon', [PartyPokemonController::class, 'store']);
 
     Route::post('/api/party-versions/{partyVersion}/selection-templates', [SelectionTemplateController::class, 'store']);
+
+    Route::post('/api/party-versions/{partyVersion}/battle-logs', [BattleLogController::class, 'store']);
 });

@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('party_pokemon', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('party_version_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('party_version_id')
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->string('pokemon_key');
             $table->string('form_key')->default('default');

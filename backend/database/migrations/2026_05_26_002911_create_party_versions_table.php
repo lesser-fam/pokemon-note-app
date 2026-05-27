@@ -13,7 +13,11 @@ return new class extends Migration
     {
         Schema::create('party_versions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('party_id')->constrained()->cascadeOnDelete();
+
+            $table->foreignId('party_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
             $table->unsignedInteger('version_number');
             $table->text('change_note')->nullable();
             $table->boolean('is_current')->default(true);
