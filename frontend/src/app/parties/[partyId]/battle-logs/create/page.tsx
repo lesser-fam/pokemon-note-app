@@ -1,5 +1,6 @@
 "use client";
 
+import { AppHeader } from "@/components/AppHeader";
 import { createBattleLog } from "@/features/battleLogs/api/battleLogApi";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
@@ -186,300 +187,323 @@ export default function CreateBattleLogPage() {
 
     if (isLoading) {
         return (
-            <main className="mx-auto max-w-5xl p-8">
-                <p>読み込み中...</p>
-            </main>
+            <>
+                <AppHeader />
+
+                <main className="mx-auto max-w-5xl p-8">
+                    <p>読み込み中...</p>
+                </main>
+            </>
         );
     }
 
     if (errorMessage && !party) {
         return (
-            <main className="mx-auto max-w-5xl p-8">
-                <p className="rounded bg-red-100 p-3 text-red-700">
-                    {errorMessage}
-                </p>
-            </main>
+            <>
+                <AppHeader />
+
+                <main className="mx-auto max-w-5xl p-8">
+                    <p className="rounded bg-red-100 p-3 text-red-700">
+                        {errorMessage}
+                    </p>
+                </main>
+            </>
         );
     }
 
     if (!party) {
         return (
-            <main className="mx-auto max-w-5xl p-8">
-                <p className="rounded bg-red-100 p-3 text-red-700">
-                    パーティが見つかりません。
-                </p>
-            </main>
+            <>
+                <AppHeader />
+
+                <main className="mx-auto max-w-5xl p-8">
+                    <p className="rounded bg-red-100 p-3 text-red-700">
+                        パーティが見つかりません。
+                    </p>
+                </main>
+            </>
         );
     }
 
     return (
-        <main className="mx-auto max-w-5xl p-8">
-            <Link
-                href={`/parties/${party.id}/battle-preview`}
-                className="text-sm text-blue-600"
-            >
-                ← 対戦前選出へ戻る
-            </Link>
+        <>
+            <AppHeader />
 
-            <h1 className="mt-4 text-2xl font-bold">対戦ログ作成</h1>
-            <p className="mt-1 text-sm text-gray-600">
-                対戦結果と反省を記録します。
-            </p>
+            <main className="mx-auto max-w-5xl p-8">
+                <Link
+                    href={`/parties/${party.id}/battle-preview`}
+                    className="text-sm text-blue-600"
+                >
+                    ← 対戦前選出へ戻る
+                </Link>
 
-            {errorMessage && (
-                <p className="mt-6 rounded bg-red-100 p-3 text-red-700">
-                    {errorMessage}
+                <h1 className="mt-4 text-2xl font-bold">対戦ログ作成</h1>
+                <p className="mt-1 text-sm text-gray-600">
+                    対戦結果と反省を記録します。
                 </p>
-            )}
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-8">
-                <section className="rounded border p-6">
-                    <h2 className="text-lg font-bold">相手パーティ</h2>
-
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                        {opponentPokemonPairs.map((opponent) => {
-                            const pokemonMaster = findPokemonMaster(
-                                opponent.key,
-                                opponent.form_key,
-                            );
-
-                            return (
-                                <div
-                                    key={`${opponent.key}-${opponent.form_key}`}
-                                    className="rounded border p-3"
-                                >
-                                    {pokemonMaster?.image_url && (
-                                        <img
-                                            src={pokemonMaster.image_url}
-                                            alt={pokemonMaster.name}
-                                            className="h-14 w-14 object-contain"
-                                        />
-                                    )}
-                                    <p className="mt-2 font-bold">
-                                        {pokemonMaster?.name || opponent.key}
-                                    </p>
-                                    {pokemonMaster && (
-                                        <p className="text-xs text-gray-600">
-                                            {pokemonMaster.types.join(" / ")}
-                                        </p>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </section>
-
-                <section className="rounded border p-6">
-                    <h2 className="text-lg font-bold">勝敗</h2>
-
-                    <div className="mt-4 flex gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setResult("win")}
-                            className={`rounded border px-4 py-2 ${
-                                result === "win"
-                                    ? "bg-black text-white"
-                                    : "hover:bg-gray-50"
-                            }`}
-                        >
-                            勝ち
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setResult("lose")}
-                            className={`rounded border px-4 py-2 ${
-                                result === "lose"
-                                    ? "bg-black text-white"
-                                    : "hover:bg-gray-50"
-                            }`}
-                        >
-                            負け
-                        </button>
-                    </div>
-                </section>
-
-                <section className="rounded border p-6">
-                    <h2 className="text-lg font-bold">自分の選出3匹</h2>
-                    <p className="mt-1 text-sm text-gray-600">
-                        実際に選出した3匹を選びます。
+                {errorMessage && (
+                    <p className="mt-6 rounded bg-red-100 p-3 text-red-700">
+                        {errorMessage}
                     </p>
+                )}
 
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                        {currentPokemonList.map((partyPokemon) => {
-                            const pokemonMaster = findPokemonMaster(
-                                partyPokemon.pokemon_key,
-                                partyPokemon.form_key,
-                            );
+                <form onSubmit={handleSubmit} className="mt-8 space-y-8">
+                    <section className="rounded border p-6">
+                        <h2 className="text-lg font-bold">相手パーティ</h2>
 
-                            const isSelected = selectedPokemonIds.includes(
-                                partyPokemon.id,
-                            );
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                            {opponentPokemonPairs.map((opponent) => {
+                                const pokemonMaster = findPokemonMaster(
+                                    opponent.key,
+                                    opponent.form_key,
+                                );
 
-                            return (
-                                <button
-                                    key={partyPokemon.id}
-                                    type="button"
-                                    onClick={() =>
-                                        handleToggleSelectedPokemon(
-                                            partyPokemon,
-                                        )
-                                    }
-                                    className={`rounded border p-3 text-left ${
-                                        isSelected
-                                            ? "border-black bg-gray-100"
-                                            : "hover:bg-gray-50"
-                                    }`}
-                                >
-                                    <p className="font-bold">
-                                        {partyPokemon.nickname ||
-                                            pokemonMaster?.name ||
-                                            partyPokemon.pokemon_key}
-                                    </p>
-                                    {pokemonMaster && (
-                                        <p className="text-xs text-gray-600">
-                                            {pokemonMaster.types.join(" / ")}
-                                        </p>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    <p className="mt-3 text-sm text-gray-600">
-                        選択中：{selectedPokemonIds.length} / 3
-                    </p>
-                </section>
-
-                <section className="rounded border p-6">
-                    <h2 className="text-lg font-bold">振り返り</h2>
-
-                    <div className="mt-4 grid gap-4 md:grid-cols-2">
-                        <div>
-                            <label className="block text-sm font-medium">
-                                重かった相手
-                            </label>
-                            <select
-                                className="mt-1 w-full rounded border p-3"
-                                value={heavyOpponent}
-                                onChange={(event) =>
-                                    setHeavyOpponent(event.target.value)
-                                }
-                            >
-                                <option value="">選択なし</option>
-                                {opponentPokemonPairs.map((opponent) => {
-                                    const pokemonMaster = findPokemonMaster(
-                                        opponent.key,
-                                        opponent.form_key,
-                                    );
-
-                                    return (
-                                        <option
-                                            key={`${opponent.key}-${opponent.form_key}`}
-                                            value={`${opponent.key}:${opponent.form_key}`}
-                                        >
+                                return (
+                                    <div
+                                        key={`${opponent.key}-${opponent.form_key}`}
+                                        className="rounded border p-3"
+                                    >
+                                        {pokemonMaster?.image_url && (
+                                            <img
+                                                src={pokemonMaster.image_url}
+                                                alt={pokemonMaster.name}
+                                                className="h-14 w-14 object-contain"
+                                            />
+                                        )}
+                                        <p className="mt-2 font-bold">
                                             {pokemonMaster?.name ||
                                                 opponent.key}
-                                        </option>
-                                    );
-                                })}
-                            </select>
+                                        </p>
+                                        {pokemonMaster && (
+                                            <p className="text-xs text-gray-600">
+                                                {pokemonMaster.types.join(
+                                                    " / ",
+                                                )}
+                                            </p>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
+                    </section>
 
-                        <div>
-                            <label className="block text-sm font-medium">
-                                必要だった味方
-                            </label>
-                            <select
-                                className="mt-1 w-full rounded border p-3"
-                                value={neededPokemonId}
-                                onChange={(event) =>
-                                    setNeededPokemonId(event.target.value)
-                                }
+                    <section className="rounded border p-6">
+                        <h2 className="text-lg font-bold">勝敗</h2>
+
+                        <div className="mt-4 flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setResult("win")}
+                                className={`rounded border px-4 py-2 ${
+                                    result === "win"
+                                        ? "bg-black text-white"
+                                        : "hover:bg-gray-50"
+                                }`}
                             >
-                                <option value="">選択なし</option>
-                                {currentPokemonList.map((partyPokemon) => {
-                                    const pokemonMaster = findPokemonMaster(
-                                        partyPokemon.pokemon_key,
-                                        partyPokemon.form_key,
-                                    );
+                                勝ち
+                            </button>
 
-                                    return (
-                                        <option
-                                            key={partyPokemon.id}
-                                            value={partyPokemon.id}
-                                        >
-                                            {partyPokemon.nickname ||
-                                                pokemonMaster?.name ||
-                                                partyPokemon.pokemon_key}
-                                        </option>
-                                    );
-                                })}
-                            </select>
+                            <button
+                                type="button"
+                                onClick={() => setResult("lose")}
+                                className={`rounded border px-4 py-2 ${
+                                    result === "lose"
+                                        ? "bg-black text-white"
+                                        : "hover:bg-gray-50"
+                                }`}
+                            >
+                                負け
+                            </button>
                         </div>
-                    </div>
+                    </section>
 
-                    <div className="mt-6">
-                        <p className="text-sm font-medium">敗因タグ</p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            {lossTagOptions.map((tag) => {
-                                const isSelected = lossTags.includes(tag);
+                    <section className="rounded border p-6">
+                        <h2 className="text-lg font-bold">自分の選出3匹</h2>
+                        <p className="mt-1 text-sm text-gray-600">
+                            実際に選出した3匹を選びます。
+                        </p>
+
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                            {currentPokemonList.map((partyPokemon) => {
+                                const pokemonMaster = findPokemonMaster(
+                                    partyPokemon.pokemon_key,
+                                    partyPokemon.form_key,
+                                );
+
+                                const isSelected = selectedPokemonIds.includes(
+                                    partyPokemon.id,
+                                );
 
                                 return (
                                     <button
-                                        key={tag}
+                                        key={partyPokemon.id}
                                         type="button"
-                                        onClick={() => handleToggleLossTag(tag)}
-                                        className={`rounded-full border px-3 py-1 text-sm ${
+                                        onClick={() =>
+                                            handleToggleSelectedPokemon(
+                                                partyPokemon,
+                                            )
+                                        }
+                                        className={`rounded border p-3 text-left ${
                                             isSelected
-                                                ? "bg-black text-white"
+                                                ? "border-black bg-gray-100"
                                                 : "hover:bg-gray-50"
                                         }`}
                                     >
-                                        {tag}
+                                        <p className="font-bold">
+                                            {partyPokemon.nickname ||
+                                                pokemonMaster?.name ||
+                                                partyPokemon.pokemon_key}
+                                        </p>
+                                        {pokemonMaster && (
+                                            <p className="text-xs text-gray-600">
+                                                {pokemonMaster.types.join(
+                                                    " / ",
+                                                )}
+                                            </p>
+                                        )}
                                     </button>
                                 );
                             })}
                         </div>
-                    </div>
 
-                    <div className="mt-6">
-                        <label className="block text-sm font-medium">
-                            反省メモ
-                        </label>
-                        <textarea
-                            className="mt-1 w-full rounded border p-3"
-                            rows={4}
-                            value={reflection}
-                            onChange={(event) =>
-                                setReflection(event.target.value)
-                            }
-                        />
-                    </div>
+                        <p className="mt-3 text-sm text-gray-600">
+                            選択中：{selectedPokemonIds.length} / 3
+                        </p>
+                    </section>
 
-                    <div className="mt-4">
-                        <label className="block text-sm font-medium">
-                            次回メモ
-                        </label>
-                        <textarea
-                            className="mt-1 w-full rounded border p-3"
-                            rows={4}
-                            value={nextNote}
-                            onChange={(event) =>
-                                setNextNote(event.target.value)
-                            }
-                        />
-                    </div>
-                </section>
+                    <section className="rounded border p-6">
+                        <h2 className="text-lg font-bold">振り返り</h2>
 
-                <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="rounded bg-black px-5 py-3 text-white disabled:opacity-50"
-                >
-                    {isSubmitting ? "保存中..." : "対戦ログを保存する"}
-                </button>
-            </form>
-        </main>
+                        <div className="mt-4 grid gap-4 md:grid-cols-2">
+                            <div>
+                                <label className="block text-sm font-medium">
+                                    重かった相手
+                                </label>
+                                <select
+                                    className="mt-1 w-full rounded border p-3"
+                                    value={heavyOpponent}
+                                    onChange={(event) =>
+                                        setHeavyOpponent(event.target.value)
+                                    }
+                                >
+                                    <option value="">選択なし</option>
+                                    {opponentPokemonPairs.map((opponent) => {
+                                        const pokemonMaster = findPokemonMaster(
+                                            opponent.key,
+                                            opponent.form_key,
+                                        );
+
+                                        return (
+                                            <option
+                                                key={`${opponent.key}-${opponent.form_key}`}
+                                                value={`${opponent.key}:${opponent.form_key}`}
+                                            >
+                                                {pokemonMaster?.name ||
+                                                    opponent.key}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium">
+                                    必要だった味方
+                                </label>
+                                <select
+                                    className="mt-1 w-full rounded border p-3"
+                                    value={neededPokemonId}
+                                    onChange={(event) =>
+                                        setNeededPokemonId(event.target.value)
+                                    }
+                                >
+                                    <option value="">選択なし</option>
+                                    {currentPokemonList.map((partyPokemon) => {
+                                        const pokemonMaster = findPokemonMaster(
+                                            partyPokemon.pokemon_key,
+                                            partyPokemon.form_key,
+                                        );
+
+                                        return (
+                                            <option
+                                                key={partyPokemon.id}
+                                                value={partyPokemon.id}
+                                            >
+                                                {partyPokemon.nickname ||
+                                                    pokemonMaster?.name ||
+                                                    partyPokemon.pokemon_key}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="mt-6">
+                            <p className="text-sm font-medium">敗因タグ</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                {lossTagOptions.map((tag) => {
+                                    const isSelected = lossTags.includes(tag);
+
+                                    return (
+                                        <button
+                                            key={tag}
+                                            type="button"
+                                            onClick={() =>
+                                                handleToggleLossTag(tag)
+                                            }
+                                            className={`rounded-full border px-3 py-1 text-sm ${
+                                                isSelected
+                                                    ? "bg-black text-white"
+                                                    : "hover:bg-gray-50"
+                                            }`}
+                                        >
+                                            {tag}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="mt-6">
+                            <label className="block text-sm font-medium">
+                                反省メモ
+                            </label>
+                            <textarea
+                                className="mt-1 w-full rounded border p-3"
+                                rows={4}
+                                value={reflection}
+                                onChange={(event) =>
+                                    setReflection(event.target.value)
+                                }
+                            />
+                        </div>
+
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium">
+                                次回メモ
+                            </label>
+                            <textarea
+                                className="mt-1 w-full rounded border p-3"
+                                rows={4}
+                                value={nextNote}
+                                onChange={(event) =>
+                                    setNextNote(event.target.value)
+                                }
+                            />
+                        </div>
+                    </section>
+
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="rounded bg-black px-5 py-3 text-white disabled:opacity-50"
+                    >
+                        {isSubmitting ? "保存中..." : "対戦ログを保存する"}
+                    </button>
+                </form>
+            </main>
+        </>
     );
 }
