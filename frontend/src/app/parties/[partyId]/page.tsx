@@ -1,5 +1,6 @@
 "use client";
 
+import { AppHeader } from "@/components/AppHeader";
 import { summarizeBattleLogs } from "@/features/battleLogs/utils/summarizeBattleLogs";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
@@ -10,7 +11,6 @@ import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AppHeader } from "@/components/AppHeader";
 
 export default function PartyDetailPage() {
     const params = useParams<{ partyId: string }>();
@@ -165,6 +165,13 @@ export default function PartyDetailPage() {
                                     {party.current_version.version_number}
                                 </span>
                             )}
+
+                            <Link
+                                href={`/parties/${party.id}/versions/create`}
+                                className="rounded border px-4 py-2 text-sm hover:bg-gray-50"
+                            >
+                                新バージョン作成
+                            </Link>
 
                             <Link
                                 href={`/parties/${party.id}/battle-preview`}
