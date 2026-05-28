@@ -11,6 +11,7 @@ import { toHiragana } from "@/utils/kana";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
 
 export default function BattlePreviewPage() {
     const params = useParams<{ partyId: string }>();
@@ -119,6 +120,8 @@ export default function BattlePreviewPage() {
     });
 
     const opponentAnalysis = analyzeOpponentParty(opponentPokemonList);
+    const opponentWeaknessAnalysis =
+        analyzeOpponentWeakness(opponentPokemonList);
 
     const renderPokemonIconRanking = (
         pokemonList: {
@@ -395,6 +398,138 @@ export default function BattlePreviewPage() {
                     </p>
                 ) : (
                     <div className="mt-4 space-y-6">
+                        <div className="rounded bg-gray-50 p-4">
+                            <h3 className="font-bold">弱点傾向</h3>
+                            <p className="mt-1 text-sm text-gray-600">
+                                相手パーティに通りやすい攻撃タイプです。
+                            </p>
+
+                            {opponentWeaknessAnalysis.length > 0 ? (
+                                <div className="mt-4 space-y-3">
+                                    {opponentWeaknessAnalysis
+                                        .slice(0, 5)
+                                        .map((item) => (
+                                            <div
+                                                key={item.attackType}
+                                                className="rounded bg-white p-4"
+                                            >
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <div>
+                                                        <p className="font-bold">
+                                                            {item.attackType}
+                                                        </p>
+                                                        <p className="mt-1 text-sm text-gray-600">
+                                                            弱点{" "}
+                                                            {item.weakCount}匹
+                                                            {item.fourTimesWeakCount >
+                                                                0 &&
+                                                                ` / 4倍 ${item.fourTimesWeakCount}匹`}
+                                                            {item.immuneCount >
+                                                                0 &&
+                                                                ` / 無効 ${item.immuneCount}匹`}
+                                                        </p>
+                                                    </div>
+
+                                                    <span className="rounded bg-gray-100 px-3 py-1 text-sm">
+                                                        スコア {item.totalScore}
+                                                    </span>
+                                                </div>
+
+                                                <div className="mt-3 space-y-3">
+                                                    <div>
+                                                        <p className="text-xs font-semibold text-gray-500">
+                                                            弱点を突ける相手
+                                                        </p>
+
+                                                        <div className="mt-2 flex flex-wrap gap-2">
+                                                            {item.targets.map(
+                                                                (target) => (
+                                                                    <div
+                                                                        key={`${item.attackType}-weak-${target.key}-${target.form_key}`}
+                                                                        className="flex items-center gap-2 rounded bg-gray-50 px-2 py-1 text-xs"
+                                                                    >
+                                                                        {target.image_url && (
+                                                                            <img
+                                                                                src={
+                                                                                    target.image_url
+                                                                                }
+                                                                                alt={
+                                                                                    target.name
+                                                                                }
+                                                                                className="h-8 w-8 object-contain"
+                                                                            />
+                                                                        )}
+
+                                                                        <span>
+                                                                            {
+                                                                                target.name
+                                                                            }
+                                                                        </span>
+                                                                        <span className="font-semibold">
+                                                                            ×
+                                                                            {
+                                                                                target.multiplier
+                                                                            }
+                                                                        </span>
+                                                                    </div>
+                                                                ),
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {item.immuneTargets.length >
+                                                        0 && (
+                                                        <div>
+                                                            <p className="text-xs font-semibold text-red-600">
+                                                                無効にされる相手
+                                                            </p>
+
+                                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                                {item.immuneTargets.map(
+                                                                    (
+                                                                        target,
+                                                                    ) => (
+                                                                        <div
+                                                                            key={`${item.attackType}-immune-${target.key}-${target.form_key}`}
+                                                                            className="flex items-center gap-2 rounded bg-red-50 px-2 py-1 text-xs text-red-700"
+                                                                        >
+                                                                            {target.image_url && (
+                                                                                <img
+                                                                                    src={
+                                                                                        target.image_url
+                                                                                    }
+                                                                                    alt={
+                                                                                        target.name
+                                                                                    }
+                                                                                    className="h-8 w-8 object-contain"
+                                                                                />
+                                                                            )}
+
+                                                                            <span>
+                                                                                {
+                                                                                    target.name
+                                                                                }
+                                                                            </span>
+                                                                            <span className="font-semibold">
+                                                                                ×0
+                                                                            </span>
+                                                                        </div>
+                                                                    ),
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                            ) : (
+                                <p className="mt-4 rounded bg-white p-4 text-sm text-gray-600">
+                                    弱点を突けるタイプがまだ見つかりません。
+                                </p>
+                            )}
+                        </div>
+
                         <div className="rounded bg-gray-50 p-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="font-bold">素早さ順</h3>
