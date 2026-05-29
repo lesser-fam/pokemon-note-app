@@ -27,6 +27,14 @@ export default function PartiesPage() {
         loadParties();
     }, []);
 
+    const getBattleRuleLabel = (rule: string | null) => {
+        if (rule === "champions") {
+            return "チャンピオンズ";
+        }
+
+        return "本編ルール";
+    };
+
     return (
         <>
             <AppHeader />
@@ -65,33 +73,37 @@ export default function PartiesPage() {
                     </div>
                 )}
 
-                <div className="mt-8 grid gap-4">
+                <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {parties.map((party) => (
                         <Link
                             key={party.id}
                             href={`/parties/${party.id}`}
-                            className="rounded border p-5 hover:bg-gray-50"
+                            className="block rounded border bg-white p-5 transition hover:bg-gray-50"
                         >
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-lg font-bold">
-                                    {party.name}
-                                </h2>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
+                                    {getBattleRuleLabel(party.rule)}
+                                </span>
 
                                 {party.current_version && (
-                                    <span className="rounded bg-gray-100 px-3 py-1 text-sm">
+                                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
                                         v{party.current_version.version_number}
                                     </span>
                                 )}
                             </div>
 
+                            <h2 className="mt-3 wrap-break-word text-lg font-bold">
+                                {party.name}
+                            </h2>
+
                             {party.concept && (
-                                <p className="mt-2 text-sm text-gray-700">
+                                <p className="mt-3 wrap-break-word text-sm text-gray-700">
                                     {party.concept}
                                 </p>
                             )}
 
                             {party.memo && (
-                                <p className="mt-2 text-sm text-gray-500">
+                                <p className="mt-2 wrap-break-word text-sm text-gray-500">
                                     {party.memo}
                                 </p>
                             )}

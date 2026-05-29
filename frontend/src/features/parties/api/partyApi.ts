@@ -3,6 +3,7 @@ import type { Party } from "@/types/party";
 
 export type StorePartyPayload = {
     name: string;
+    rule?: string;
     concept?: string;
     memo?: string;
 };

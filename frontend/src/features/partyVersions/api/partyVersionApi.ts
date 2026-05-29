@@ -8,6 +8,14 @@ export type StoreNewPartyVersionPokemonPayload = {
     item?: string | null;
     ability?: string | null;
     nature?: string | null;
+
+    ev_h?: number;
+    ev_a?: number;
+    ev_b?: number;
+    ev_c?: number;
+    ev_d?: number;
+    ev_s?: number;
+
     move_1?: string | null;
     move_2?: string | null;
     move_3?: string | null;

@@ -23,6 +23,14 @@ type EditablePokemon = {
     item: string;
     ability: string;
     nature: string;
+
+    ev_h: number;
+    ev_a: number;
+    ev_b: number;
+    ev_c: number;
+    ev_d: number;
+    ev_s: number;
+
     move_1: string;
     move_2: string;
     move_3: string;
@@ -75,6 +83,12 @@ export default function CreatePartyVersionPage() {
                         item: pokemon.item ?? "",
                         ability: pokemon.ability ?? "",
                         nature: pokemon.nature ?? "",
+                        ev_h: pokemon.ev_h ?? 0,
+                        ev_a: pokemon.ev_a ?? 0,
+                        ev_b: pokemon.ev_b ?? 0,
+                        ev_c: pokemon.ev_c ?? 0,
+                        ev_d: pokemon.ev_d ?? 0,
+                        ev_s: pokemon.ev_s ?? 0,
                         move_1: pokemon.move_1 ?? "",
                         move_2: pokemon.move_2 ?? "",
                         move_3: pokemon.move_3 ?? "",
@@ -111,7 +125,7 @@ export default function CreatePartyVersionPage() {
     const updatePokemon = (
         index: number,
         field: keyof EditablePokemon,
-        value: string | number[],
+        value: string | number | number[],
     ) => {
         setEditablePokemonList((currentList) =>
             currentList.map((pokemon, currentIndex) =>
@@ -152,6 +166,12 @@ export default function CreatePartyVersionPage() {
             item: "",
             ability: "",
             nature: "",
+            ev_h: 0,
+            ev_a: 0,
+            ev_b: 0,
+            ev_c: 0,
+            ev_d: 0,
+            ev_s: 0,
             move_1: "",
             move_2: "",
             move_3: "",
@@ -241,6 +261,39 @@ export default function CreatePartyVersionPage() {
         return matchesKeyword && matchesTypes;
     });
 
+    const calculateEffortValueTotal = (pokemon: EditablePokemon) => {
+        return (
+            pokemon.ev_h +
+            pokemon.ev_a +
+            pokemon.ev_b +
+            pokemon.ev_c +
+            pokemon.ev_d +
+            pokemon.ev_s
+        );
+    };
+
+    const getEffortValueLimits = () => {
+        const rule = party?.rule || "main_series";
+
+        if (rule === "champions") {
+            return {
+                totalLimit: 66,
+                singleLimit: 32,
+                label: "チャンピオンズ",
+            };
+        }
+
+        return {
+            totalLimit: 510,
+            singleLimit: 252,
+            label: "本編ルール",
+        };
+    };
+
+    const toNumber = (value: string) => {
+        return Number(value || 0);
+    };
+
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -283,6 +336,38 @@ export default function CreatePartyVersionPage() {
 
         if (hasDuplicatedItem) {
             setErrorMessage("同じ持ち物は同じパーティに登録できません。");
+            return;
+        }
+
+        const effortValueLimits = getEffortValueLimits();
+
+        const invalidEffortValuePokemon = editablePokemonList.find(
+            (pokemon) => {
+                const effortValues = [
+                    pokemon.ev_h,
+                    pokemon.ev_a,
+                    pokemon.ev_b,
+                    pokemon.ev_c,
+                    pokemon.ev_d,
+                    pokemon.ev_s,
+                ];
+
+                const hasOverSingleLimit = effortValues.some(
+                    (value) => value > effortValueLimits.singleLimit,
+                );
+
+                const total = calculateEffortValueTotal(pokemon);
+
+                return (
+                    hasOverSingleLimit || total > effortValueLimits.totalLimit
+                );
+            },
+        );
+
+        if (invalidEffortValuePokemon) {
+            setErrorMessage(
+                `${effortValueLimits.label}では、努力値は1項目${effortValueLimits.singleLimit}まで、合計${effortValueLimits.totalLimit}までです。`,
+            );
             return;
         }
 
@@ -340,6 +425,8 @@ export default function CreatePartyVersionPage() {
             </>
         );
     }
+
+    const effortValueLimits = getEffortValueLimits();
 
     return (
         <>
@@ -528,6 +615,81 @@ export default function CreatePartyVersionPage() {
                                                         )
                                                     }
                                                 />
+                                            </div>
+
+                                            <div className="mt-4 rounded bg-gray-50 p-4 md:col-span-2">
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <div>
+                                                        <p className="text-sm font-medium">
+                                                            努力値
+                                                        </p>
+                                                        <p className="mt-1 text-xs text-gray-500">
+                                                            {
+                                                                effortValueLimits.label
+                                                            }
+                                                            ：合計
+                                                            {calculateEffortValueTotal(
+                                                                pokemon,
+                                                            )}
+                                                            /{" "}
+                                                            {
+                                                                effortValueLimits.totalLimit
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-3 grid grid-cols-3 gap-3 md:grid-cols-6">
+                                                    {[
+                                                        ["ev_h", "H"],
+                                                        ["ev_a", "A"],
+                                                        ["ev_b", "B"],
+                                                        ["ev_c", "C"],
+                                                        ["ev_d", "D"],
+                                                        ["ev_s", "S"],
+                                                    ].map(([field, label]) => (
+                                                        <div key={field}>
+                                                            <label className="block text-xs font-medium">
+                                                                {label}
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                inputMode="numeric"
+                                                                className="mt-1 w-full rounded border p-2"
+                                                                value={String(
+                                                                    pokemon[
+                                                                        field as keyof EditablePokemon
+                                                                    ] ?? "",
+                                                                )}
+                                                                onChange={(
+                                                                    event,
+                                                                ) => {
+                                                                    const nextValue =
+                                                                        event
+                                                                            .target
+                                                                            .value;
+
+                                                                    if (
+                                                                        !/^\d*$/.test(
+                                                                            nextValue,
+                                                                        )
+                                                                    ) {
+                                                                        return;
+                                                                    }
+
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        field as keyof EditablePokemon,
+                                                                        Number(
+                                                                            nextValue ||
+                                                                                0,
+                                                                        ),
+                                                                    );
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
 
                                             {(

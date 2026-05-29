@@ -43,6 +43,13 @@ class StoreNewPartyVersionRequest extends FormRequest
 
             'pokemon.*.memo'            => 'nullable|string',
 
+            'pokemon.*.ev_h'            => 'nullable|integer|min:0',
+            'pokemon.*.ev_a'            => 'nullable|integer|min:0',
+            'pokemon.*.ev_b'            => 'nullable|integer|min:0',
+            'pokemon.*.ev_c'            => 'nullable|integer|min:0',
+            'pokemon.*.ev_d'            => 'nullable|integer|min:0',
+            'pokemon.*.ev_s'            => 'nullable|integer|min:0',
+
             'pokemon.*.role_tag_ids'    => 'nullable|array',
             'pokemon.*.role_tag_ids.*'  => 'integer|exists:role_tags,id',
         ];
@@ -51,6 +58,12 @@ class StoreNewPartyVersionRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
+            $partyVersion = $this->route('partyVersion');
+
+            if (! $partyVersion) {
+                return;
+            }
+
             $pokemonList = $this->input('pokemon', []);
 
             $pokemonKeys = collect($pokemonList)
@@ -74,6 +87,50 @@ class StoreNewPartyVersionRequest extends FormRequest
                     'pokemon',
                     '同じ持ち物は同じパーティに登録できません。'
                 );
+            }
+
+            $party = $partyVersion->party;
+
+            $rule = $party->rule ?: 'main_series';
+
+            $battleRule = config("battle_rules.{$rule}");
+
+            if (! $battleRule) {
+                $battleRule = config('battle_rules.main_series');
+            }
+
+            $totalLimit = $battleRule['ev_total_limit'];
+            $singleLimit = $battleRule['ev_single_limit'];
+
+            foreach ($pokemonList as $index => $pokemon) {
+                $effortValues = [
+                    (int) ($pokemon['ev_h'] ?? 0),
+                    (int) ($pokemon['ev_a'] ?? 0),
+                    (int) ($pokemon['ev_b'] ?? 0),
+                    (int) ($pokemon['ev_c'] ?? 0),
+                    (int) ($pokemon['ev_d'] ?? 0),
+                    (int) ($pokemon['ev_s'] ?? 0),
+                ];
+
+                foreach ($effortValues as $effortValue) {
+                    if ($effortValue > $singleLimit) {
+                        $validator->errors()->add(
+                            "pokemon.{$index}",
+                            "努力値は1項目{$singleLimit}までです。"
+                        );
+
+                        break;
+                    }
+                }
+
+                $total = array_sum($effortValues);
+
+                if ($total > $totalLimit) {
+                    $validator->errors()->add(
+                        "pokemon.{$index}",
+                        "努力値の合計は{$totalLimit}までです。"
+                    );
+                }
             }
         });
     }

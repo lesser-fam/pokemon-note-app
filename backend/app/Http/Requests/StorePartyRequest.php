@@ -24,6 +24,7 @@ class StorePartyRequest extends FormRequest
     {
         return [
             'name'      => 'required|string|max:255',
+            'rule'      => 'nullable|string|in:main_series,champions',
             'concept'   => 'nullable|string',
             'memo'      => 'nullable|string',
         ];

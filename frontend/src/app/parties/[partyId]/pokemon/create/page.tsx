@@ -1,5 +1,6 @@
 "use client";
 
+import { AppHeader } from "@/components/AppHeader";
 import { pokemonTypes } from "@/constants/pokemonTypes";
 import {
     fetchPokemonList,
@@ -14,7 +15,6 @@ import { toHiragana } from "@/utils/kana";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { AppHeader } from "@/components/AppHeader";
 
 export default function CreatePartyPokemonPage() {
     const router = useRouter();
@@ -34,6 +34,12 @@ export default function CreatePartyPokemonPage() {
     const [item, setItem] = useState("");
     const [ability, setAbility] = useState("");
     const [nature, setNature] = useState("");
+    const [evH, setEvH] = useState("0");
+    const [evA, setEvA] = useState("0");
+    const [evB, setEvB] = useState("0");
+    const [evC, setEvC] = useState("0");
+    const [evD, setEvD] = useState("0");
+    const [evS, setEvS] = useState("0");
     const [move1, setMove1] = useState("");
     const [move2, setMove2] = useState("");
     const [move3, setMove3] = useState("");
@@ -130,11 +136,70 @@ export default function CreatePartyPokemonPage() {
         return matchesKeyword && matchesTypes;
     });
 
+    const selectedPokemonMaster = pokemonList.find(
+        (pokemon) => pokemon.key === pokemonKey && pokemon.form_key === formKey,
+    );
+
+    const getEffortValueLimits = () => {
+        const rule = party?.rule || "main_series";
+
+        if (rule === "champions") {
+            return {
+                totalLimit: 66,
+                singleLimit: 32,
+                label: "チャンピオンズ",
+            };
+        }
+
+        return {
+            totalLimit: 510,
+            singleLimit: 252,
+            label: "本編ルール",
+        };
+    };
+
+    const toNumber = (value: string) => {
+        return Number(value || 0);
+    };
+
+    const effortValueTotal =
+        toNumber(evH) +
+        toNumber(evA) +
+        toNumber(evB) +
+        toNumber(evC) +
+        toNumber(evD) +
+        toNumber(evS);
+
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         if (!party?.current_version) {
             setErrorMessage("現在のバージョンが見つかりません。");
+            return;
+        }
+
+        const effortValueLimits = getEffortValueLimits();
+
+        const effortValues = [
+            toNumber(evH),
+            toNumber(evA),
+            toNumber(evB),
+            toNumber(evC),
+            toNumber(evD),
+            toNumber(evS),
+        ];
+
+        const hasOverSingleLimit = effortValues.some(
+            (value) => value > effortValueLimits.singleLimit,
+        );
+
+        if (
+            hasOverSingleLimit ||
+            effortValueTotal > effortValueLimits.totalLimit
+        ) {
+            setErrorMessage(
+                `${effortValueLimits.label}では、努力値は1項目${effortValueLimits.singleLimit}まで、合計${effortValueLimits.totalLimit}までです。`,
+            );
             return;
         }
 
@@ -149,6 +214,12 @@ export default function CreatePartyPokemonPage() {
                 item,
                 ability,
                 nature,
+                ev_h: toNumber(evH),
+                ev_a: toNumber(evA),
+                ev_b: toNumber(evB),
+                ev_c: toNumber(evC),
+                ev_d: toNumber(evD),
+                ev_s: toNumber(evS),
                 move_1: move1,
                 move_2: move2,
                 move_3: move3,
@@ -192,6 +263,8 @@ export default function CreatePartyPokemonPage() {
         );
     }
 
+    const effortValueLimits = getEffortValueLimits();
+
     return (
         <>
             <AppHeader />
@@ -208,12 +281,6 @@ export default function CreatePartyPokemonPage() {
                 <p className="mt-1 text-sm text-gray-600">
                     {party.name} に登録するポケモンを追加します。
                 </p>
-
-                {errorMessage && (
-                    <p className="mt-6 rounded bg-red-100 p-3 text-red-700">
-                        {errorMessage}
-                    </p>
-                )}
 
                 <form onSubmit={handleSubmit} className="mt-8 space-y-8">
                     <section className="rounded border p-6">
@@ -286,7 +353,9 @@ export default function CreatePartyPokemonPage() {
 
                             {pokemonKey && (
                                 <p className="text-sm font-medium">
-                                    選択中：{pokemonKey} / {formKey}
+                                    選択中：
+                                    {selectedPokemonMaster?.name || pokemonKey}
+                                    {formKey !== "default" && ` / ${formKey}`}
                                 </p>
                             )}
                         </div>
@@ -404,6 +473,76 @@ export default function CreatePartyPokemonPage() {
                                 />
                             </div>
 
+                            <div className="mt-4 rounded bg-gray-50 p-4 md:col-span-2">
+                                <p className="text-sm font-medium">努力値</p>
+                                <p
+                                    className={`mt-1 text-xs ${
+                                        effortValueTotal >
+                                        effortValueLimits.totalLimit
+                                            ? "text-red-600"
+                                            : "text-gray-500"
+                                    }`}
+                                >
+                                    {effortValueLimits.label}：合計
+                                    {effortValueTotal} /{" "}
+                                    {effortValueLimits.totalLimit}、1項目{""}
+                                    {effortValueLimits.singleLimit}まで
+                                </p>
+
+                                {effortValueTotal >
+                                    effortValueLimits.totalLimit && (
+                                    <p className="mt-1 text-xs text-red-600">
+                                        合計努力値が上限を超えています。
+                                    </p>
+                                )}
+
+                                <div className="mt-3 grid grid-cols-3 gap-3 md:grid-cols-6">
+                                    {[
+                                        ["H", evH, setEvH],
+                                        ["A", evA, setEvA],
+                                        ["B", evB, setEvB],
+                                        ["C", evC, setEvC],
+                                        ["D", evD, setEvD],
+                                        ["S", evS, setEvS],
+                                    ].map(([label, value, setter]) => (
+                                        <div key={label as string}>
+                                            <label className="block text-xs font-medium">
+                                                {label as string}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                className="mt-1 w-full rounded border p-2"
+                                                value={value as string}
+                                                onChange={(event) => {
+                                                    const nextValue =
+                                                        event.target.value;
+
+                                                    if (
+                                                        !/^\d*$/.test(nextValue)
+                                                    ) {
+                                                        return;
+                                                    }
+
+                                                    if (
+                                                        toNumber(nextValue) >
+                                                        effortValueLimits.singleLimit
+                                                    ) {
+                                                        return;
+                                                    }
+
+                                                    (
+                                                        setter as (
+                                                            value: string,
+                                                        ) => void
+                                                    )(nextValue);
+                                                }}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium">
                                     技1
@@ -519,6 +658,12 @@ export default function CreatePartyPokemonPage() {
                         </div>
                     </section>
 
+                    {errorMessage && (
+                        <p className="mt-6 rounded bg-red-100 p-3 text-red-700">
+                            {errorMessage}
+                        </p>
+                    )}
+
                     <button
                         type="submit"
                         disabled={isSubmitting || !pokemonKey}
@@ -529,8 +674,14 @@ export default function CreatePartyPokemonPage() {
                 </form>
 
                 {activeRoleTag && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                        <div className="w-full max-w-lg rounded bg-white p-6 shadow-lg">
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+                        onClick={() => setActiveRoleTag(null)}
+                    >
+                        <div
+                            className="w-full max-w-lg rounded bg-white p-6 shadow-lg"
+                            onClick={(event) => event.stopPropagation()}
+                        >
                             <div className="flex items-start justify-between gap-4">
                                 <div>
                                     <h2 className="text-xl font-bold">

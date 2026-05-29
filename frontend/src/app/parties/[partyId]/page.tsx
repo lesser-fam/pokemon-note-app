@@ -97,6 +97,14 @@ export default function PartyDetailPage() {
         );
     }
 
+    const getBattleRuleLabel = (rule: string | null) => {
+        if (rule === "champions") {
+            return "チャンピオンズ";
+        }
+
+        return "本編ルール";
+    };
+
     const currentPokemonList = party.current_version?.pokemon ?? [];
     const suggestedSelection = suggestBasicSelection(currentPokemonList);
     const battleLogs = party.current_version?.battle_logs ?? [];
@@ -155,17 +163,27 @@ export default function PartyDetailPage() {
                 </Link>
 
                 <div className="mt-4 rounded border p-6">
-                    <div className="flex items-center justify-between gap-4">
-                        <h1 className="text-2xl font-bold">{party.name}</h1>
-
-                        <div className="flex items-center gap-3">
-                            {party.current_version && (
-                                <span className="rounded bg-gray-100 px-3 py-1 text-sm">
-                                    現在のバージョン：v
-                                    {party.current_version.version_number}
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
+                                    {getBattleRuleLabel(party.rule)}
                                 </span>
-                            )}
 
+                                {party.current_version && (
+                                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
+                                        現在のバージョン：v
+                                        {party.current_version.version_number}
+                                    </span>
+                                )}
+                            </div>
+
+                            <h1 className="mt-3 break-words text-2xl font-bold">
+                                {party.name}
+                            </h1>
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 md:justify-end">
                             <Link
                                 href={`/parties/${party.id}/versions/create`}
                                 className="rounded border px-4 py-2 text-sm hover:bg-gray-50"

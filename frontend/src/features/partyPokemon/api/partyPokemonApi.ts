@@ -8,6 +8,12 @@ export type StorePartyPokemonPayload = {
     item?: string;
     ability?: string;
     nature?: string;
+    ev_h?: number;
+    ev_a?: number;
+    ev_b?: number;
+    ev_c?: number;
+    ev_d?: number;
+    ev_s?: number;
     move_1?: string;
     move_2?: string;
     move_3?: string;

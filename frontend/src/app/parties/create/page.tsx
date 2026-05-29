@@ -10,6 +10,7 @@ export default function CreatePartyPage() {
     const router = useRouter();
 
     const [name, setName] = useState("");
+    const [rule, setRule] = useState("main_series");
     const [concept, setConcept] = useState("");
     const [memo, setMemo] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
@@ -24,6 +25,7 @@ export default function CreatePartyPage() {
         try {
             const party = await createParty({
                 name,
+                rule,
                 concept,
                 memo,
             });
@@ -71,6 +73,25 @@ export default function CreatePartyPage() {
                             placeholder="例：メガゲンガー軸"
                             required
                         />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium">
+                            対象ルール
+                        </label>
+
+                        <select
+                            className="mt-1 w-full rounded border p-3"
+                            value={rule}
+                            onChange={(event) => setRule(event.target.value)}
+                        >
+                            <option value="main_series">本編ルール</option>
+                            <option value="champions">チャンピオンズ</option>
+                        </select>
+
+                        <p className="mt-1 text-xs text-gray-500">
+                            努力値の上限計算に使います。
+                        </p>
                     </div>
 
                     <div>

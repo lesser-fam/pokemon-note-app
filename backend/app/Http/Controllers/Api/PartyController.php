@@ -32,6 +32,7 @@ class PartyController extends Controller
             $party = Party::create([
                 'user_id' => $request->user()->id,
                 'name'    => $validated['name'],
+                'rule'    => $validated['rule'] ?? 'main_series',
                 'concept' => $validated['concept'] ?? null,
                 'memo'    => $validated['memo'] ?? null,
             ]);
