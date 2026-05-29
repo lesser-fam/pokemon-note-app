@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePartyRequest;
+use App\Http\Requests\UpdatePartyRequest;
 use App\Models\Party;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -74,6 +75,42 @@ class PartyController extends Controller
 
         return response()->json([
             'data' => $party,
+        ]);
+    }
+
+    public function update(UpdatePartyRequest $request, Party $party): JsonResponse
+    {
+        if ($party->user_id !== $request->user()->id) {
+            abort(404);
+        }
+
+        $validated = $request->validated();
+
+        $party->update([
+            'name' => $validated['name'],
+            'rule' => $validated['rule'],
+            'concept' => $validated['concept'] ?? null,
+            'memo' => $validated['memo'] ?? null,
+        ]);
+
+        $party->load('currentVersion');
+
+        return response()->json([
+            'message' => 'パーティを更新しました。',
+            'data' => $party,
+        ]);
+    }
+
+    public function destroy(Request $request, Party $party): JsonResponse
+    {
+        if ($party->user_id !== $request->user()->id) {
+            abort(404);
+        }
+
+        $party->delete();
+
+        return response()->json([
+            'message' => 'パーティを削除しました。',
         ]);
     }
 }

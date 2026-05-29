@@ -178,12 +178,19 @@ export default function PartyDetailPage() {
                                 )}
                             </div>
 
-                            <h1 className="mt-3 break-words text-2xl font-bold">
+                            <h1 className="mt-3 wrap-break-word text-2xl font-bold">
                                 {party.name}
                             </h1>
                         </div>
 
                         <div className="flex flex-wrap gap-3 md:justify-end">
+                            <Link
+                                href={`/parties/${party.id}/edit`}
+                                className="rounded border px-4 py-2 text-sm hover:bg-gray-50"
+                            >
+                                パーティ編集
+                            </Link>
+
                             <Link
                                 href={`/parties/${party.id}/versions/create`}
                                 className="rounded border px-4 py-2 text-sm hover:bg-gray-50"

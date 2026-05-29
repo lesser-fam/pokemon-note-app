@@ -17,6 +17,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/api/parties', [PartyController::class, 'index']);
     Route::post('/api/parties', [PartyController::class, 'store']);
     Route::get('/api/parties/{party}', [PartyController::class, 'show']);
+    Route::put('/api/parties/{party}', [PartyController::class, 'update']);
+    Route::delete('/api/parties/{party}', [PartyController::class, 'destroy']);
 
     Route::post('/api/party-versions/{partyVersion}/pokemon', [PartyPokemonController::class, 'store']);
     Route::post('/api/party-versions/{partyVersion}/new-version', [PartyVersionController::class, 'storeNewVersion']);
