@@ -1,9 +1,11 @@
 "use client";
 
 import { AppHeader } from "@/components/AppHeader";
+import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { updateSelectionTemplate } from "@/features/selectionTemplates/api/selectionTemplateApi";
 import type { Party, SelectionTemplate } from "@/types/party";
+import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -24,6 +26,7 @@ export default function EditSelectionTemplatePage() {
     const [party, setParty] = useState<Party | null>(null);
     const [selectionTemplate, setSelectionTemplate] =
         useState<SelectionTemplate | null>(null);
+    const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
 
     const [name, setName] = useState("");
     const [leadPokemonId, setLeadPokemonId] = useState("");
@@ -38,7 +41,11 @@ export default function EditSelectionTemplatePage() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const partyData = await fetchParty(partyId);
+                const [partyData, pokemonData] = await Promise.all([
+                    fetchParty(partyId),
+                    fetchPokemonList(),
+                ]);
+
                 const templates =
                     partyData.current_version?.selection_templates ?? [];
 
@@ -52,6 +59,7 @@ export default function EditSelectionTemplatePage() {
                 }
 
                 setParty(partyData);
+                setPokemonList(pokemonData);
                 setSelectionTemplate(foundTemplate);
                 setName(foundTemplate.name);
                 setLeadPokemonId(String(foundTemplate.lead_pokemon?.id ?? ""));
@@ -83,6 +91,30 @@ export default function EditSelectionTemplatePage() {
     ]);
 
     const currentPokemonList = party?.current_version?.pokemon ?? [];
+
+    const findPokemonMaster = (pokemonKey: string, formKey: string) => {
+        return pokemonList.find(
+            (pokemon) =>
+                pokemon.key === pokemonKey && pokemon.form_key === formKey,
+        );
+    };
+
+    const getPartyPokemonDisplayName = (partyPokemon: {
+        nickname?: string | null;
+        pokemon_key: string;
+        form_key: string;
+    }) => {
+        const pokemonMaster = findPokemonMaster(
+            partyPokemon.pokemon_key,
+            partyPokemon.form_key,
+        );
+
+        return (
+            partyPokemon.nickname ||
+            pokemonMaster?.name ||
+            partyPokemon.pokemon_key
+        );
+    };
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -229,8 +261,9 @@ export default function EditSelectionTemplatePage() {
                                             key={pokemon.id}
                                             value={pokemon.id}
                                         >
-                                            {pokemon.nickname ||
-                                                pokemon.pokemon_key}
+                                            {getPartyPokemonDisplayName(
+                                                pokemon,
+                                            )}
                                         </option>
                                     ))}
                                 </select>
@@ -253,8 +286,9 @@ export default function EditSelectionTemplatePage() {
                                             key={pokemon.id}
                                             value={pokemon.id}
                                         >
-                                            {pokemon.nickname ||
-                                                pokemon.pokemon_key}
+                                            {getPartyPokemonDisplayName(
+                                                pokemon,
+                                            )}
                                         </option>
                                     ))}
                                 </select>
@@ -277,8 +311,9 @@ export default function EditSelectionTemplatePage() {
                                             key={pokemon.id}
                                             value={pokemon.id}
                                         >
-                                            {pokemon.nickname ||
-                                                pokemon.pokemon_key}
+                                            {getPartyPokemonDisplayName(
+                                                pokemon,
+                                            )}
                                         </option>
                                     ))}
                                 </select>
