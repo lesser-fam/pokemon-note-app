@@ -11,6 +11,7 @@ import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { deleteSelectionTemplate } from "@/features/selectionTemplates/api/selectionTemplateApi";
 
 export default function PartyDetailPage() {
     const params = useParams<{ partyId: string }>();
@@ -150,6 +151,28 @@ export default function PartyDetailPage() {
             setErrorMessage("基本選出の保存に失敗しました。");
         } finally {
             setIsSavingSelection(false);
+        }
+    };
+
+    const handleDeleteSelectionTemplate = async (
+        selectionTemplateId: number,
+    ) => {
+        const confirmed = window.confirm(
+            "この基本選出を削除します。よろしいですか？",
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await deleteSelectionTemplate(selectionTemplateId);
+
+            const refreshedParty = await fetchParty(party.id);
+            setParty(refreshedParty);
+        } catch (error) {
+            console.error(error);
+            setErrorMessage("基本選出の削除に失敗しました。");
         }
     };
 
@@ -372,15 +395,40 @@ export default function PartyDetailPage() {
                                             key={template.id}
                                             className="rounded bg-gray-50 p-4"
                                         >
-                                            <p className="font-bold">
-                                                {template.name}
-                                            </p>
+                                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                                <div>
+                                                    <p className="font-bold">
+                                                        {template.name}
+                                                    </p>
 
-                                            {template.memo && (
-                                                <p className="mt-1 text-sm text-gray-600">
-                                                    {template.memo}
-                                                </p>
-                                            )}
+                                                    {template.memo && (
+                                                        <p className="mt-1 text-sm text-gray-600">
+                                                            {template.memo}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex gap-2">
+                                                    <Link
+                                                        href={`/parties/${party.id}/selection-templates/${template.id}/edit`}
+                                                        className="rounded border px-3 py-1 text-sm hover:bg-white"
+                                                    >
+                                                        編集
+                                                    </Link>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleDeleteSelectionTemplate(
+                                                                template.id,
+                                                            )
+                                                        }
+                                                        className="rounded border border-red-300 px-3 py-1 text-sm text-red-600 hover:bg-red-50"
+                                                    >
+                                                        削除
+                                                    </button>
+                                                </div>
+                                            </div>
 
                                             <div className="mt-3 grid gap-3 md:grid-cols-3">
                                                 <div className="rounded bg-white p-3">

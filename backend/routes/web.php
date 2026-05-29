@@ -22,6 +22,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/api/party-versions/{partyVersion}/pokemon', [PartyPokemonController::class, 'store']);
     Route::post('/api/party-versions/{partyVersion}/new-version', [PartyVersionController::class, 'storeNewVersion']);
+
     Route::post('/api/party-versions/{partyVersion}/selection-templates', [SelectionTemplateController::class, 'store']);
+    Route::put('/api/selection-templates/{selectionTemplate}', [SelectionTemplateController::class, 'update']);
+    Route::delete('/api/selection-templates/{selectionTemplate}', [SelectionTemplateController::class, 'destroy']);
+
     Route::post('/api/party-versions/{partyVersion}/battle-logs', [BattleLogController::class, 'store']);
 });
