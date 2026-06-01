@@ -6,16 +6,16 @@ import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOppo
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
+import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
+import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
+import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
 import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import { toHiragana } from "@/utils/kana";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
-import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
-import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
 
 export default function BattlePreviewPage() {
     const params = useParams<{ partyId: string }>();
@@ -260,12 +260,14 @@ export default function BattlePreviewPage() {
     const suggestedSelection = suggestBasicSelection(currentPokemonList);
     const savedSelectionTemplates =
         party?.current_version?.selection_templates ?? [];
+    const battleLogs = party?.current_version?.battle_logs ?? [];
 
     const matchupSelectionSuggestions = suggestMatchupSelections({
         partyPokemonList: currentPokemonList,
         pokemonMasterList: pokemonList,
         opponentPokemonList,
         savedSelectionTemplates,
+        battleLogs,
     });
 
     if (isInvalidPartyId) {
@@ -1115,6 +1117,11 @@ export default function BattlePreviewPage() {
                                                     {
                                                         suggestion.leadBreakdown
                                                             .speedScore
+                                                    }{" "}
+                                                    / 過去ログ{" "}
+                                                    {
+                                                        suggestion.leadBreakdown
+                                                            .battleLogScore
                                                     }
                                                 </p>
                                             </div>
@@ -1146,6 +1153,12 @@ export default function BattlePreviewPage() {
                                                         suggestion
                                                             .switchBreakdown
                                                             .defensiveScore
+                                                    }{" "}
+                                                    / 過去ログ{" "}
+                                                    {
+                                                        suggestion
+                                                            .switchBreakdown
+                                                            .battleLogScore
                                                     }
                                                 </p>
                                             </div>
@@ -1183,6 +1196,12 @@ export default function BattlePreviewPage() {
                                                         suggestion
                                                             .finisherBreakdown
                                                             .speedScore
+                                                    }{" "}
+                                                    / 過去ログ{" "}
+                                                    {
+                                                        suggestion
+                                                            .finisherBreakdown
+                                                            .battleLogScore
                                                     }
                                                 </p>
                                             </div>

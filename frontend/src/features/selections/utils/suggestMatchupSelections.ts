@@ -1,6 +1,6 @@
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
-import type { PartyPokemon, SelectionTemplate } from "@/types/party";
+import type { BattleLog, PartyPokemon, SelectionTemplate } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 
 type SelectionRole = "lead" | "switch" | "finisher";
@@ -10,6 +10,7 @@ type PokemonScoreBreakdown = {
     offensiveScore: number;
     defensiveScore: number;
     speedScore: number;
+    battleLogScore: number;
     totalScore: number;
 };
 
@@ -30,6 +31,7 @@ type SuggestMatchupSelectionsParams = {
     pokemonMasterList: Pokemon[];
     opponentPokemonList: Pokemon[];
     savedSelectionTemplates: SelectionTemplate[];
+    battleLogs: BattleLog[];
 };
 
 const getRoleTagScore = (
@@ -79,11 +81,44 @@ const getSpeedScore = (
     return Math.min(score, 3);
 };
 
+const getBattleLogBonus = (
+    partyPokemon: PartyPokemon,
+    role: SelectionRole,
+    opponentPokemonList: Pokemon[],
+    battleLogs: BattleLog[],
+): number => {
+    const opponentKeys = new Set(
+        opponentPokemonList.map(
+            (pokemon) => `${pokemon.key}:${pokemon.form_key}`,
+        ),
+    );
+
+    const matchedLogCount = battleLogs.filter((battleLog) => {
+        if (!battleLog.heavy_opponent_key || !battleLog.needed_pokemon) {
+            return false;
+        }
+
+        const heavyOpponentKey = `${battleLog.heavy_opponent_key}:${battleLog.heavy_opponent_form || "default"}`;
+
+        return (
+            opponentKeys.has(heavyOpponentKey) &&
+            battleLog.needed_pokemon.id === partyPokemon.id
+        );
+    }).length;
+
+    if (role === "switch") {
+        return Math.min(matchedLogCount * 2, 4);
+    }
+
+    return Math.min(matchedLogCount, 2);
+};
+
 const getPokemonScore = (
     partyPokemon: PartyPokemon,
     role: SelectionRole,
     pokemonMasterList: Pokemon[],
     opponentPokemonList: Pokemon[],
+    battleLogs: BattleLog[],
 ): PokemonScoreBreakdown => {
     const pokemonMaster = pokemonMasterList.find(
         (pokemon) =>
@@ -129,12 +164,25 @@ const getPokemonScore = (
         defensiveScore = Math.round(defensiveScore * 0.5);
     }
 
+    const battleLogScore = getBattleLogBonus(
+        partyPokemon,
+        role,
+        opponentPokemonList,
+        battleLogs,
+    );
+
     return {
         roleTagScore,
         offensiveScore,
         defensiveScore,
         speedScore,
-        totalScore: roleTagScore + offensiveScore + defensiveScore + speedScore,
+        battleLogScore,
+        totalScore:
+            roleTagScore +
+            offensiveScore +
+            defensiveScore +
+            speedScore +
+            battleLogScore,
     };
 };
 
@@ -177,6 +225,7 @@ export const suggestMatchupSelections = ({
     pokemonMasterList,
     opponentPokemonList,
     savedSelectionTemplates,
+    battleLogs,
 }: SuggestMatchupSelectionsParams): MatchupSelectionSuggestion[] => {
     if (partyPokemonList.length < 3 || opponentPokemonList.length === 0) {
         return [];
@@ -203,6 +252,7 @@ export const suggestMatchupSelections = ({
                     "lead",
                     pokemonMasterList,
                     opponentPokemonList,
+                    battleLogs,
                 );
 
                 const switchBreakdown = getPokemonScore(
@@ -210,6 +260,7 @@ export const suggestMatchupSelections = ({
                     "switch",
                     pokemonMasterList,
                     opponentPokemonList,
+                    battleLogs,
                 );
 
                 const finisherBreakdown = getPokemonScore(
@@ -217,6 +268,7 @@ export const suggestMatchupSelections = ({
                     "finisher",
                     pokemonMasterList,
                     opponentPokemonList,
+                    battleLogs,
                 );
 
                 const savedTemplateBonus = getSavedTemplateBonus(
@@ -249,6 +301,24 @@ export const suggestMatchupSelections = ({
                 if (finisherBreakdown.offensiveScore > 0) {
                     reasons.push(
                         `勝ち筋は攻撃相性から ${finisherBreakdown.offensiveScore}点加算されています。`,
+                    );
+                }
+
+                if (leadBreakdown.battleLogScore > 0) {
+                    reasons.push(
+                        `初手は過去ログから ${leadBreakdown.battleLogScore}点加算されています。`,
+                    );
+                }
+
+                if (switchBreakdown.battleLogScore > 0) {
+                    reasons.push(
+                        `引き先は過去ログの「必要だった味方」記録から ${switchBreakdown.battleLogScore}点加算されています。`,
+                    );
+                }
+
+                if (finisherBreakdown.battleLogScore > 0) {
+                    reasons.push(
+                        `勝ち筋は過去ログから ${finisherBreakdown.battleLogScore}点加算されています。`,
                     );
                 }
 
