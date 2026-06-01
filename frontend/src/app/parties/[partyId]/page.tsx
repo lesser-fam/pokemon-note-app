@@ -213,7 +213,7 @@ export default function PartyDetailPage() {
                                 href={`/parties/${party.id}/edit`}
                                 className="rounded border px-4 py-2 text-sm hover:bg-gray-50"
                             >
-                                パーティ編集
+                                パーティ情報を編集
                             </Link>
 
                             <Link
