@@ -15,6 +15,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
+import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
 
 export default function BattlePreviewPage() {
     const params = useParams<{ partyId: string }>();
@@ -259,6 +260,13 @@ export default function BattlePreviewPage() {
     const suggestedSelection = suggestBasicSelection(currentPokemonList);
     const savedSelectionTemplates =
         party?.current_version?.selection_templates ?? [];
+
+    const matchupSelectionSuggestions = suggestMatchupSelections({
+        partyPokemonList: currentPokemonList,
+        pokemonMasterList: pokemonList,
+        opponentPokemonList,
+        savedSelectionTemplates,
+    });
 
     if (isInvalidPartyId) {
         return (
@@ -1037,6 +1045,170 @@ export default function BattlePreviewPage() {
                                         </div>
                                     );
                                 },
+                            )}
+                        </div>
+                    )}
+                </section>
+
+                <section className="mt-8 rounded border p-6">
+                    <h2 className="text-xl font-bold">おすすめ選出β</h2>
+                    <p className="mt-1 text-sm text-gray-600">
+                        攻撃相性、防御相性、役割タグ、素早さ、保存済み基本選出から簡易採点しています。
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                        相手の技構成や特性は未反映です。相手のタイプ一致技を基準にした簡易提案です。
+                    </p>
+
+                    {opponentPokemonList.length === 0 ? (
+                        <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                            相手ポケモンを入力すると、おすすめ選出が表示されます。
+                        </p>
+                    ) : currentPokemonList.length < 3 ? (
+                        <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                            おすすめ選出を表示するには、自分のポケモンを3匹以上登録してください。
+                        </p>
+                    ) : (
+                        <div className="mt-4 space-y-4">
+                            {matchupSelectionSuggestions.map(
+                                (suggestion, index) => (
+                                    <div
+                                        key={`${suggestion.leadPokemon.id}-${suggestion.switchPokemon.id}-${suggestion.finisherPokemon.id}`}
+                                        className="rounded bg-gray-50 p-4"
+                                    >
+                                        <div className="flex flex-wrap items-center justify-between gap-3">
+                                            <h3 className="font-bold">
+                                                {index + 1}位
+                                            </h3>
+
+                                            <span className="rounded bg-white px-3 py-1 text-sm font-semibold">
+                                                合計 {suggestion.totalScore}点
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-4 grid gap-3 md:grid-cols-3">
+                                            <div className="rounded bg-white p-3">
+                                                <p className="text-xs font-semibold text-gray-500">
+                                                    初手
+                                                </p>
+                                                <p className="mt-1 font-bold">
+                                                    {getPartyPokemonDisplayName(
+                                                        suggestion.leadPokemon,
+                                                    )}
+                                                </p>
+                                                <p className="mt-2 text-xs text-gray-600">
+                                                    役割タグ{" "}
+                                                    {
+                                                        suggestion.leadBreakdown
+                                                            .roleTagScore
+                                                    }{" "}
+                                                    / 攻撃{" "}
+                                                    {
+                                                        suggestion.leadBreakdown
+                                                            .offensiveScore
+                                                    }{" "}
+                                                    / 防御{" "}
+                                                    {
+                                                        suggestion.leadBreakdown
+                                                            .defensiveScore
+                                                    }{" "}
+                                                    / 素早さ{" "}
+                                                    {
+                                                        suggestion.leadBreakdown
+                                                            .speedScore
+                                                    }
+                                                </p>
+                                            </div>
+
+                                            <div className="rounded bg-white p-3">
+                                                <p className="text-xs font-semibold text-gray-500">
+                                                    引き先
+                                                </p>
+                                                <p className="mt-1 font-bold">
+                                                    {getPartyPokemonDisplayName(
+                                                        suggestion.switchPokemon,
+                                                    )}
+                                                </p>
+                                                <p className="mt-2 text-xs text-gray-600">
+                                                    役割タグ{" "}
+                                                    {
+                                                        suggestion
+                                                            .switchBreakdown
+                                                            .roleTagScore
+                                                    }{" "}
+                                                    / 攻撃{" "}
+                                                    {
+                                                        suggestion
+                                                            .switchBreakdown
+                                                            .offensiveScore
+                                                    }{" "}
+                                                    / 防御{" "}
+                                                    {
+                                                        suggestion
+                                                            .switchBreakdown
+                                                            .defensiveScore
+                                                    }
+                                                </p>
+                                            </div>
+
+                                            <div className="rounded bg-white p-3">
+                                                <p className="text-xs font-semibold text-gray-500">
+                                                    勝ち筋
+                                                </p>
+                                                <p className="mt-1 font-bold">
+                                                    {getPartyPokemonDisplayName(
+                                                        suggestion.finisherPokemon,
+                                                    )}
+                                                </p>
+                                                <p className="mt-2 text-xs text-gray-600">
+                                                    役割タグ{" "}
+                                                    {
+                                                        suggestion
+                                                            .finisherBreakdown
+                                                            .roleTagScore
+                                                    }{" "}
+                                                    / 攻撃{" "}
+                                                    {
+                                                        suggestion
+                                                            .finisherBreakdown
+                                                            .offensiveScore
+                                                    }{" "}
+                                                    / 防御{" "}
+                                                    {
+                                                        suggestion
+                                                            .finisherBreakdown
+                                                            .defensiveScore
+                                                    }{" "}
+                                                    / 素早さ{" "}
+                                                    {
+                                                        suggestion
+                                                            .finisherBreakdown
+                                                            .speedScore
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {suggestion.savedTemplateBonus > 0 && (
+                                            <p className="mt-3 text-xs font-medium text-blue-700">
+                                                保存済み基本選出との一致：+
+                                                {suggestion.savedTemplateBonus}
+                                                点
+                                            </p>
+                                        )}
+
+                                        {suggestion.reasons.length > 0 && (
+                                            <ul className="mt-3 space-y-1 text-xs text-gray-600">
+                                                {suggestion.reasons.map(
+                                                    (reason) => (
+                                                        <li key={reason}>
+                                                            ・{reason}
+                                                        </li>
+                                                    ),
+                                                )}
+                                            </ul>
+                                        )}
+                                    </div>
+                                ),
                             )}
                         </div>
                     )}
