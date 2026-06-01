@@ -755,6 +755,10 @@ export default function CreatePartyVersionPage() {
                                                 </div>
                                             </div>
 
+                                            <p className="text-xs text-gray-500">
+                                                変化技の場合は、攻撃性能の採点に使わないため「タイプなし」を選択してください。
+                                            </p>
+
                                             {(
                                                 [
                                                     ["move_1", "move_1_type"],
@@ -814,7 +818,7 @@ export default function CreatePartyVersionPage() {
                                                                 }
                                                             >
                                                                 <option value="">
-                                                                    選択してください
+                                                                    タイプなし・変化技
                                                                 </option>
                                                                 {pokemonTypes.map(
                                                                     (type) => (

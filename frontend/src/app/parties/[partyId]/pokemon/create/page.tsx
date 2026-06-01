@@ -624,6 +624,10 @@ export default function CreatePartyPokemonPage() {
                                 </div>
                             </div>
 
+                            <p className="text-xs text-gray-500">
+                                変化技の場合は、攻撃性能の採点に使わないため「タイプなし」を選択してください。
+                            </p>
+
                             <div>
                                 <label className="block text-sm font-medium">
                                     技1
@@ -646,7 +650,7 @@ export default function CreatePartyPokemonPage() {
                                         }
                                     >
                                         <option value="">
-                                            選択してください
+                                            タイプなし・変化技
                                         </option>
                                         {pokemonTypes.map((type) => (
                                             <option key={type} value={type}>
@@ -679,7 +683,7 @@ export default function CreatePartyPokemonPage() {
                                         }
                                     >
                                         <option value="">
-                                            選択してください
+                                            タイプなし・変化技
                                         </option>
                                         {pokemonTypes.map((type) => (
                                             <option key={type} value={type}>
@@ -712,7 +716,7 @@ export default function CreatePartyPokemonPage() {
                                         }
                                     >
                                         <option value="">
-                                            選択してください
+                                            タイプなし・変化技
                                         </option>
                                         {pokemonTypes.map((type) => (
                                             <option key={type} value={type}>
@@ -745,7 +749,7 @@ export default function CreatePartyPokemonPage() {
                                         }
                                     >
                                         <option value="">
-                                            選択してください
+                                            タイプなし・変化技
                                         </option>
                                         {pokemonTypes.map((type) => (
                                             <option key={type} value={type}>

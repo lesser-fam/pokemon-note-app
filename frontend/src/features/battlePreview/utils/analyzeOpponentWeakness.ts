@@ -1,6 +1,6 @@
 import { pokemonTypes } from "@/constants/pokemonTypes";
-import { typeEffectivenessChart } from "@/constants/typeEffectivenessChart";
 import type { Pokemon } from "@/types/pokemon";
+import { calculateTypeMultiplier } from "./calculateTypeMultiplier";
 
 export type WeaknessTarget = {
     key: string;
@@ -21,25 +21,13 @@ export type WeaknessAnalysisItem = {
     immuneTargets: WeaknessTarget[];
 };
 
-const calculateMultiplier = (
-    attackType: string,
-    defenderTypes: string[],
-): number => {
-    return defenderTypes.reduce((multiplier, defenderType) => {
-        const typeMultiplier =
-            typeEffectivenessChart[attackType]?.[defenderType] ?? 1;
-
-        return multiplier * typeMultiplier;
-    }, 1);
-};
-
 export const analyzeOpponentWeakness = (
     opponentPokemonList: Pokemon[],
 ): WeaknessAnalysisItem[] => {
     return pokemonTypes
         .map((attackType) => {
             const targets = opponentPokemonList.map((pokemon) => {
-                const multiplier = calculateMultiplier(
+                const multiplier = calculateTypeMultiplier(
                     attackType,
                     pokemon.types,
                 );
