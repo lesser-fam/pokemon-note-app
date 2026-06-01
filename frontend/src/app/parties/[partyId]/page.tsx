@@ -14,6 +14,7 @@ import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { deletePartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 
 export default function PartyDetailPage() {
     const params = useParams<{ partyId: string }>();
@@ -25,6 +26,9 @@ export default function PartyDetailPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSavingSelection, setIsSavingSelection] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [deletingPartyPokemonId, setDeletingPartyPokemonId] = useState<
+        number | null
+    >(null);
 
     useEffect(() => {
         const loadParty = async () => {
@@ -112,6 +116,40 @@ export default function PartyDetailPage() {
     const suggestedSelection = suggestBasicSelection(currentPokemonList);
     const battleLogs = party.current_version?.battle_logs ?? [];
     const battleLogSummary = summarizeBattleLogs(battleLogs);
+
+    const canRemoveInitialPokemon =
+        party.current_version?.is_current === true &&
+        party.current_version.version_number === 1 &&
+        currentPokemonList.length < 6 &&
+        (party.current_version.selection_templates?.length ?? 0) === 0 &&
+        (party.current_version.battle_logs?.length ?? 0) === 0;
+
+    const handleRemoveInitialPokemon = async (partyPokemonId: number) => {
+        const confirmed = window.confirm(
+            "このポケモンをパーティから外します。よろしいですか？",
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setDeletingPartyPokemonId(partyPokemonId);
+        setErrorMessage("");
+
+        try {
+            await deletePartyPokemon(partyPokemonId);
+
+            const refreshedParty = await fetchParty(party.id);
+            setParty(refreshedParty);
+        } catch (error) {
+            console.error(error);
+            setErrorMessage(
+                "ポケモンを外せませんでした。6匹そろった後の変更は、新バージョン作成から行ってください。",
+            );
+        } finally {
+            setDeletingPartyPokemonId(null);
+        }
+    };
 
     const handleSaveSuggestedSelection = async () => {
         if (!party.current_version) {
@@ -608,6 +646,12 @@ export default function PartyDetailPage() {
                         </p>
                     )}
 
+                    {canRemoveInitialPokemon && (
+                        <p className="mt-3 rounded bg-gray-50 p-3 text-sm text-gray-600">
+                            初回登録中は、間違えて追加したポケモンを「外す」ことができます。6匹そろった後の変更は「新バージョン作成」から行います。
+                        </p>
+                    )}
+
                     <div className="mt-4 grid gap-4 md:grid-cols-2">
                         {party.current_version?.pokemon &&
                         party.current_version.pokemon.length > 0 ? (
@@ -622,41 +666,65 @@ export default function PartyDetailPage() {
                                         key={pokemon.id}
                                         className="rounded border p-4"
                                     >
-                                        <div className="flex items-center gap-4">
-                                            {pokemonMaster?.image_url ? (
-                                                <img
-                                                    src={
-                                                        pokemonMaster.image_url
-                                                    }
-                                                    alt={pokemonMaster.name}
-                                                    className="h-20 w-20 object-contain"
-                                                />
-                                            ) : (
-                                                <div className="flex h-20 w-20 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
-                                                    ?
-                                                </div>
-                                            )}
-
-                                            <div>
-                                                <p className="text-lg font-bold">
-                                                    {pokemon.nickname ||
-                                                        pokemonMaster?.name ||
-                                                        pokemon.pokemon_key}
-                                                </p>
-
-                                                {pokemonMaster && (
-                                                    <p className="mt-1 text-sm text-gray-600">
-                                                        {pokemonMaster.types.join(
-                                                            " / ",
-                                                        )}
-                                                    </p>
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex items-center gap-4">
+                                                {pokemonMaster?.image_url ? (
+                                                    <img
+                                                        src={
+                                                            pokemonMaster.image_url
+                                                        }
+                                                        alt={pokemonMaster.name}
+                                                        className="h-20 w-20 object-contain"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-20 w-20 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
+                                                        ?
+                                                    </div>
                                                 )}
 
-                                                <p className="mt-1 text-xs text-gray-400">
-                                                    key: {pokemon.pokemon_key} /
-                                                    form: {pokemon.form_key}
-                                                </p>
+                                                <div>
+                                                    <p className="text-lg font-bold">
+                                                        {pokemon.nickname ||
+                                                            pokemonMaster?.name ||
+                                                            pokemon.pokemon_key}
+                                                    </p>
+
+                                                    {pokemonMaster && (
+                                                        <p className="mt-1 text-sm text-gray-600">
+                                                            {pokemonMaster.types.join(
+                                                                " / ",
+                                                            )}
+                                                        </p>
+                                                    )}
+
+                                                    <p className="mt-1 text-xs text-gray-400">
+                                                        key:{" "}
+                                                        {pokemon.pokemon_key} /
+                                                        form: {pokemon.form_key}
+                                                    </p>
+                                                </div>
                                             </div>
+
+                                            {canRemoveInitialPokemon && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleRemoveInitialPokemon(
+                                                            pokemon.id,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        deletingPartyPokemonId ===
+                                                        pokemon.id
+                                                    }
+                                                    className="shrink-0 rounded border border-red-300 px-3 py-1 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                                >
+                                                    {deletingPartyPokemonId ===
+                                                    pokemon.id
+                                                        ? "処理中..."
+                                                        : "外す"}
+                                                </button>
+                                            )}
                                         </div>
 
                                         <div className="mt-4 grid gap-2 text-sm text-gray-700">

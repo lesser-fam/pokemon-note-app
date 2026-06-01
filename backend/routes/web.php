@@ -21,6 +21,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/api/parties/{party}', [PartyController::class, 'destroy']);
 
     Route::post('/api/party-versions/{partyVersion}/pokemon', [PartyPokemonController::class, 'store']);
+    Route::delete('/api/party-pokemon/{partyPokemon}', [PartyPokemonController::class, 'destroy']);
+
     Route::post('/api/party-versions/{partyVersion}/new-version', [PartyVersionController::class, 'storeNewVersion']);
 
     Route::post('/api/party-versions/{partyVersion}/selection-templates', [SelectionTemplateController::class, 'store']);

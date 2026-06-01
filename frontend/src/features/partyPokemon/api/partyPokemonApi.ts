@@ -37,3 +37,9 @@ export const createPartyPokemon = async (
 
     return response.data.data;
 };
+
+export const deletePartyPokemon = async (
+    partyPokemonId: number,
+): Promise<void> => {
+    await api.delete(`/api/party-pokemon/${partyPokemonId}`);
+};
