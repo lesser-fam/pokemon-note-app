@@ -137,5 +137,24 @@ class StoreNewPartyVersionRequest extends FormRequest
                 }
             }
         });
+
+        foreach ($this->input('pokemon', []) as $index => $pokemon) {
+            $moves = collect([
+                $pokemon['move_1'] ?? null,
+                $pokemon['move_2'] ?? null,
+                $pokemon['move_3'] ?? null,
+                $pokemon['move_4'] ?? null,
+            ])
+                ->map(fn($move) => trim((string) $move))
+                ->filter()
+                ->values();
+
+            if ($moves->unique()->count() !== $moves->count()) {
+                $validator->errors()->add(
+                    "pokemon.{$index}.moves",
+                    '同じポケモンに同じ技を複数登録することはできません。'
+                );
+            }
+        }
     }
 }

@@ -213,6 +213,32 @@ export default function CreatePartyPokemonPage() {
             return;
         }
 
+        const normalizedItem = item.trim();
+
+        const hasDuplicatedItem =
+            normalizedItem !== "" &&
+            currentPokemonList.some(
+                (partyPokemon) => partyPokemon.item?.trim() === normalizedItem,
+            );
+
+        if (hasDuplicatedItem) {
+            setErrorMessage("同じ持ち物は同じパーティに登録できません。");
+            return;
+        }
+
+        const moves = [move1, move2, move3, move4]
+            .map((move) => move.trim())
+            .filter((move) => move !== "");
+
+        const hasDuplicatedMove = new Set(moves).size !== moves.length;
+
+        if (hasDuplicatedMove) {
+            setErrorMessage(
+                "同じポケモンに同じ技を複数登録することはできません。",
+            );
+            return;
+        }
+
         const effortValueLimits = getEffortValueLimits();
 
         const effortValues = [

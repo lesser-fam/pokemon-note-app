@@ -99,5 +99,22 @@ class StorePartyPokemonRequest extends FormRequest
                 );
             }
         });
+
+        $moves = collect([
+            $this->input('move_1'),
+            $this->input('move_2'),
+            $this->input('move_3'),
+            $this->input('move_4'),
+        ])
+            ->map(fn($move) => trim((string) $move))
+            ->filter()
+            ->values();
+
+        if ($moves->unique()->count() !== $moves->count()) {
+            $validator->errors()->add(
+                'moves',
+                '同じポケモンに同じ技を複数登録することはできません。'
+            );
+        }
     }
 }

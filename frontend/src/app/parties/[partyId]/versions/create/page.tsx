@@ -349,6 +349,26 @@ export default function CreatePartyVersionPage() {
             return;
         }
 
+        const hasDuplicatedMove = editablePokemonList.some((pokemon) => {
+            const moves = [
+                pokemon.move_1,
+                pokemon.move_2,
+                pokemon.move_3,
+                pokemon.move_4,
+            ]
+                .map((move) => move.trim())
+                .filter((move) => move !== "");
+
+            return new Set(moves).size !== moves.length;
+        });
+
+        if (hasDuplicatedMove) {
+            setErrorMessage(
+                "同じポケモンに同じ技を複数登録することはできません。",
+            );
+            return;
+        }
+
         const effortValueLimits = getEffortValueLimits();
 
         const invalidEffortValuePokemon = editablePokemonList.find(
