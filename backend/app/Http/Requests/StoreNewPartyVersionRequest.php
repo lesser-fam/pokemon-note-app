@@ -37,9 +37,13 @@ class StoreNewPartyVersionRequest extends FormRequest
             'pokemon.*.nature'          => 'nullable|string|max:255',
 
             'pokemon.*.move_1'          => 'nullable|string|max:255',
+            'pokemon.*.move_1_type'     => 'nullable|string|max:50',
             'pokemon.*.move_2'          => 'nullable|string|max:255',
+            'pokemon.*.move_2_type'     => 'nullable|string|max:50',
             'pokemon.*.move_3'          => 'nullable|string|max:255',
+            'pokemon.*.move_3_type'     => 'nullable|string|max:50',
             'pokemon.*.move_4'          => 'nullable|string|max:255',
+            'pokemon.*.move_4_type'     => 'nullable|string|max:50',
 
             'pokemon.*.memo'            => 'nullable|string',
 

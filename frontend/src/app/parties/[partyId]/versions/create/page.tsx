@@ -23,18 +23,20 @@ type EditablePokemon = {
     item: string;
     ability: string;
     nature: string;
-
     ev_h: number;
     ev_a: number;
     ev_b: number;
     ev_c: number;
     ev_d: number;
     ev_s: number;
-
     move_1: string;
+    move_1_type: string;
     move_2: string;
+    move_2_type: string;
     move_3: string;
+    move_3_type: string;
     move_4: string;
+    move_4_type: string;
     memo: string;
     role_tag_ids: number[];
 };
@@ -90,9 +92,13 @@ export default function CreatePartyVersionPage() {
                         ev_d: pokemon.ev_d ?? 0,
                         ev_s: pokemon.ev_s ?? 0,
                         move_1: pokemon.move_1 ?? "",
+                        move_1_type: pokemon.move_1_type ?? "",
                         move_2: pokemon.move_2 ?? "",
+                        move_2_type: pokemon.move_2_type ?? "",
                         move_3: pokemon.move_3 ?? "",
+                        move_3_type: pokemon.move_3_type ?? "",
                         move_4: pokemon.move_4 ?? "",
+                        move_4_type: pokemon.move_4_type ?? "",
                         memo: pokemon.memo ?? "",
                         role_tag_ids:
                             pokemon.role_tags?.map((tag) => tag.id) ?? [],
@@ -173,9 +179,13 @@ export default function CreatePartyVersionPage() {
             ev_d: 0,
             ev_s: 0,
             move_1: "",
+            move_1_type: "",
             move_2: "",
+            move_2_type: "",
             move_3: "",
+            move_3_type: "",
             move_4: "",
+            move_4_type: "",
             memo: "",
             role_tag_ids: [],
         };
@@ -623,7 +633,16 @@ export default function CreatePartyVersionPage() {
                                                         <p className="text-sm font-medium">
                                                             努力値
                                                         </p>
-                                                        <p className="mt-1 text-xs text-gray-500">
+                                                        <p
+                                                            className={`mt-1 text-xs ${
+                                                                calculateEffortValueTotal(
+                                                                    pokemon,
+                                                                ) >
+                                                                effortValueLimits.totalLimit
+                                                                    ? "text-red-600"
+                                                                    : "text-gray-500"
+                                                            }`}
+                                                        >
                                                             {
                                                                 effortValueLimits.label
                                                             }
@@ -635,7 +654,21 @@ export default function CreatePartyVersionPage() {
                                                             {
                                                                 effortValueLimits.totalLimit
                                                             }
+                                                            、1項目
+                                                            {
+                                                                effortValueLimits.singleLimit
+                                                            }
+                                                            まで
                                                         </p>
+
+                                                        {calculateEffortValueTotal(
+                                                            pokemon,
+                                                        ) >
+                                                            effortValueLimits.totalLimit && (
+                                                            <p className="mt-1 text-xs text-red-600">
+                                                                合計努力値が上限を超えています。
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -677,6 +710,16 @@ export default function CreatePartyVersionPage() {
                                                                         return;
                                                                     }
 
+                                                                    if (
+                                                                        Number(
+                                                                            nextValue ||
+                                                                                0,
+                                                                        ) >
+                                                                        effortValueLimits.singleLimit
+                                                                    ) {
+                                                                        return;
+                                                                    }
+
                                                                     updatePokemon(
                                                                         index,
                                                                         field as keyof EditablePokemon,
@@ -694,32 +737,86 @@ export default function CreatePartyVersionPage() {
 
                                             {(
                                                 [
-                                                    "move_1",
-                                                    "move_2",
-                                                    "move_3",
-                                                    "move_4",
+                                                    ["move_1", "move_1_type"],
+                                                    ["move_2", "move_2_type"],
+                                                    ["move_3", "move_3_type"],
+                                                    ["move_4", "move_4_type"],
                                                 ] as const
-                                            ).map((moveField, moveIndex) => (
-                                                <div key={moveField}>
-                                                    <label className="block text-sm font-medium">
-                                                        技{moveIndex + 1}
-                                                    </label>
-                                                    <input
-                                                        className="mt-1 w-full rounded border p-3"
-                                                        value={
-                                                            pokemon[moveField]
-                                                        }
-                                                        onChange={(event) =>
-                                                            updatePokemon(
-                                                                index,
-                                                                moveField,
-                                                                event.target
-                                                                    .value,
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                            ))}
+                                            ).map(
+                                                (
+                                                    [moveField, moveTypeField],
+                                                    moveIndex,
+                                                ) => (
+                                                    <div key={moveField}>
+                                                        <label className="block text-sm font-medium">
+                                                            技{moveIndex + 1}
+                                                        </label>
+
+                                                        <div className="mt-1 grid gap-2 md:grid-cols-[1fr_160px]">
+                                                            <input
+                                                                className="w-full rounded border p-3"
+                                                                value={
+                                                                    pokemon[
+                                                                        moveField
+                                                                    ]
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        moveField,
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                placeholder="技名"
+                                                            />
+
+                                                            <select
+                                                                className="w-full rounded border p-3"
+                                                                value={
+                                                                    pokemon[
+                                                                        moveTypeField
+                                                                    ]
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        moveTypeField,
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <option value="">
+                                                                    選択してください
+                                                                </option>
+                                                                {pokemonTypes.map(
+                                                                    (type) => (
+                                                                        <option
+                                                                            key={
+                                                                                type
+                                                                            }
+                                                                            value={
+                                                                                type
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                type
+                                                                            }
+                                                                        </option>
+                                                                    ),
+                                                                )}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                ),
+                                            )}
                                         </div>
 
                                         <div className="mt-4">

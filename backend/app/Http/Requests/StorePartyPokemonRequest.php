@@ -40,9 +40,13 @@ class StorePartyPokemonRequest extends FormRequest
             'ev_s'              => 'nullable|integer|min:0',
 
             'move_1'            => 'nullable|string|max:255',
+            'move_1_type'       => 'nullable|string|max:50',
             'move_2'            => 'nullable|string|max:255',
+            'move_2_type'       => 'nullable|string|max:50',
             'move_3'            => 'nullable|string|max:255',
+            'move_3_type'       => 'nullable|string|max:50',
             'move_4'            => 'nullable|string|max:255',
+            'move_4_type'       => 'nullable|string|max:50',
 
             'memo'              => 'nullable|string',
 

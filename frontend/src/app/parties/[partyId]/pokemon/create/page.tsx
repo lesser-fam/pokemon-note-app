@@ -41,9 +41,13 @@ export default function CreatePartyPokemonPage() {
     const [evD, setEvD] = useState("0");
     const [evS, setEvS] = useState("0");
     const [move1, setMove1] = useState("");
+    const [move1Type, setMove1Type] = useState("");
     const [move2, setMove2] = useState("");
+    const [move2Type, setMove2Type] = useState("");
     const [move3, setMove3] = useState("");
+    const [move3Type, setMove3Type] = useState("");
     const [move4, setMove4] = useState("");
+    const [move4Type, setMove4Type] = useState("");
     const [memo, setMemo] = useState("");
     const [selectedRoleTagIds, setSelectedRoleTagIds] = useState<number[]>([]);
     const [activeRoleTag, setActiveRoleTag] = useState<RoleTag | null>(null);
@@ -140,6 +144,16 @@ export default function CreatePartyPokemonPage() {
         (pokemon) => pokemon.key === pokemonKey && pokemon.form_key === formKey,
     );
 
+    const currentPokemonList = party?.current_version?.pokemon ?? [];
+
+    const isAlreadyRegisteredPokemon = (pokemon: Pokemon) => {
+        return currentPokemonList.some(
+            (partyPokemon) =>
+                partyPokemon.pokemon_key === pokemon.key &&
+                partyPokemon.form_key === pokemon.form_key,
+        );
+    };
+
     const getEffortValueLimits = () => {
         const rule = party?.rule || "main_series";
 
@@ -175,6 +189,27 @@ export default function CreatePartyPokemonPage() {
 
         if (!party?.current_version) {
             setErrorMessage("現在のバージョンが見つかりません。");
+            return;
+        }
+
+        if (!pokemonKey || !formKey) {
+            setErrorMessage("ポケモンを選択してください。");
+            return;
+        }
+
+        if (currentPokemonList.length >= 6) {
+            setErrorMessage("このパーティにはすでに6匹登録されています。");
+            return;
+        }
+
+        const isDuplicatedPokemon = currentPokemonList.some(
+            (partyPokemon) =>
+                partyPokemon.pokemon_key === pokemonKey &&
+                partyPokemon.form_key === formKey,
+        );
+
+        if (isDuplicatedPokemon) {
+            setErrorMessage("同じポケモンは同じパーティに登録できません。");
             return;
         }
 
@@ -221,9 +256,13 @@ export default function CreatePartyPokemonPage() {
                 ev_d: toNumber(evD),
                 ev_s: toNumber(evS),
                 move_1: move1,
+                move_1_type: move1Type || undefined,
                 move_2: move2,
+                move_2_type: move2Type || undefined,
                 move_3: move3,
+                move_3_type: move3Type || undefined,
                 move_4: move4,
+                move_4_type: move4Type || undefined,
                 memo,
                 role_tag_ids: selectedRoleTagIds,
             });
@@ -366,17 +405,27 @@ export default function CreatePartyPokemonPage() {
                                     pokemon.key === pokemonKey &&
                                     pokemon.form_key === formKey;
 
+                                const isAlreadyRegistered =
+                                    isAlreadyRegisteredPokemon(pokemon);
+
                                 return (
                                     <button
                                         key={`${pokemon.key}-${pokemon.form_key}`}
                                         type="button"
-                                        onClick={() =>
-                                            handleSelectPokemon(pokemon)
-                                        }
-                                        className={`rounded border p-3 text-left transition ${
-                                            isSelected
-                                                ? "border-black bg-gray-100 ring-2 ring-black"
-                                                : "hover:bg-gray-50"
+                                        disabled={isAlreadyRegistered}
+                                        onClick={() => {
+                                            if (isAlreadyRegistered) {
+                                                return;
+                                            }
+
+                                            handleSelectPokemon(pokemon);
+                                        }}
+                                        className={`rounded border p-3 text-left transition disabled:cursor-not-allowed ${
+                                            isAlreadyRegistered
+                                                ? "bg-gray-100 opacity-50"
+                                                : isSelected
+                                                  ? "border-black bg-gray-100 ring-2 ring-black"
+                                                  : "hover:bg-gray-50"
                                         }`}
                                     >
                                         <div className="flex items-center gap-3">
@@ -402,6 +451,12 @@ export default function CreatePartyPokemonPage() {
                                                 <p className="mt-1 text-xs">
                                                     {pokemon.types.join(" / ")}
                                                 </p>
+
+                                                {isAlreadyRegistered && (
+                                                    <p className="mt-1 text-xs text-gray-500">
+                                                        登録済み
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </button>
@@ -547,52 +602,132 @@ export default function CreatePartyPokemonPage() {
                                 <label className="block text-sm font-medium">
                                     技1
                                 </label>
-                                <input
-                                    className="mt-1 w-full rounded border p-3"
-                                    value={move1}
-                                    onChange={(event) =>
-                                        setMove1(event.target.value)
-                                    }
-                                />
+                                <div className="mt-1 grid gap-2 md:grid-cols-[1fr_160px]">
+                                    <input
+                                        className="w-full rounded border p-3"
+                                        value={move1}
+                                        onChange={(event) =>
+                                            setMove1(event.target.value)
+                                        }
+                                        placeholder="技名"
+                                    />
+
+                                    <select
+                                        className="w-full rounded border p-3"
+                                        value={move1Type}
+                                        onChange={(event) =>
+                                            setMove1Type(event.target.value)
+                                        }
+                                    >
+                                        <option value="">
+                                            選択してください
+                                        </option>
+                                        {pokemonTypes.map((type) => (
+                                            <option key={type} value={type}>
+                                                {type}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium">
                                     技2
                                 </label>
-                                <input
-                                    className="mt-1 w-full rounded border p-3"
-                                    value={move2}
-                                    onChange={(event) =>
-                                        setMove2(event.target.value)
-                                    }
-                                />
+                                <div className="mt-1 grid gap-2 md:grid-cols-[1fr_160px]">
+                                    <input
+                                        className="w-full rounded border p-3"
+                                        value={move2}
+                                        onChange={(event) =>
+                                            setMove2(event.target.value)
+                                        }
+                                        placeholder="技名"
+                                    />
+
+                                    <select
+                                        className="w-full rounded border p-3"
+                                        value={move2Type}
+                                        onChange={(event) =>
+                                            setMove2Type(event.target.value)
+                                        }
+                                    >
+                                        <option value="">
+                                            選択してください
+                                        </option>
+                                        {pokemonTypes.map((type) => (
+                                            <option key={type} value={type}>
+                                                {type}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium">
                                     技3
                                 </label>
-                                <input
-                                    className="mt-1 w-full rounded border p-3"
-                                    value={move3}
-                                    onChange={(event) =>
-                                        setMove3(event.target.value)
-                                    }
-                                />
+                                <div className="mt-1 grid gap-2 md:grid-cols-[1fr_160px]">
+                                    <input
+                                        className="w-full rounded border p-3"
+                                        value={move3}
+                                        onChange={(event) =>
+                                            setMove3(event.target.value)
+                                        }
+                                        placeholder="技名"
+                                    />
+
+                                    <select
+                                        className="w-full rounded border p-3"
+                                        value={move3Type}
+                                        onChange={(event) =>
+                                            setMove3Type(event.target.value)
+                                        }
+                                    >
+                                        <option value="">
+                                            選択してください
+                                        </option>
+                                        {pokemonTypes.map((type) => (
+                                            <option key={type} value={type}>
+                                                {type}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium">
                                     技4
                                 </label>
-                                <input
-                                    className="mt-1 w-full rounded border p-3"
-                                    value={move4}
-                                    onChange={(event) =>
-                                        setMove4(event.target.value)
-                                    }
-                                />
+                                <div className="mt-1 grid gap-2 md:grid-cols-[1fr_160px]">
+                                    <input
+                                        className="w-full rounded border p-3"
+                                        value={move4}
+                                        onChange={(event) =>
+                                            setMove4(event.target.value)
+                                        }
+                                        placeholder="技名"
+                                    />
+
+                                    <select
+                                        className="w-full rounded border p-3"
+                                        value={move4Type}
+                                        onChange={(event) =>
+                                            setMove4Type(event.target.value)
+                                        }
+                                    >
+                                        <option value="">
+                                            選択してください
+                                        </option>
+                                        {pokemonTypes.map((type) => (
+                                            <option key={type} value={type}>
+                                                {type}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                         </div>
 

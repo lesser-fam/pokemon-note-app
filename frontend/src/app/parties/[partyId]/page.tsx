@@ -5,13 +5,15 @@ import { summarizeBattleLogs } from "@/features/battleLogs/utils/summarizeBattle
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
-import { createSelectionTemplate } from "@/features/selectionTemplates/api/selectionTemplateApi";
+import {
+    createSelectionTemplate,
+    deleteSelectionTemplate,
+} from "@/features/selectionTemplates/api/selectionTemplateApi";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { deleteSelectionTemplate } from "@/features/selectionTemplates/api/selectionTemplateApi";
 
 export default function PartyDetailPage() {
     const params = useParams<{ partyId: string }>();
@@ -582,13 +584,29 @@ export default function PartyDetailPage() {
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold">登録ポケモン</h2>
 
-                        <Link
-                            href={`/parties/${party.id}/pokemon/create`}
-                            className="rounded bg-black px-4 py-2 text-white"
-                        >
-                            ポケモンを追加
-                        </Link>
+                        {currentPokemonList.length < 6 ? (
+                            <Link
+                                href={`/parties/${party.id}/pokemon/create`}
+                                className="rounded bg-black px-4 py-2 text-white"
+                            >
+                                ポケモンを追加
+                            </Link>
+                        ) : (
+                            <button
+                                type="button"
+                                disabled
+                                className="cursor-not-allowed rounded bg-gray-300 px-4 py-2 text-white"
+                            >
+                                6匹登録済み
+                            </button>
+                        )}
                     </div>
+
+                    {currentPokemonList.length >= 6 && (
+                        <p className="mt-3 rounded bg-gray-50 p-3 text-sm text-gray-600">
+                            6匹そろっているため、この画面からは追加できません。変更する場合は「新バージョン作成」から入れ替えてください。
+                        </p>
+                    )}
 
                     <div className="mt-4 grid gap-4 md:grid-cols-2">
                         {party.current_version?.pokemon &&
@@ -655,17 +673,41 @@ export default function PartyDetailPage() {
 
                                         <div className="mt-4 text-sm text-gray-700">
                                             <p className="font-medium">技</p>
-                                            <ul className="mt-1 ml-4 list-disc">
+
+                                            <ul className="mt-2 space-y-1">
                                                 {[
-                                                    pokemon.move_1,
-                                                    pokemon.move_2,
-                                                    pokemon.move_3,
-                                                    pokemon.move_4,
+                                                    {
+                                                        name: pokemon.move_1,
+                                                        type: pokemon.move_1_type,
+                                                    },
+                                                    {
+                                                        name: pokemon.move_2,
+                                                        type: pokemon.move_2_type,
+                                                    },
+                                                    {
+                                                        name: pokemon.move_3,
+                                                        type: pokemon.move_3_type,
+                                                    },
+                                                    {
+                                                        name: pokemon.move_4,
+                                                        type: pokemon.move_4_type,
+                                                    },
                                                 ]
-                                                    .filter(Boolean)
+                                                    .filter((move) => move.name)
                                                     .map((move) => (
-                                                        <li key={move}>
-                                                            {move}
+                                                        <li
+                                                            key={`${move.name}-${move.type}`}
+                                                            className="flex flex-wrap items-center gap-2"
+                                                        >
+                                                            <span>
+                                                                {move.name}
+                                                            </span>
+
+                                                            {move.type && (
+                                                                <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
+                                                                    {move.type}
+                                                                </span>
+                                                            )}
                                                         </li>
                                                     ))}
                                             </ul>

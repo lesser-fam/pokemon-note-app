@@ -15,9 +15,13 @@ export type StorePartyPokemonPayload = {
     ev_d?: number;
     ev_s?: number;
     move_1?: string;
+    move_1_type?: string;
     move_2?: string;
+    move_2_type?: string;
     move_3?: string;
+    move_3_type?: string;
     move_4?: string;
+    move_4_type?: string;
     memo?: string;
     role_tag_ids?: number[];
 };
