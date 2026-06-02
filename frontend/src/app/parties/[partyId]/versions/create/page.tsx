@@ -6,8 +6,9 @@ import {
     fetchPokemonList,
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
-import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { BattleMasterTextSelector } from "@/features/master/components/BattleMasterTextSelector";
+import { MoveSelector } from "@/features/master/components/MoveSelector";
+import { NatureSelector } from "@/features/master/components/NatureSelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
 import type { Party } from "@/types/party";
@@ -654,17 +655,28 @@ export default function CreatePartyVersionPage() {
                                                 <label className="block text-sm font-medium">
                                                     性格
                                                 </label>
-                                                <input
-                                                    className="mt-1 w-full rounded border p-3"
-                                                    value={pokemon.nature}
-                                                    onChange={(event) =>
-                                                        updatePokemon(
-                                                            index,
-                                                            "nature",
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                />
+
+                                                <div className="mt-1">
+                                                    <NatureSelector
+                                                        value={pokemon.nature}
+                                                        onChangeText={(value) =>
+                                                            updatePokemon(
+                                                                index,
+                                                                "nature",
+                                                                value,
+                                                            )
+                                                        }
+                                                        onSelect={(
+                                                            selectedNature,
+                                                        ) =>
+                                                            updatePokemon(
+                                                                index,
+                                                                "nature",
+                                                                selectedNature.name,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
                                             </div>
 
                                             <div className="mt-4 rounded bg-gray-50 p-4 md:col-span-2">

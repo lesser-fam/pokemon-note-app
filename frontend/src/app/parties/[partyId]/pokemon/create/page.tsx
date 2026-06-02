@@ -6,8 +6,9 @@ import {
     fetchPokemonList,
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
-import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { BattleMasterTextSelector } from "@/features/master/components/BattleMasterTextSelector";
+import { MoveSelector } from "@/features/master/components/MoveSelector";
+import { NatureSelector } from "@/features/master/components/NatureSelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import type { Party } from "@/types/party";
@@ -557,13 +558,16 @@ export default function CreatePartyPokemonPage() {
                                 <label className="block text-sm font-medium">
                                     性格
                                 </label>
-                                <input
-                                    className="mt-1 w-full rounded border p-3"
-                                    value={nature}
-                                    onChange={(event) =>
-                                        setNature(event.target.value)
-                                    }
-                                />
+
+                                <div className="mt-1">
+                                    <NatureSelector
+                                        value={nature}
+                                        onChangeText={setNature}
+                                        onSelect={(selectedNature) =>
+                                            setNature(selectedNature.name)
+                                        }
+                                    />
+                                </div>
                             </div>
 
                             <div className="mt-4 rounded bg-gray-50 p-4 md:col-span-2">

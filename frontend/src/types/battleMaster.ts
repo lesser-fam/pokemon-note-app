@@ -19,3 +19,11 @@ export type ItemMaster = {
     key: string;
     name: string;
 };
+
+export type NatureMaster = {
+    id: number;
+    key: string;
+    name: string;
+    increased_stat: string | null;
+    decreased_stat: string | null;
+};

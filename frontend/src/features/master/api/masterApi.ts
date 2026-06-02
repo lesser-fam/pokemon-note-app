@@ -5,6 +5,7 @@ import type {
     AbilityMaster,
     ItemMaster,
     MoveMaster,
+    NatureMaster,
 } from "@/types/battleMaster";
 
 export const fetchPokemonList = async (): Promise<Pokemon[]> => {
@@ -55,6 +56,20 @@ export const fetchItemList = async (
     limit = 50,
 ): Promise<ItemMaster[]> => {
     const response = await api.get<{ data: ItemMaster[] }>("/api/items", {
+        params: {
+            search,
+            limit,
+        },
+    });
+
+    return response.data.data;
+};
+
+export const fetchNatureList = async (
+    search = "",
+    limit = 50,
+): Promise<NatureMaster[]> => {
+    const response = await api.get<{ data: NatureMaster[] }>("/api/natures", {
         params: {
             search,
             limit,
