@@ -7,6 +7,7 @@ import {
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
 import { MoveSelector } from "@/features/master/components/MoveSelector";
+import { BattleMasterTextSelector } from "@/features/master/components/BattleMasterTextSelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import type { Party } from "@/types/party";
@@ -520,26 +521,36 @@ export default function CreatePartyPokemonPage() {
                                 <label className="block text-sm font-medium">
                                     持ち物
                                 </label>
-                                <input
-                                    className="mt-1 w-full rounded border p-3"
-                                    value={item}
-                                    onChange={(event) =>
-                                        setItem(event.target.value)
-                                    }
-                                />
+
+                                <div className="mt-1">
+                                    <BattleMasterTextSelector
+                                        resource="item"
+                                        value={item}
+                                        onChangeText={setItem}
+                                        onSelect={(option) =>
+                                            setItem(option.name)
+                                        }
+                                        placeholder="持ち物名を検索"
+                                    />
+                                </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium">
                                     特性
                                 </label>
-                                <input
-                                    className="mt-1 w-full rounded border p-3"
-                                    value={ability}
-                                    onChange={(event) =>
-                                        setAbility(event.target.value)
-                                    }
-                                />
+
+                                <div className="mt-1">
+                                    <BattleMasterTextSelector
+                                        resource="ability"
+                                        value={ability}
+                                        onChangeText={setAbility}
+                                        onSelect={(option) =>
+                                            setAbility(option.name)
+                                        }
+                                        placeholder="特性名を検索"
+                                    />
+                                </div>
                             </div>
 
                             <div>

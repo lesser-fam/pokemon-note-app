@@ -7,6 +7,7 @@ import {
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
 import { MoveSelector } from "@/features/master/components/MoveSelector";
+import { BattleMasterTextSelector } from "@/features/master/components/BattleMasterTextSelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
 import type { Party } from "@/types/party";
@@ -299,10 +300,6 @@ export default function CreatePartyVersionPage() {
             singleLimit: 252,
             label: "本編ルール",
         };
-    };
-
-    const toNumber = (value: string) => {
-        return Number(value || 0);
     };
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -601,34 +598,56 @@ export default function CreatePartyVersionPage() {
                                                 <label className="block text-sm font-medium">
                                                     持ち物
                                                 </label>
-                                                <input
-                                                    className="mt-1 w-full rounded border p-3"
-                                                    value={pokemon.item}
-                                                    onChange={(event) =>
-                                                        updatePokemon(
-                                                            index,
-                                                            "item",
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                />
+
+                                                <div className="mt-1">
+                                                    <BattleMasterTextSelector
+                                                        resource="item"
+                                                        value={pokemon.item}
+                                                        onChangeText={(value) =>
+                                                            updatePokemon(
+                                                                index,
+                                                                "item",
+                                                                value,
+                                                            )
+                                                        }
+                                                        onSelect={(option) =>
+                                                            updatePokemon(
+                                                                index,
+                                                                "item",
+                                                                option.name,
+                                                            )
+                                                        }
+                                                        placeholder="持ち物名を検索"
+                                                    />
+                                                </div>
                                             </div>
 
                                             <div>
                                                 <label className="block text-sm font-medium">
                                                     特性
                                                 </label>
-                                                <input
-                                                    className="mt-1 w-full rounded border p-3"
-                                                    value={pokemon.ability}
-                                                    onChange={(event) =>
-                                                        updatePokemon(
-                                                            index,
-                                                            "ability",
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                />
+
+                                                <div className="mt-1">
+                                                    <BattleMasterTextSelector
+                                                        resource="ability"
+                                                        value={pokemon.ability}
+                                                        onChangeText={(value) =>
+                                                            updatePokemon(
+                                                                index,
+                                                                "ability",
+                                                                value,
+                                                            )
+                                                        }
+                                                        onSelect={(option) =>
+                                                            updatePokemon(
+                                                                index,
+                                                                "ability",
+                                                                option.name,
+                                                            )
+                                                        }
+                                                        placeholder="特性名を検索"
+                                                    />
+                                                </div>
                                             </div>
 
                                             <div>
