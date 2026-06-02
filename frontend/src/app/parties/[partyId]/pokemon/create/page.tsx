@@ -6,6 +6,7 @@ import {
     fetchPokemonList,
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
+import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import type { Party } from "@/types/party";
@@ -15,7 +16,6 @@ import { toHiragana } from "@/utils/kana";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { MoveSelector } from "@/features/master/components/MoveSelector";
 
 export default function CreatePartyPokemonPage() {
     const router = useRouter();
@@ -625,6 +625,12 @@ export default function CreatePartyPokemonPage() {
                                 </div>
                             </div>
 
+                            <div className="md:col-span-2">
+                                <p className="text-xs text-gray-500">
+                                    候補から技を選ぶと、攻撃技のタイプが自動設定されます。変化技は攻撃相性点に含まれません。
+                                </p>
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium">
                                     技1
@@ -634,10 +640,14 @@ export default function CreatePartyPokemonPage() {
                                     <MoveSelector
                                         value={move1}
                                         selectedMoveType={move1Type}
+                                        onChangeText={(value) => {
+                                            setMove1(value);
+                                            setMove1Type("");
+                                        }}
                                         onSelect={(move) => {
-                                            setMove1(move?.name ?? "");
+                                            setMove1(move.name);
                                             setMove1Type(
-                                                move?.is_scoring_target
+                                                move.is_scoring_target
                                                     ? move.type
                                                     : "",
                                             );
@@ -655,10 +665,14 @@ export default function CreatePartyPokemonPage() {
                                     <MoveSelector
                                         value={move2}
                                         selectedMoveType={move2Type}
+                                        onChangeText={(value) => {
+                                            setMove2(value);
+                                            setMove2Type("");
+                                        }}
                                         onSelect={(move) => {
-                                            setMove2(move?.name ?? "");
+                                            setMove2(move.name);
                                             setMove2Type(
-                                                move?.is_scoring_target
+                                                move.is_scoring_target
                                                     ? move.type
                                                     : "",
                                             );
@@ -676,10 +690,14 @@ export default function CreatePartyPokemonPage() {
                                     <MoveSelector
                                         value={move3}
                                         selectedMoveType={move3Type}
+                                        onChangeText={(value) => {
+                                            setMove3(value);
+                                            setMove3Type("");
+                                        }}
                                         onSelect={(move) => {
-                                            setMove3(move?.name ?? "");
+                                            setMove3(move.name);
                                             setMove3Type(
-                                                move?.is_scoring_target
+                                                move.is_scoring_target
                                                     ? move.type
                                                     : "",
                                             );
@@ -697,10 +715,14 @@ export default function CreatePartyPokemonPage() {
                                     <MoveSelector
                                         value={move4}
                                         selectedMoveType={move4Type}
+                                        onChangeText={(value) => {
+                                            setMove4(value);
+                                            setMove4Type("");
+                                        }}
                                         onSelect={(move) => {
-                                            setMove4(move?.name ?? "");
+                                            setMove4(move.name);
                                             setMove4Type(
-                                                move?.is_scoring_target
+                                                move.is_scoring_target
                                                     ? move.type
                                                     : "",
                                             );

@@ -6,6 +6,7 @@ import {
     fetchPokemonList,
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
+import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
 import type { Party } from "@/types/party";
@@ -755,9 +756,11 @@ export default function CreatePartyVersionPage() {
                                                 </div>
                                             </div>
 
-                                            <p className="text-xs text-gray-500">
-                                                変化技の場合は、攻撃性能の採点に使わないため「タイプなし」を選択してください。
-                                            </p>
+                                            <div className="md:col-span-2">
+                                                <p className="text-xs text-gray-500">
+                                                    候補から技を選ぶと、攻撃技のタイプが自動設定されます。変化技は攻撃相性点に含まれません。
+                                                </p>
+                                            </div>
 
                                             {(
                                                 [
@@ -776,67 +779,49 @@ export default function CreatePartyVersionPage() {
                                                             技{moveIndex + 1}
                                                         </label>
 
-                                                        <div className="mt-1 grid gap-2 md:grid-cols-[1fr_160px]">
-                                                            <input
-                                                                className="w-full rounded border p-3"
+                                                        <div className="mt-1">
+                                                            <MoveSelector
                                                                 value={
                                                                     pokemon[
                                                                         moveField
                                                                     ]
                                                                 }
-                                                                onChange={(
-                                                                    event,
-                                                                ) =>
-                                                                    updatePokemon(
-                                                                        index,
-                                                                        moveField,
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                    )
-                                                                }
-                                                                placeholder="技名"
-                                                            />
-
-                                                            <select
-                                                                className="w-full rounded border p-3"
-                                                                value={
+                                                                selectedMoveType={
                                                                     pokemon[
                                                                         moveTypeField
                                                                     ]
                                                                 }
-                                                                onChange={(
-                                                                    event,
-                                                                ) =>
+                                                                onChangeText={(
+                                                                    value,
+                                                                ) => {
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        moveField,
+                                                                        value,
+                                                                    );
                                                                     updatePokemon(
                                                                         index,
                                                                         moveTypeField,
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                    )
-                                                                }
-                                                            >
-                                                                <option value="">
-                                                                    タイプなし・変化技
-                                                                </option>
-                                                                {pokemonTypes.map(
-                                                                    (type) => (
-                                                                        <option
-                                                                            key={
-                                                                                type
-                                                                            }
-                                                                            value={
-                                                                                type
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                type
-                                                                            }
-                                                                        </option>
-                                                                    ),
-                                                                )}
-                                                            </select>
+                                                                        "",
+                                                                    );
+                                                                }}
+                                                                onSelect={(
+                                                                    move,
+                                                                ) => {
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        moveField,
+                                                                        move.name,
+                                                                    );
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        moveTypeField,
+                                                                        move.is_scoring_target
+                                                                            ? move.type
+                                                                            : "",
+                                                                    );
+                                                                }}
+                                                            />
                                                         </div>
                                                     </div>
                                                 ),
