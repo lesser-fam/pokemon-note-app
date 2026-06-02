@@ -15,6 +15,7 @@ import { toHiragana } from "@/utils/kana";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { MoveSelector } from "@/features/master/components/MoveSelector";
 
 export default function CreatePartyPokemonPage() {
     const router = useRouter();
@@ -624,40 +625,24 @@ export default function CreatePartyPokemonPage() {
                                 </div>
                             </div>
 
-                            <p className="text-xs text-gray-500">
-                                変化技の場合は、攻撃性能の採点に使わないため「タイプなし」を選択してください。
-                            </p>
-
                             <div>
                                 <label className="block text-sm font-medium">
                                     技1
                                 </label>
-                                <div className="mt-1 grid gap-2 md:grid-cols-[1fr_160px]">
-                                    <input
-                                        className="w-full rounded border p-3"
-                                        value={move1}
-                                        onChange={(event) =>
-                                            setMove1(event.target.value)
-                                        }
-                                        placeholder="技名"
-                                    />
 
-                                    <select
-                                        className="w-full rounded border p-3"
-                                        value={move1Type}
-                                        onChange={(event) =>
-                                            setMove1Type(event.target.value)
-                                        }
-                                    >
-                                        <option value="">
-                                            タイプなし・変化技
-                                        </option>
-                                        {pokemonTypes.map((type) => (
-                                            <option key={type} value={type}>
-                                                {type}
-                                            </option>
-                                        ))}
-                                    </select>
+                                <div className="mt-1">
+                                    <MoveSelector
+                                        value={move1}
+                                        selectedMoveType={move1Type}
+                                        onSelect={(move) => {
+                                            setMove1(move?.name ?? "");
+                                            setMove1Type(
+                                                move?.is_scoring_target
+                                                    ? move.type
+                                                    : "",
+                                            );
+                                        }}
+                                    />
                                 </div>
                             </div>
 
@@ -665,32 +650,20 @@ export default function CreatePartyPokemonPage() {
                                 <label className="block text-sm font-medium">
                                     技2
                                 </label>
-                                <div className="mt-1 grid gap-2 md:grid-cols-[1fr_160px]">
-                                    <input
-                                        className="w-full rounded border p-3"
-                                        value={move2}
-                                        onChange={(event) =>
-                                            setMove2(event.target.value)
-                                        }
-                                        placeholder="技名"
-                                    />
 
-                                    <select
-                                        className="w-full rounded border p-3"
-                                        value={move2Type}
-                                        onChange={(event) =>
-                                            setMove2Type(event.target.value)
-                                        }
-                                    >
-                                        <option value="">
-                                            タイプなし・変化技
-                                        </option>
-                                        {pokemonTypes.map((type) => (
-                                            <option key={type} value={type}>
-                                                {type}
-                                            </option>
-                                        ))}
-                                    </select>
+                                <div className="mt-1">
+                                    <MoveSelector
+                                        value={move2}
+                                        selectedMoveType={move2Type}
+                                        onSelect={(move) => {
+                                            setMove2(move?.name ?? "");
+                                            setMove2Type(
+                                                move?.is_scoring_target
+                                                    ? move.type
+                                                    : "",
+                                            );
+                                        }}
+                                    />
                                 </div>
                             </div>
 
@@ -698,32 +671,20 @@ export default function CreatePartyPokemonPage() {
                                 <label className="block text-sm font-medium">
                                     技3
                                 </label>
-                                <div className="mt-1 grid gap-2 md:grid-cols-[1fr_160px]">
-                                    <input
-                                        className="w-full rounded border p-3"
-                                        value={move3}
-                                        onChange={(event) =>
-                                            setMove3(event.target.value)
-                                        }
-                                        placeholder="技名"
-                                    />
 
-                                    <select
-                                        className="w-full rounded border p-3"
-                                        value={move3Type}
-                                        onChange={(event) =>
-                                            setMove3Type(event.target.value)
-                                        }
-                                    >
-                                        <option value="">
-                                            タイプなし・変化技
-                                        </option>
-                                        {pokemonTypes.map((type) => (
-                                            <option key={type} value={type}>
-                                                {type}
-                                            </option>
-                                        ))}
-                                    </select>
+                                <div className="mt-1">
+                                    <MoveSelector
+                                        value={move3}
+                                        selectedMoveType={move3Type}
+                                        onSelect={(move) => {
+                                            setMove3(move?.name ?? "");
+                                            setMove3Type(
+                                                move?.is_scoring_target
+                                                    ? move.type
+                                                    : "",
+                                            );
+                                        }}
+                                    />
                                 </div>
                             </div>
 
@@ -731,32 +692,20 @@ export default function CreatePartyPokemonPage() {
                                 <label className="block text-sm font-medium">
                                     技4
                                 </label>
-                                <div className="mt-1 grid gap-2 md:grid-cols-[1fr_160px]">
-                                    <input
-                                        className="w-full rounded border p-3"
-                                        value={move4}
-                                        onChange={(event) =>
-                                            setMove4(event.target.value)
-                                        }
-                                        placeholder="技名"
-                                    />
 
-                                    <select
-                                        className="w-full rounded border p-3"
-                                        value={move4Type}
-                                        onChange={(event) =>
-                                            setMove4Type(event.target.value)
-                                        }
-                                    >
-                                        <option value="">
-                                            タイプなし・変化技
-                                        </option>
-                                        {pokemonTypes.map((type) => (
-                                            <option key={type} value={type}>
-                                                {type}
-                                            </option>
-                                        ))}
-                                    </select>
+                                <div className="mt-1">
+                                    <MoveSelector
+                                        value={move4}
+                                        selectedMoveType={move4Type}
+                                        onSelect={(move) => {
+                                            setMove4(move?.name ?? "");
+                                            setMove4Type(
+                                                move?.is_scoring_target
+                                                    ? move.type
+                                                    : "",
+                                            );
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </div>
