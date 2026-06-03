@@ -23,23 +23,39 @@ type EditablePokemon = {
     pokemon_key: string;
     form_key: string;
     nickname: string;
+
     item: string;
+    item_id: number | null;
+
     ability: string;
+    ability_id: number | null;
+
     nature: string;
+    nature_id: number | null;
+
     ev_h: number;
     ev_a: number;
     ev_b: number;
     ev_c: number;
     ev_d: number;
     ev_s: number;
+
     move_1: string;
+    move_1_id: number | null;
     move_1_type: string;
+
     move_2: string;
+    move_2_id: number | null;
     move_2_type: string;
+
     move_3: string;
+    move_3_id: number | null;
     move_3_type: string;
+
     move_4: string;
+    move_4_id: number | null;
     move_4_type: string;
+
     memo: string;
     role_tag_ids: number[];
 };
@@ -85,23 +101,39 @@ export default function CreatePartyVersionPage() {
                         pokemon_key: pokemon.pokemon_key,
                         form_key: pokemon.form_key,
                         nickname: pokemon.nickname ?? "",
+
                         item: pokemon.item ?? "",
+                        item_id: pokemon.item_id ?? null,
+
                         ability: pokemon.ability ?? "",
+                        ability_id: pokemon.ability_id ?? null,
+
                         nature: pokemon.nature ?? "",
+                        nature_id: pokemon.nature_id ?? null,
+
                         ev_h: pokemon.ev_h ?? 0,
                         ev_a: pokemon.ev_a ?? 0,
                         ev_b: pokemon.ev_b ?? 0,
                         ev_c: pokemon.ev_c ?? 0,
                         ev_d: pokemon.ev_d ?? 0,
                         ev_s: pokemon.ev_s ?? 0,
+
                         move_1: pokemon.move_1 ?? "",
+                        move_1_id: pokemon.move_1_id ?? null,
                         move_1_type: pokemon.move_1_type ?? "",
+
                         move_2: pokemon.move_2 ?? "",
+                        move_2_id: pokemon.move_2_id ?? null,
                         move_2_type: pokemon.move_2_type ?? "",
+
                         move_3: pokemon.move_3 ?? "",
+                        move_3_id: pokemon.move_3_id ?? null,
                         move_3_type: pokemon.move_3_type ?? "",
+
                         move_4: pokemon.move_4 ?? "",
+                        move_4_id: pokemon.move_4_id ?? null,
                         move_4_type: pokemon.move_4_type ?? "",
+
                         memo: pokemon.memo ?? "",
                         role_tag_ids:
                             pokemon.role_tags?.map((tag) => tag.id) ?? [],
@@ -134,7 +166,7 @@ export default function CreatePartyVersionPage() {
     const updatePokemon = (
         index: number,
         field: keyof EditablePokemon,
-        value: string | number | number[],
+        value: string | number | number[] | null,
     ) => {
         setEditablePokemonList((currentList) =>
             currentList.map((pokemon, currentIndex) =>
@@ -172,23 +204,39 @@ export default function CreatePartyVersionPage() {
             pokemon_key: pokemon.key,
             form_key: pokemon.form_key,
             nickname: "",
+
             item: "",
+            item_id: null,
+
             ability: "",
+            ability_id: null,
+
             nature: "",
+            nature_id: null,
+
             ev_h: 0,
             ev_a: 0,
             ev_b: 0,
             ev_c: 0,
             ev_d: 0,
             ev_s: 0,
+
             move_1: "",
+            move_1_id: null,
             move_1_type: "",
+
             move_2: "",
+            move_2_id: null,
             move_2_type: "",
+
             move_3: "",
+            move_3_id: null,
             move_3_type: "",
+
             move_4: "",
+            move_4_id: null,
             move_4_type: "",
+
             memo: "",
             role_tag_ids: [],
         };
@@ -322,6 +370,38 @@ export default function CreatePartyVersionPage() {
             )
         ) {
             setErrorMessage("未選択のポケモンがあります。");
+            return;
+        }
+
+        const hasUnselectedMasterData = editablePokemonList.some((pokemon) => {
+            if (pokemon.item.trim() !== "" && pokemon.item_id === null) {
+                return true;
+            }
+
+            if (pokemon.ability.trim() !== "" && pokemon.ability_id === null) {
+                return true;
+            }
+
+            if (pokemon.nature.trim() !== "" && pokemon.nature_id === null) {
+                return true;
+            }
+
+            const moves = [
+                { name: pokemon.move_1, id: pokemon.move_1_id },
+                { name: pokemon.move_2, id: pokemon.move_2_id },
+                { name: pokemon.move_3, id: pokemon.move_3_id },
+                { name: pokemon.move_4, id: pokemon.move_4_id },
+            ];
+
+            return moves.some(
+                (move) => move.name.trim() !== "" && move.id === null,
+            );
+        });
+
+        if (hasUnselectedMasterData) {
+            setErrorMessage(
+                "持ち物、特性、性格、技は検索候補から選択してください。",
+            );
             return;
         }
 
@@ -604,20 +684,32 @@ export default function CreatePartyVersionPage() {
                                                     <BattleMasterTextSelector
                                                         resource="item"
                                                         value={pokemon.item}
-                                                        onChangeText={(value) =>
+                                                        onChangeText={(
+                                                            value,
+                                                        ) => {
                                                             updatePokemon(
                                                                 index,
                                                                 "item",
                                                                 value,
-                                                            )
-                                                        }
-                                                        onSelect={(option) =>
+                                                            );
+                                                            updatePokemon(
+                                                                index,
+                                                                "item_id",
+                                                                null,
+                                                            );
+                                                        }}
+                                                        onSelect={(option) => {
                                                             updatePokemon(
                                                                 index,
                                                                 "item",
                                                                 option.name,
-                                                            )
-                                                        }
+                                                            );
+                                                            updatePokemon(
+                                                                index,
+                                                                "item_id",
+                                                                option.id,
+                                                            );
+                                                        }}
                                                         placeholder="持ち物名を検索"
                                                     />
                                                 </div>
@@ -632,20 +724,32 @@ export default function CreatePartyVersionPage() {
                                                     <BattleMasterTextSelector
                                                         resource="ability"
                                                         value={pokemon.ability}
-                                                        onChangeText={(value) =>
+                                                        onChangeText={(
+                                                            value,
+                                                        ) => {
                                                             updatePokemon(
                                                                 index,
                                                                 "ability",
                                                                 value,
-                                                            )
-                                                        }
-                                                        onSelect={(option) =>
+                                                            );
+                                                            updatePokemon(
+                                                                index,
+                                                                "ability_id",
+                                                                null,
+                                                            );
+                                                        }}
+                                                        onSelect={(option) => {
                                                             updatePokemon(
                                                                 index,
                                                                 "ability",
                                                                 option.name,
-                                                            )
-                                                        }
+                                                            );
+                                                            updatePokemon(
+                                                                index,
+                                                                "ability_id",
+                                                                option.id,
+                                                            );
+                                                        }}
                                                         placeholder="特性名を検索"
                                                     />
                                                 </div>
@@ -659,22 +763,34 @@ export default function CreatePartyVersionPage() {
                                                 <div className="mt-1">
                                                     <NatureSelector
                                                         value={pokemon.nature}
-                                                        onChangeText={(value) =>
+                                                        onChangeText={(
+                                                            value,
+                                                        ) => {
                                                             updatePokemon(
                                                                 index,
                                                                 "nature",
                                                                 value,
-                                                            )
-                                                        }
+                                                            );
+                                                            updatePokemon(
+                                                                index,
+                                                                "nature_id",
+                                                                null,
+                                                            );
+                                                        }}
                                                         onSelect={(
                                                             selectedNature,
-                                                        ) =>
+                                                        ) => {
                                                             updatePokemon(
                                                                 index,
                                                                 "nature",
                                                                 selectedNature.name,
-                                                            )
-                                                        }
+                                                            );
+                                                            updatePokemon(
+                                                                index,
+                                                                "nature_id",
+                                                                selectedNature.id,
+                                                            );
+                                                        }}
                                                     />
                                                 </div>
                                             </div>
@@ -795,14 +911,34 @@ export default function CreatePartyVersionPage() {
 
                                             {(
                                                 [
-                                                    ["move_1", "move_1_type"],
-                                                    ["move_2", "move_2_type"],
-                                                    ["move_3", "move_3_type"],
-                                                    ["move_4", "move_4_type"],
+                                                    [
+                                                        "move_1",
+                                                        "move_1_id",
+                                                        "move_1_type",
+                                                    ],
+                                                    [
+                                                        "move_2",
+                                                        "move_2_id",
+                                                        "move_2_type",
+                                                    ],
+                                                    [
+                                                        "move_3",
+                                                        "move_3_id",
+                                                        "move_3_type",
+                                                    ],
+                                                    [
+                                                        "move_4",
+                                                        "move_4_id",
+                                                        "move_4_type",
+                                                    ],
                                                 ] as const
                                             ).map(
                                                 (
-                                                    [moveField, moveTypeField],
+                                                    [
+                                                        moveField,
+                                                        moveIdField,
+                                                        moveTypeField,
+                                                    ],
                                                     moveIndex,
                                                 ) => (
                                                     <div key={moveField}>
@@ -832,6 +968,11 @@ export default function CreatePartyVersionPage() {
                                                                     );
                                                                     updatePokemon(
                                                                         index,
+                                                                        moveIdField,
+                                                                        null,
+                                                                    );
+                                                                    updatePokemon(
+                                                                        index,
                                                                         moveTypeField,
                                                                         "",
                                                                     );
@@ -843,6 +984,11 @@ export default function CreatePartyVersionPage() {
                                                                         index,
                                                                         moveField,
                                                                         move.name,
+                                                                    );
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        moveIdField,
+                                                                        move.id,
                                                                     );
                                                                     updatePokemon(
                                                                         index,

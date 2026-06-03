@@ -34,23 +34,39 @@ export default function CreatePartyPokemonPage() {
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
     const [nickname, setNickname] = useState("");
+
     const [item, setItem] = useState("");
+    const [itemId, setItemId] = useState<number | null>(null);
+
     const [ability, setAbility] = useState("");
+    const [abilityId, setAbilityId] = useState<number | null>(null);
+
     const [nature, setNature] = useState("");
+    const [natureId, setNatureId] = useState<number | null>(null);
+
     const [evH, setEvH] = useState("0");
     const [evA, setEvA] = useState("0");
     const [evB, setEvB] = useState("0");
     const [evC, setEvC] = useState("0");
     const [evD, setEvD] = useState("0");
     const [evS, setEvS] = useState("0");
+
     const [move1, setMove1] = useState("");
+    const [move1Id, setMove1Id] = useState<number | null>(null);
     const [move1Type, setMove1Type] = useState("");
+
     const [move2, setMove2] = useState("");
+    const [move2Id, setMove2Id] = useState<number | null>(null);
     const [move2Type, setMove2Type] = useState("");
+
     const [move3, setMove3] = useState("");
+    const [move3Id, setMove3Id] = useState<number | null>(null);
     const [move3Type, setMove3Type] = useState("");
+
     const [move4, setMove4] = useState("");
+    const [move4Id, setMove4Id] = useState<number | null>(null);
     const [move4Type, setMove4Type] = useState("");
+
     const [memo, setMemo] = useState("");
     const [selectedRoleTagIds, setSelectedRoleTagIds] = useState<number[]>([]);
     const [activeRoleTag, setActiveRoleTag] = useState<RoleTag | null>(null);
@@ -205,6 +221,37 @@ export default function CreatePartyPokemonPage() {
             return;
         }
 
+        if (item.trim() !== "" && itemId === null) {
+            setErrorMessage("持ち物は検索候補から選択してください。");
+            return;
+        }
+
+        if (ability.trim() !== "" && abilityId === null) {
+            setErrorMessage("特性は検索候補から選択してください。");
+            return;
+        }
+
+        if (nature.trim() !== "" && natureId === null) {
+            setErrorMessage("性格は検索候補から選択してください。");
+            return;
+        }
+
+        const moveEntries = [
+            { name: move1, id: move1Id },
+            { name: move2, id: move2Id },
+            { name: move3, id: move3Id },
+            { name: move4, id: move4Id },
+        ];
+
+        const hasUnselectedMove = moveEntries.some(
+            (move) => move.name.trim() !== "" && move.id === null,
+        );
+
+        if (hasUnselectedMove) {
+            setErrorMessage("技は検索候補から選択してください。");
+            return;
+        }
+
         const isDuplicatedPokemon = currentPokemonList.some(
             (partyPokemon) =>
                 partyPokemon.pokemon_key === pokemonKey &&
@@ -275,23 +322,39 @@ export default function CreatePartyPokemonPage() {
                 pokemon_key: pokemonKey,
                 form_key: formKey,
                 nickname,
+
                 item,
+                item_id: itemId,
+
                 ability,
+                ability_id: abilityId,
+
                 nature,
+                nature_id: natureId,
+
                 ev_h: toNumber(evH),
                 ev_a: toNumber(evA),
                 ev_b: toNumber(evB),
                 ev_c: toNumber(evC),
                 ev_d: toNumber(evD),
                 ev_s: toNumber(evS),
+
                 move_1: move1,
+                move_1_id: move1Id,
                 move_1_type: move1Type || undefined,
+
                 move_2: move2,
+                move_2_id: move2Id,
                 move_2_type: move2Type || undefined,
+
                 move_3: move3,
+                move_3_id: move3Id,
                 move_3_type: move3Type || undefined,
+
                 move_4: move4,
+                move_4_id: move4Id,
                 move_4_type: move4Type || undefined,
+
                 memo,
                 role_tag_ids: selectedRoleTagIds,
             });
@@ -527,10 +590,14 @@ export default function CreatePartyPokemonPage() {
                                     <BattleMasterTextSelector
                                         resource="item"
                                         value={item}
-                                        onChangeText={setItem}
-                                        onSelect={(option) =>
-                                            setItem(option.name)
-                                        }
+                                        onChangeText={(value) => {
+                                            setItem(value);
+                                            setItemId(null);
+                                        }}
+                                        onSelect={(option) => {
+                                            setItem(option.name);
+                                            setItemId(option.id);
+                                        }}
                                         placeholder="持ち物名を検索"
                                     />
                                 </div>
@@ -545,10 +612,14 @@ export default function CreatePartyPokemonPage() {
                                     <BattleMasterTextSelector
                                         resource="ability"
                                         value={ability}
-                                        onChangeText={setAbility}
-                                        onSelect={(option) =>
-                                            setAbility(option.name)
-                                        }
+                                        onChangeText={(value) => {
+                                            setAbility(value);
+                                            setAbilityId(null);
+                                        }}
+                                        onSelect={(option) => {
+                                            setAbility(option.name);
+                                            setAbilityId(option.id);
+                                        }}
                                         placeholder="特性名を検索"
                                     />
                                 </div>
@@ -562,10 +633,14 @@ export default function CreatePartyPokemonPage() {
                                 <div className="mt-1">
                                     <NatureSelector
                                         value={nature}
-                                        onChangeText={setNature}
-                                        onSelect={(selectedNature) =>
-                                            setNature(selectedNature.name)
-                                        }
+                                        onChangeText={(value) => {
+                                            setNature(value);
+                                            setNatureId(null);
+                                        }}
+                                        onSelect={(selectedNature) => {
+                                            setNature(selectedNature.name);
+                                            setNatureId(selectedNature.id);
+                                        }}
                                     />
                                 </div>
                             </div>
@@ -657,10 +732,12 @@ export default function CreatePartyPokemonPage() {
                                         selectedMoveType={move1Type}
                                         onChangeText={(value) => {
                                             setMove1(value);
+                                            setMove1Id(null);
                                             setMove1Type("");
                                         }}
                                         onSelect={(move) => {
                                             setMove1(move.name);
+                                            setMove1Id(move.id);
                                             setMove1Type(
                                                 move.is_scoring_target
                                                     ? move.type
@@ -682,10 +759,12 @@ export default function CreatePartyPokemonPage() {
                                         selectedMoveType={move2Type}
                                         onChangeText={(value) => {
                                             setMove2(value);
+                                            setMove2Id(null);
                                             setMove2Type("");
                                         }}
                                         onSelect={(move) => {
                                             setMove2(move.name);
+                                            setMove2Id(move.id);
                                             setMove2Type(
                                                 move.is_scoring_target
                                                     ? move.type
@@ -707,10 +786,12 @@ export default function CreatePartyPokemonPage() {
                                         selectedMoveType={move3Type}
                                         onChangeText={(value) => {
                                             setMove3(value);
+                                            setMove3Id(null);
                                             setMove3Type("");
                                         }}
                                         onSelect={(move) => {
                                             setMove3(move.name);
+                                            setMove3Id(move.id);
                                             setMove3Type(
                                                 move.is_scoring_target
                                                     ? move.type
@@ -732,10 +813,12 @@ export default function CreatePartyPokemonPage() {
                                         selectedMoveType={move4Type}
                                         onChangeText={(value) => {
                                             setMove4(value);
+                                            setMove4Id(null);
                                             setMove4Type("");
                                         }}
                                         onSelect={(move) => {
                                             setMove4(move.name);
+                                            setMove4Id(move.id);
                                             setMove4Type(
                                                 move.is_scoring_target
                                                     ? move.type
