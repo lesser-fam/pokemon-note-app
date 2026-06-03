@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePartyPokemonRequest;
 use App\Models\PartyPokemon;
 use App\Models\PartyVersion;
+use App\Services\PartyPokemonMasterDataResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,8 @@ class PartyPokemonController extends Controller
 {
     public function store(
         StorePartyPokemonRequest $request,
-        PartyVersion $partyVersion
+        PartyVersion $partyVersion,
+        PartyPokemonMasterDataResolver $resolver,
     ): JsonResponse {
         if ($partyVersion->party->user_id !== $request->user()->id) {
             abort(404);
@@ -28,12 +30,16 @@ class PartyPokemonController extends Controller
 
         $validated = $request->validated();
 
-        $partyPokemon = DB::transaction(function () use ($partyVersion, $validated) {
+
+
+        $partyPokemon = DB::transaction(function () use ($partyVersion, $resolver, $validated) {
             $roleTagIds = $validated['role_tag_ids'] ?? [];
 
             unset($validated['role_tag_ids']);
 
-            $partyPokemon = $partyVersion->pokemon()->create($validated);
+            $resolvedPokemon = $resolver->resolve($validated);
+
+            $partyPokemon = $partyVersion->pokemon()->create($resolvedPokemon);
 
             if (! empty($roleTagIds)) {
                 $partyPokemon->roleTags()->sync($roleTagIds);

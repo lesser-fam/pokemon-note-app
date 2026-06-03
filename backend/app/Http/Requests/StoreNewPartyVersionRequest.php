@@ -56,6 +56,16 @@ class StoreNewPartyVersionRequest extends FormRequest
 
             'pokemon.*.role_tag_ids'    => 'nullable|array',
             'pokemon.*.role_tag_ids.*'  => 'integer|exists:role_tags,id',
+
+            // ID保存用追加分
+            'pokemon.*.item_id'         => 'nullable|integer|exists:items,id',
+            'pokemon.*.ability_id'      => 'nullable|integer|exists:abilities,id',
+            'pokemon.*.nature_id'       => 'nullable|integer|exists:natures,id',
+
+            'pokemon.*.move_1_id'       => 'nullable|integer|exists:moves,id',
+            'pokemon.*.move_2_id'       => 'nullable|integer|exists:moves,id',
+            'pokemon.*.move_3_id'       => 'nullable|integer|exists:moves,id',
+            'pokemon.*.move_4_id'       =>  'nullable|integer|exists:moves,id',
         ];
     }
 

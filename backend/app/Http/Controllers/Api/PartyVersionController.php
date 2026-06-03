@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreNewPartyVersionRequest;
 use App\Models\PartyVersion;
+use App\Services\PartyPokemonMasterDataResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -12,7 +13,8 @@ class PartyVersionController extends Controller
 {
     public function storeNewVersion(
         StoreNewPartyVersionRequest $request,
-        PartyVersion $partyVersion
+        PartyVersion $partyVersion,
+        PartyPokemonMasterDataResolver $resolver,
     ): JsonResponse {
         if ($partyVersion->party->user_id !== $request->user()->id) {
             abort(404);
@@ -20,7 +22,7 @@ class PartyVersionController extends Controller
 
         $validated = $request->validated();
 
-        $newPartyVersion = DB::transaction(function () use ($partyVersion, $validated) {
+        $newPartyVersion = DB::transaction(function () use ($partyVersion, $resolver, $validated) {
             $party = $partyVersion->party;
 
             $nextVersionNumber = $party->versions()->max('version_number') + 1;
@@ -40,7 +42,9 @@ class PartyVersionController extends Controller
 
                 unset($pokemonData['role_tag_ids']);
 
-                $partyPokemon = $newPartyVersion->pokemon()->create($pokemonData);
+                $resolvedPokemon = $resolver->resolve($pokemonData);
+
+                $partyPokemon = $newPartyVersion->pokemon()->create($resolvedPokemon);
 
                 if (! empty($roleTagIds)) {
                     $partyPokemon->roleTags()->sync($roleTagIds);
