@@ -63,6 +63,15 @@ class PartyController extends Controller
 
         $party->load([
             'currentVersion.pokemon.roleTags',
+
+            'currentVersion.pokemon.itemMaster.effectRules',
+            'currentVersion.pokemon.abilityMaster.effectRules',
+            'currentVersion.pokemon.natureMaster',
+            'currentVersion.pokemon.move1Master',
+            'currentVersion.pokemon.move2Master',
+            'currentVersion.pokemon.move3Master',
+            'currentVersion.pokemon.move4Master',
+
             'currentVersion.selectionTemplates.leadPokemon.roleTags',
             'currentVersion.selectionTemplates.switchPokemon.roleTags',
             'currentVersion.selectionTemplates.finisherPokemon.roleTags',
