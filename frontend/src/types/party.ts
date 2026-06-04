@@ -1,3 +1,10 @@
+import type {
+    AbilityMaster,
+    ItemMaster,
+    MoveMaster,
+    NatureMaster,
+} from "@/types/battleMaster";
+
 export type PartyVersion = {
     id: number;
     party_id: number;
@@ -20,12 +27,15 @@ export type PartyPokemon = {
 
     item: string | null;
     item_id: number | null;
+    item_master?: ItemMaster | null;
 
     ability: string | null;
     ability_id: number | null;
+    ability_master?: AbilityMaster | null;
 
     nature: string | null;
     nature_id: number | null;
+    nature_master?: NatureMaster | null;
 
     ev_h: number;
     ev_a: number;
@@ -37,18 +47,22 @@ export type PartyPokemon = {
     move_1: string | null;
     move_1_id: number | null;
     move_1_type: string | null;
+    move1_master?: MoveMaster | null;
 
     move_2: string | null;
     move_2_id: number | null;
     move_2_type: string | null;
+    move2_master?: MoveMaster | null;
 
     move_3: string | null;
     move_3_id: number | null;
     move_3_type: string | null;
+    move3_master?: MoveMaster | null;
 
     move_4: string | null;
     move_4_id: number | null;
     move_4_type: string | null;
+    move4_master?: MoveMaster | null;
 
     memo: string | null;
     created_at: string;

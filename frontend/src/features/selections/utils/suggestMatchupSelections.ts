@@ -51,6 +51,14 @@ const getRoleTagScore = (
     }, 0);
 };
 
+const getSpeedMultiplier = (partyPokemon: PartyPokemon): number => {
+    const speedMultiplierRule = partyPokemon.item_master?.effect_rules?.find(
+        (rule) => rule.effect_type === "speed_multiplier",
+    );
+
+    return speedMultiplierRule?.value ?? 1;
+};
+
 const getSpeedScore = (
     partyPokemon: PartyPokemon,
     pokemonMaster: Pokemon | undefined,
@@ -61,9 +69,12 @@ const getSpeedScore = (
         return 0;
     }
 
+    const speedMultiplier = getSpeedMultiplier(partyPokemon);
+
+    const adjustedSpeed = pokemonMaster.base_stats.s * speedMultiplier;
+
     const fasterTargetCount = opponentPokemonList.filter(
-        (opponentPokemon) =>
-            pokemonMaster.base_stats.s > opponentPokemon.base_stats.s,
+        (opponentPokemon) => adjustedSpeed > opponentPokemon.base_stats.s,
     ).length;
 
     let score = 0;
@@ -141,6 +152,8 @@ const getPokemonScore = (
     const defensiveResult = calculateDefensiveMatchupScore({
         defenderTypes: pokemonMaster?.types ?? [],
         opponentPokemonList,
+        abilityEffectRules: partyPokemon.ability_master?.effect_rules ?? [],
+        itemEffectRules: partyPokemon.item_master?.effect_rules ?? [],
     });
 
     const roleTagScore = getRoleTagScore(partyPokemon, role);

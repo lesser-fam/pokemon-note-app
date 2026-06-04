@@ -8,16 +8,28 @@ export type MoveMaster = {
     is_scoring_target: boolean;
 };
 
+export type MatchupEffectRule = {
+    id: number;
+    key: string;
+    effect_type: string;
+    target_type: string | null;
+    value: number | null;
+    condition: string | null;
+    description: string | null;
+};
+
 export type AbilityMaster = {
     id: number;
     key: string;
     name: string;
+    effect_rules?: MatchupEffectRule[];
 };
 
 export type ItemMaster = {
     id: number;
     key: string;
     name: string;
+    effect_rules?: MatchupEffectRule[];
 };
 
 export type NatureMaster = {

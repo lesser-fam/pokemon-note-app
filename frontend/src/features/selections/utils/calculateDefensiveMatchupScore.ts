@@ -1,4 +1,6 @@
 import { calculateTypeMultiplier } from "@/features/battlePreview/utils/calculateTypeMultiplier";
+import type { MatchupEffectRule } from "@/types/battleMaster";
+import { applyDefensiveMatchupEffects } from "./applyDefensiveMatchupEffects";
 
 export type DefensiveTargetResult = {
     opponentKey: string;
@@ -6,6 +8,7 @@ export type DefensiveTargetResult = {
     opponentName: string;
     worstMultiplier: number;
     worstAttackType: string | null;
+    reasons: string[];
 };
 
 export type DefensiveMatchupResult = {
@@ -28,6 +31,8 @@ type OpponentPokemon = {
 type CalculateDefensiveMatchupScoreParams = {
     defenderTypes: string[];
     opponentPokemonList: OpponentPokemon[];
+    abilityEffectRules?: MatchupEffectRule[];
+    itemEffectRules?: MatchupEffectRule[];
 };
 
 const convertMultiplierToScore = (multiplier: number): number => {
@@ -57,6 +62,8 @@ const convertMultiplierToScore = (multiplier: number): number => {
 export const calculateDefensiveMatchupScore = ({
     defenderTypes,
     opponentPokemonList,
+    abilityEffectRules = [],
+    itemEffectRules = [],
 }: CalculateDefensiveMatchupScoreParams): DefensiveMatchupResult => {
     const targets = opponentPokemonList.map((opponentPokemon) => {
         if (defenderTypes.length === 0 || opponentPokemon.types.length === 0) {
@@ -66,13 +73,29 @@ export const calculateDefensiveMatchupScore = ({
                 opponentName: opponentPokemon.name,
                 worstMultiplier: 1,
                 worstAttackType: null,
+                reasons: [],
             };
         }
 
-        const matchupList = opponentPokemon.types.map((attackType) => ({
-            attackType,
-            multiplier: calculateTypeMultiplier(attackType, defenderTypes),
-        }));
+        const matchupList = opponentPokemon.types.map((attackType) => {
+            const baseMultiplier = calculateTypeMultiplier(
+                attackType,
+                defenderTypes,
+            );
+
+            const adjustedResult = applyDefensiveMatchupEffects({
+                attackType,
+                baseMultiplier,
+                abilityEffectRules,
+                itemEffectRules,
+            });
+
+            return {
+                attackType,
+                multiplier: adjustedResult.multiplier,
+                reasons: adjustedResult.reasons,
+            };
+        });
 
         const worstMatchup = matchupList.reduce((worst, current) =>
             current.multiplier > worst.multiplier ? current : worst,
@@ -84,6 +107,7 @@ export const calculateDefensiveMatchupScore = ({
             opponentName: opponentPokemon.name,
             worstMultiplier: worstMatchup.multiplier,
             worstAttackType: worstMatchup.attackType,
+            reasons: worstMatchup.reasons,
         };
     });
 
@@ -125,6 +149,12 @@ export const calculateDefensiveMatchupScore = ({
         );
     }
 
+    const effectReasons = targets.flatMap((target) => target.reasons);
+
+    reasons.push(...effectReasons);
+
+    const uniqueReasons = Array.from(new Set(reasons));
+
     return {
         score,
         immuneTargetCount,
@@ -132,6 +162,6 @@ export const calculateDefensiveMatchupScore = ({
         neutralTargetCount,
         weakTargetCount,
         targets,
-        reasons,
+        reasons: uniqueReasons,
     };
 };

@@ -248,6 +248,9 @@ export default function BattlePreviewPage() {
             const matchupResult = calculateDefensiveMatchupScore({
                 defenderTypes: pokemonMaster?.types ?? [],
                 opponentPokemonList,
+                abilityEffectRules:
+                    partyPokemon.ability_master?.effect_rules ?? [],
+                itemEffectRules: partyPokemon.item_master?.effect_rules ?? [],
             });
 
             return {
@@ -576,7 +579,7 @@ export default function BattlePreviewPage() {
                 <section className="mt-8 rounded border p-6">
                     <h2 className="text-xl font-bold">おすすめ選出β</h2>
                     <p className="mt-1 text-sm text-gray-600">
-                        攻撃相性、防御相性、役割タグ、素早さ、保存済み基本選出から簡易採点しています。
+                        攻撃相性、防御相性、特性、持ち物、役割タグ、素早さ、保存済み基本選出、過去ログから簡易採点しています。
                     </p>
                     <p className="mt-1 text-xs text-gray-500">
                         相手の技構成や特性は未反映です。相手のタイプ一致技を基準にした簡易提案です。
