@@ -299,8 +299,7 @@ export default function CreatePartyVersionPage() {
         return editablePokemonList.some(
             (editablePokemon, index) =>
                 index !== replaceTargetIndex &&
-                editablePokemon.pokemon_key === pokemon.key &&
-                editablePokemon.form_key === pokemon.form_key,
+                editablePokemon.pokemon_key === pokemon.key,
         );
     };
 
@@ -321,6 +320,13 @@ export default function CreatePartyVersionPage() {
 
         return matchesKeyword && matchesTypes;
     });
+
+    const hasPokemonFilter =
+        normalizedKeyword !== "" || selectedTypes.length > 0;
+
+    const visiblePokemonList = hasPokemonFilter
+        ? filteredPokemonList
+        : filteredPokemonList.slice(0, 30);
 
     const calculateEffortValueTotal = (pokemon: EditablePokemon) => {
         return (
@@ -406,14 +412,16 @@ export default function CreatePartyVersionPage() {
         }
 
         const pokemonKeys = editablePokemonList.map(
-            (pokemon) => `${pokemon.pokemon_key}:${pokemon.form_key}`,
+            (pokemon) => pokemon.pokemon_key,
         );
 
         const hasDuplicatedPokemon =
             new Set(pokemonKeys).size !== pokemonKeys.length;
 
         if (hasDuplicatedPokemon) {
-            setErrorMessage("同じポケモンは同じパーティに登録できません。");
+            setErrorMessage(
+                "同じ種類のポケモンは、フォーム違いを含めて同じパーティに登録できません。",
+            );
             return;
         }
 
@@ -1163,78 +1171,98 @@ export default function CreatePartyVersionPage() {
 
                                         <p className="mt-4 text-sm text-gray-600">
                                             候補：{filteredPokemonList.length}件
+                                            {!hasPokemonFilter &&
+                                                filteredPokemonList.length >
+                                                    visiblePokemonList.length &&
+                                                `初期表示 ${visiblePokemonList.length}件`}
                                         </p>
+
+                                        {!hasPokemonFilter &&
+                                            filteredPokemonList.length >
+                                                visiblePokemonList.length && (
+                                                <p className="mt-1 text-xs text-gray-500">
+                                                    ポケモン名の検索またはタイプ絞り込みで候補を探してください。
+                                                </p>
+                                            )}
                                     </div>
 
-                                    <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                                        {filteredPokemonList.map((pokemon) => {
-                                            const isSelected =
-                                                isAlreadySelectedPokemon(
-                                                    pokemon,
-                                                );
-
-                                            return (
-                                                <button
-                                                    key={`${pokemon.key}-${pokemon.form_key}`}
-                                                    type="button"
-                                                    disabled={isSelected}
-                                                    onClick={() => {
-                                                        if (
-                                                            replaceTargetIndex ===
-                                                            null
-                                                        ) {
-                                                            handleAddPokemon(
-                                                                pokemon,
-                                                            );
-                                                            return;
-                                                        }
-
-                                                        handleReplacePokemon(
+                                    <div className="mt-4 max-h-128 overflow-y-auto rounded border bg-gray-50 p-3">
+                                        <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                                            {visiblePokemonList.map(
+                                                (pokemon) => {
+                                                    const isSelected =
+                                                        isAlreadySelectedPokemon(
                                                             pokemon,
                                                         );
-                                                    }}
-                                                    className={`rounded border p-3 text-left disabled:cursor-not-allowed ${
-                                                        isSelected
-                                                            ? "bg-gray-100 opacity-50"
-                                                            : "bg-white hover:bg-gray-50"
-                                                    }`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        {pokemon.image_url ? (
-                                                            <img
-                                                                src={
-                                                                    pokemon.image_url
-                                                                }
-                                                                alt={
-                                                                    pokemon.name
-                                                                }
-                                                                className="h-14 w-14 object-contain"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm">
-                                                                ?
-                                                            </div>
-                                                        )}
 
-                                                        <div>
-                                                            <p className="font-bold">
-                                                                {pokemon.name}
-                                                            </p>
-                                                            <p className="text-xs text-gray-600">
-                                                                {pokemon.types.join(
-                                                                    " / ",
+                                                    return (
+                                                        <button
+                                                            key={`${pokemon.key}-${pokemon.form_key}`}
+                                                            type="button"
+                                                            disabled={
+                                                                isSelected
+                                                            }
+                                                            onClick={() => {
+                                                                if (
+                                                                    replaceTargetIndex ===
+                                                                    null
+                                                                ) {
+                                                                    handleAddPokemon(
+                                                                        pokemon,
+                                                                    );
+                                                                    return;
+                                                                }
+
+                                                                handleReplacePokemon(
+                                                                    pokemon,
+                                                                );
+                                                            }}
+                                                            className={`rounded border p-3 text-left disabled:cursor-not-allowed ${
+                                                                isSelected
+                                                                    ? "bg-gray-100 opacity-50"
+                                                                    : "bg-white hover:bg-gray-50"
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                {pokemon.image_url ? (
+                                                                    <img
+                                                                        src={
+                                                                            pokemon.image_url
+                                                                        }
+                                                                        alt={
+                                                                            pokemon.name
+                                                                        }
+                                                                        className="h-14 w-14 object-contain"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm">
+                                                                        ?
+                                                                    </div>
                                                                 )}
-                                                            </p>
-                                                            {isSelected && (
-                                                                <p className="mt-1 text-xs text-gray-500">
-                                                                    選択済み
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
+
+                                                                <div>
+                                                                    <p className="font-bold">
+                                                                        {
+                                                                            pokemon.name
+                                                                        }
+                                                                    </p>
+                                                                    <p className="text-xs text-gray-600">
+                                                                        {pokemon.types.join(
+                                                                            " / ",
+                                                                        )}
+                                                                    </p>
+                                                                    {isSelected && (
+                                                                        <p className="mt-1 text-xs text-gray-500">
+                                                                            選択済み
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                },
+                                            )}
+                                        </div>
                                     </div>
 
                                     {filteredPokemonList.length === 0 && (

@@ -42,6 +42,25 @@ class ExportPokemonCsv extends Command
     ];
 
     /**
+     * 対戦前の候補として表示しないフォーム名の一部
+     */
+    private const EXCLUDED_FORM_PATTERNS = [
+        // '-mega',
+        '-gmax',
+        '-totem',
+        '-starter',
+        '-partner',
+        '-cap',
+        '-cosplay',
+        '-belle',
+        '-libre',
+        '-phd',
+        '-pop-star',
+        '-rock-star',
+        '-eternamax',
+    ];
+
+    /**
      * よく使うフォーム名の表示ラベル
      *
      * 未登録フォームは、英語のform_keyをそのまま表示します。
@@ -140,6 +159,16 @@ class ExportPokemonCsv extends Command
                 $varieties = collect(
                     $species['varieties'] ?? [],
                 )
+                    ->filter(
+                        fn(array $variety): bool =>
+                        ! $this->shouldExcludeVariety(
+                            (string) data_get(
+                                $variety,
+                                'pokemon.name',
+                                '',
+                            ),
+                        ),
+                    )
                     ->sortByDesc(
                         fn(array $variety): bool =>
                         (bool) ($variety['is_default'] ?? false),
@@ -337,5 +366,17 @@ class ExportPokemonCsv extends Command
             ?? $formKey;
 
         return "{$baseName}（{$formLabel}）";
+    }
+
+    private function shouldExcludeVariety(
+        string $pokemonKey,
+    ): bool {
+        foreach (self::EXCLUDED_FORM_PATTERNS as $pattern) {
+            if (str_contains($pokemonKey, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

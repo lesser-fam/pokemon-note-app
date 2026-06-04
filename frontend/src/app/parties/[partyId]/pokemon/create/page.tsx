@@ -159,6 +159,13 @@ export default function CreatePartyPokemonPage() {
         return matchesKeyword && matchesTypes;
     });
 
+    const hasPokemonFilter =
+        normalizedKeyword !== "" || selectedTypes.length > 0;
+
+    const visiblePokemonList = hasPokemonFilter
+        ? filteredPokemonList
+        : filteredPokemonList.slice(0, 30);
+
     const selectedPokemonMaster = pokemonList.find(
         (pokemon) => pokemon.key === pokemonKey && pokemon.form_key === formKey,
     );
@@ -167,9 +174,7 @@ export default function CreatePartyPokemonPage() {
 
     const isAlreadyRegisteredPokemon = (pokemon: Pokemon) => {
         return currentPokemonList.some(
-            (partyPokemon) =>
-                partyPokemon.pokemon_key === pokemon.key &&
-                partyPokemon.form_key === pokemon.form_key,
+            (partyPokemon) => partyPokemon.pokemon_key === pokemon.key,
         );
     };
 
@@ -253,13 +258,13 @@ export default function CreatePartyPokemonPage() {
         }
 
         const isDuplicatedPokemon = currentPokemonList.some(
-            (partyPokemon) =>
-                partyPokemon.pokemon_key === pokemonKey &&
-                partyPokemon.form_key === formKey,
+            (partyPokemon) => partyPokemon.pokemon_key === pokemonKey,
         );
 
         if (isDuplicatedPokemon) {
-            setErrorMessage("同じポケモンは同じパーティに登録できません。");
+            setErrorMessage(
+                "同じ種類のポケモンは、フォーム違いを含めて同じパーティに登録できません。",
+            );
             return;
         }
 
@@ -480,7 +485,19 @@ export default function CreatePartyPokemonPage() {
                         <div className="mt-6 flex items-center justify-between">
                             <p className="text-sm text-gray-600">
                                 候補：{filteredPokemonList.length}件
+                                {!hasPokemonFilter &&
+                                    filteredPokemonList.length >
+                                        visiblePokemonList.length &&
+                                    `初期表示 ${visiblePokemonList.length}件`}
                             </p>
+
+                            {!hasPokemonFilter &&
+                                filteredPokemonList.length >
+                                    visiblePokemonList.length && (
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        ポケモン名の検索またはタイプ絞り込みで候補を探してください。
+                                    </p>
+                                )}
 
                             {pokemonKey && (
                                 <p className="text-sm font-medium">
@@ -491,69 +508,73 @@ export default function CreatePartyPokemonPage() {
                             )}
                         </div>
 
-                        <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                            {filteredPokemonList.map((pokemon) => {
-                                const isSelected =
-                                    pokemon.key === pokemonKey &&
-                                    pokemon.form_key === formKey;
+                        <div className="mt-4 max-h-128 overflow-y-auto rounded border bg-gray-50 p-3">
+                            <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                                {visiblePokemonList.map((pokemon) => {
+                                    const isSelected =
+                                        pokemon.key === pokemonKey &&
+                                        pokemon.form_key === formKey;
 
-                                const isAlreadyRegistered =
-                                    isAlreadyRegisteredPokemon(pokemon);
+                                    const isAlreadyRegistered =
+                                        isAlreadyRegisteredPokemon(pokemon);
 
-                                return (
-                                    <button
-                                        key={`${pokemon.key}-${pokemon.form_key}`}
-                                        type="button"
-                                        disabled={isAlreadyRegistered}
-                                        onClick={() => {
-                                            if (isAlreadyRegistered) {
-                                                return;
-                                            }
+                                    return (
+                                        <button
+                                            key={`${pokemon.key}-${pokemon.form_key}`}
+                                            type="button"
+                                            disabled={isAlreadyRegistered}
+                                            onClick={() => {
+                                                if (isAlreadyRegistered) {
+                                                    return;
+                                                }
 
-                                            handleSelectPokemon(pokemon);
-                                        }}
-                                        className={`rounded border p-3 text-left transition disabled:cursor-not-allowed ${
-                                            isAlreadyRegistered
-                                                ? "bg-gray-100 opacity-50"
-                                                : isSelected
-                                                  ? "border-black bg-gray-100 ring-2 ring-black"
-                                                  : "hover:bg-gray-50"
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            {pokemon.image_url ? (
-                                                <img
-                                                    src={pokemon.image_url}
-                                                    alt={pokemon.name}
-                                                    className="h-16 w-16 object-contain"
-                                                />
-                                            ) : (
-                                                <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-sm">
-                                                    ?
-                                                </div>
-                                            )}
-
-                                            <div>
-                                                <p className="font-bold">
-                                                    {pokemon.name}
-                                                </p>
-                                                <p className="text-xs text-gray-600">
-                                                    {pokemon.kana}
-                                                </p>
-                                                <p className="mt-1 text-xs">
-                                                    {pokemon.types.join(" / ")}
-                                                </p>
-
-                                                {isAlreadyRegistered && (
-                                                    <p className="mt-1 text-xs text-gray-500">
-                                                        登録済み
-                                                    </p>
+                                                handleSelectPokemon(pokemon);
+                                            }}
+                                            className={`rounded border p-3 text-left transition disabled:cursor-not-allowed ${
+                                                isAlreadyRegistered
+                                                    ? "bg-gray-100 opacity-50"
+                                                    : isSelected
+                                                      ? "border-black bg-gray-100 ring-2 ring-black"
+                                                      : "hover:bg-gray-50"
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                {pokemon.image_url ? (
+                                                    <img
+                                                        src={pokemon.image_url}
+                                                        alt={pokemon.name}
+                                                        className="h-16 w-16 object-contain"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-sm">
+                                                        ?
+                                                    </div>
                                                 )}
+
+                                                <div>
+                                                    <p className="font-bold">
+                                                        {pokemon.name}
+                                                    </p>
+                                                    <p className="text-xs text-gray-600">
+                                                        {pokemon.kana}
+                                                    </p>
+                                                    <p className="mt-1 text-xs">
+                                                        {pokemon.types.join(
+                                                            " / ",
+                                                        )}
+                                                    </p>
+
+                                                    {isAlreadyRegistered && (
+                                                        <p className="mt-1 text-xs text-gray-500">
+                                                            登録済み
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         {filteredPokemonList.length === 0 && (

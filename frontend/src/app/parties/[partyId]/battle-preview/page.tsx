@@ -5,15 +5,15 @@ import { pokemonTypes } from "@/constants/pokemonTypes";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
-import { fetchParty } from "@/features/parties/api/partyApi";
 import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
-import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import { fetchParty } from "@/features/parties/api/partyApi";
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
 import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
 import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
+import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import { toHiragana } from "@/utils/kana";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -111,9 +111,7 @@ export default function BattlePreviewPage() {
         }
 
         const alreadySelected = opponentPokemonList.some(
-            (selectedPokemon) =>
-                selectedPokemon.key === pokemon.key &&
-                selectedPokemon.form_key === pokemon.form_key,
+            (selectedPokemon) => selectedPokemon.key === pokemon.key,
         );
 
         if (alreadySelected) {
@@ -152,6 +150,13 @@ export default function BattlePreviewPage() {
 
         return matchesKeyword && matchesTypes;
     });
+
+    const hasPokemonFilter =
+        normalizedKeyword !== "" || selectedTypes.length > 0;
+
+    const visiblePokemonList = hasPokemonFilter
+        ? filteredPokemonList
+        : filteredPokemonList.slice(0, 30);
 
     const opponentAnalysis = analyzeOpponentParty(opponentPokemonList);
     const opponentWeaknessAnalysis =
@@ -448,68 +453,80 @@ export default function BattlePreviewPage() {
                     <div className="mt-6 flex items-center justify-between">
                         <p className="text-sm text-gray-600">
                             候補：{filteredPokemonList.length}件
+                            {!hasPokemonFilter &&
+                                filteredPokemonList.length >
+                                    visiblePokemonList.length &&
+                                `初期表示 ${visiblePokemonList.length}件`}
                         </p>
+
+                        {!hasPokemonFilter &&
+                            filteredPokemonList.length >
+                                visiblePokemonList.length && (
+                                <p className="mt-1 text-xs text-gray-500">
+                                    ポケモン名の検索またはタイプ絞り込みで候補を探してください。
+                                </p>
+                            )}
                     </div>
 
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                        {filteredPokemonList.map((pokemon) => {
-                            const isSelected = opponentPokemonList.some(
-                                (selectedPokemon) =>
-                                    selectedPokemon.key === pokemon.key &&
-                                    selectedPokemon.form_key ===
-                                        pokemon.form_key,
-                            );
+                    <div className="mt-4 max-h-128 overflow-y-auto rounded border bg-gray-50 p-3">
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                            {visiblePokemonList.map((pokemon) => {
+                                const isSelected = opponentPokemonList.some(
+                                    (selectedPokemon) =>
+                                        selectedPokemon.key === pokemon.key,
+                                );
 
-                            return (
-                                <button
-                                    key={`${pokemon.key}-${pokemon.form_key}`}
-                                    type="button"
-                                    onClick={() =>
-                                        handleAddOpponentPokemon(pokemon)
-                                    }
-                                    disabled={
-                                        isSelected ||
-                                        opponentPokemonList.length >= 6
-                                    }
-                                    className={`rounded border p-3 text-left transition disabled:cursor-not-allowed ${
-                                        isSelected
-                                            ? "border-black bg-gray-100"
-                                            : "hover:bg-gray-50"
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        {pokemon.image_url ? (
-                                            <img
-                                                src={pokemon.image_url}
-                                                alt={pokemon.name}
-                                                className="h-16 w-16 object-contain"
-                                            />
-                                        ) : (
-                                            <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-sm">
-                                                ?
-                                            </div>
-                                        )}
-
-                                        <div>
-                                            <p className="font-bold">
-                                                {pokemon.name}
-                                            </p>
-                                            <p className="text-xs text-gray-600">
-                                                {pokemon.kana}
-                                            </p>
-                                            <p className="mt-1 text-xs">
-                                                {pokemon.types.join(" / ")}
-                                            </p>
-                                            {isSelected && (
-                                                <p className="mt-1 text-xs font-medium">
-                                                    選択済み
-                                                </p>
+                                return (
+                                    <button
+                                        key={`${pokemon.key}-${pokemon.form_key}`}
+                                        type="button"
+                                        onClick={() =>
+                                            handleAddOpponentPokemon(pokemon)
+                                        }
+                                        disabled={
+                                            isSelected ||
+                                            opponentPokemonList.length >= 6
+                                        }
+                                        className={`rounded border p-3 text-left transition disabled:cursor-not-allowed ${
+                                            isSelected
+                                                ? "border-black bg-gray-100"
+                                                : "hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            {pokemon.image_url ? (
+                                                <img
+                                                    src={pokemon.image_url}
+                                                    alt={pokemon.name}
+                                                    className="h-16 w-16 object-contain"
+                                                />
+                                            ) : (
+                                                <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-sm">
+                                                    ?
+                                                </div>
                                             )}
+
+                                            <div>
+                                                <p className="font-bold">
+                                                    {pokemon.name}
+                                                </p>
+                                                <p className="text-xs text-gray-600">
+                                                    {pokemon.kana}
+                                                </p>
+                                                <p className="mt-1 text-xs">
+                                                    {pokemon.types.join(" / ")}
+                                                </p>
+                                                {isSelected && (
+                                                    <p className="mt-1 text-xs font-medium">
+                                                        選択済み
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                </button>
-                            );
-                        })}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     {filteredPokemonList.length === 0 && (

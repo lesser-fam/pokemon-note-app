@@ -80,8 +80,13 @@ class StoreNewPartyVersionRequest extends FormRequest
 
             $pokemonList = $this->input('pokemon', []);
 
+            /*
+            |---------------------------------------------------------------------------------
+            |同じ種類のポケモン重複チェック
+            |---------------------------------------------------------------------------------
+            */
             $pokemonKeys = collect($pokemonList)
-                ->map(fn($pokemon) => ($pokemon['pokemon_key'] ?? '') . ':' . ($pokemon['form_key'] ?? 'default'))
+                ->pluck('pokemon_key')
                 ->filter();
 
             if ($pokemonKeys->count() !== $pokemonKeys->unique()->count()) {
@@ -91,6 +96,11 @@ class StoreNewPartyVersionRequest extends FormRequest
                 );
             }
 
+            /*
+            |---------------------------------------------------------------------------------
+            |持ち物重複チェック
+            |---------------------------------------------------------------------------------
+            */
             $items = collect($pokemonList)
                 ->pluck('item')
                 ->filter(fn($item) => filled($item))
