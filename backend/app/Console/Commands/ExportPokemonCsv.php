@@ -12,7 +12,8 @@ class ExportPokemonCsv extends Command
     protected $signature = 'pokemon:export-csv
                             {--from=1 : 開始する全国図鑑番号}
                             {--to=151 : 終了する全国図鑑番号}
-                            {--output=pokemon.generated.csv : 出力ファイル名}';
+                            {--output=pokemon.generated.csv : 出力ファイル名}
+                            {--append : 既存CSVの末尾へ追記する}';
 
     protected $description =
     'PokéAPIから全国図鑑順のポケモンCSVを生成します。';
@@ -108,7 +109,14 @@ class ExportPokemonCsv extends Command
             );
         }
 
-        $handle = fopen($outputPath, 'w');
+        $shouldAppend = (bool) $this->option('append');
+        $fileExists = file_exists($outputPath);
+
+        $openMode = $shouldAppend
+            ? 'a'
+            : 'w';
+
+        $handle = fopen($outputPath, $openMode);
 
         if ($handle === false) {
             $this->error(
@@ -118,23 +126,34 @@ class ExportPokemonCsv extends Command
             return self::FAILURE;
         }
 
-        fputcsv($handle, [
-            'national_dex_number',
-            'form_order',
-            'key',
-            'form_key',
-            'name',
-            'kana',
-            'type1',
-            'type2',
-            'h',
-            'a',
-            'b',
-            'c',
-            'd',
-            's',
-            'image_url',
-        ]);
+        /*
+|--------------------------------------------------------------------------
+| CSVヘッダー
+|--------------------------------------------------------------------------
+|
+| 新規作成時だけヘッダーを書き込みます。
+| --appendで既存CSVへ追記する場合は、ヘッダーを重複させません。
+|
+*/
+        if (! $shouldAppend || ! $fileExists) {
+            fputcsv($handle, [
+                'national_dex_number',
+                'form_order',
+                'key',
+                'form_key',
+                'name',
+                'kana',
+                'type1',
+                'type2',
+                'h',
+                'a',
+                'b',
+                'c',
+                'd',
+                's',
+                'image_url',
+            ]);
+        }
 
         $this->info(
             "全国図鑑 No.{$from}〜{$to} を取得します。",
@@ -217,8 +236,12 @@ class ExportPokemonCsv extends Command
         $progressBar->finish();
         $this->newLine(2);
 
+        $actionLabel = $shouldAppend
+            ? '追記'
+            : '生成';
+
         $this->info(
-            "CSVを生成しました: {$outputPath}",
+            "CSVを{$actionLabel}しました: {$outputPath}",
         );
 
         return self::SUCCESS;
