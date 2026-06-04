@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Storage;
-
 class PokemonCsvService
 {
     public function all(): array
@@ -16,8 +14,8 @@ class PokemonCsvService
 
         $csv = file_get_contents($path);
 
-        if($csv=== false){
-            return[];
+        if ($csv === false) {
+            return [];
         }
 
         $lines = preg_split("/\r\n|\n|\r/", trim($csv));
@@ -29,19 +27,27 @@ class PokemonCsvService
         $header = str_getcsv(array_shift($lines));
 
         return collect($lines)
-            ->filter(fn ($line) => trim($line) !== '')
+            ->filter(fn($line) => trim($line) !== '')
             ->map(function ($line) use ($header) {
                 $row = array_combine($header, str_getcsv($line));
 
                 return [
+                    'national_dex_number' =>
+                    (int) ($row['national_dex_number'] ?? 0),
+
+                    'form_order' =>
+                    (int) ($row['form_order'] ?? 0),
+
                     'key' => $row['key'],
                     'form_key' => $row['form_key'],
                     'name' => $row['name'],
                     'kana' => $row['kana'],
+
                     'types' => array_values(array_filter([
                         $row['type1'] ?? null,
                         $row['type2'] ?? null,
                     ])),
+
                     'base_stats' => [
                         'h' => (int) $row['h'],
                         'a' => (int) $row['a'],
@@ -50,9 +56,14 @@ class PokemonCsvService
                         'd' => (int) $row['d'],
                         's' => (int) $row['s'],
                     ],
+
                     'image_url' => $row['image_url'] ?: null,
                 ];
             })
+            ->sortBy([
+                ['national_dex_number', 'asc'],
+                ['form_order', 'asc'],
+            ])
             ->values()
             ->all();
     }
