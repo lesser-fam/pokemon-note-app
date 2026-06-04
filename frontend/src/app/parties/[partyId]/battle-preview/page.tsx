@@ -6,6 +6,8 @@ import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOppo
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
+import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
+import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
@@ -27,6 +29,10 @@ export default function BattlePreviewPage() {
     const [opponentPokemonList, setOpponentPokemonList] = useState<Pokemon[]>(
         [],
     );
+
+    const [pokemonAbilityWarnings, setPokemonAbilityWarnings] = useState<
+        PokemonAbilityWarning[]
+    >([]);
 
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -58,6 +64,30 @@ export default function BattlePreviewPage() {
 
         loadData();
     }, [partyId, isInvalidPartyId]);
+
+    useEffect(() => {
+        const loadPokemonAbilityWarnings = async () => {
+            if (opponentPokemonList.length === 0) {
+                setPokemonAbilityWarnings([]);
+                return;
+            }
+
+            try {
+                const pokemonKeys = opponentPokemonList.map(
+                    (pokemon) => `${pokemon.key}:${pokemon.form_key}`,
+                );
+
+                const data = await fetchPokemonAbilityWarnings(pokemonKeys);
+
+                setPokemonAbilityWarnings(data);
+            } catch (error) {
+                console.error(error);
+                setPokemonAbilityWarnings([]);
+            }
+        };
+
+        loadPokemonAbilityWarnings();
+    }, [opponentPokemonList]);
 
     const handleToggleType = (type: string) => {
         setSelectedTypes((currentTypes) => {
@@ -212,6 +242,20 @@ export default function BattlePreviewPage() {
         return pokemonList.find(
             (pokemon) =>
                 pokemon.key === pokemonKey && pokemon.form_key === formKey,
+        );
+    };
+
+    const getPokemonAbilityWarnings = (pokemon: Pokemon) => {
+        const warning = pokemonAbilityWarnings.find(
+            (item) =>
+                item.pokemon_key === pokemon.key &&
+                item.form_key === pokemon.form_key,
+        );
+
+        return (
+            warning?.abilities.filter(
+                (ability) => ability.effect_rules.length > 0,
+            ) ?? []
         );
     };
 
@@ -480,7 +524,10 @@ export default function BattlePreviewPage() {
                         <div>
                             <h2 className="text-xl font-bold">相手パーティ</h2>
                             <p className="mt-1 text-sm text-gray-600">
-                                選択した相手ポケモンがここに表示されます。
+                                選択した相手ポケモンと、警戒したい特性候補を表示します。
+                            </p>
+                            <p className="mt-1 text-sm text-gray-500">
+                                相手の実際の特性は未確定のため、警戒特性はおすすめ選出の点数には含めていません。
                             </p>
                         </div>
 
@@ -513,65 +560,156 @@ export default function BattlePreviewPage() {
                         </p>
                     ) : (
                         <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                            {opponentPokemonList.map((pokemon) => (
-                                <div
-                                    key={`${pokemon.key}-${pokemon.form_key}`}
-                                    className="flex items-center justify-between rounded border p-3"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        {pokemon.image_url ? (
-                                            <img
-                                                src={pokemon.image_url}
-                                                alt={pokemon.name}
-                                                className="h-14 w-14 object-contain"
-                                            />
-                                        ) : (
-                                            <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm">
-                                                ?
-                                            </div>
-                                        )}
+                            {opponentPokemonList.map((pokemon) => {
+                                const abilityWarnings =
+                                    getPokemonAbilityWarnings(pokemon);
 
-                                        <div>
-                                            <p className="font-bold">
-                                                {pokemon.name}
-                                            </p>
-                                            <p className="text-xs text-gray-600">
-                                                {pokemon.types.join(" / ")}
-                                            </p>
-                                            <p className="mt-2 flex flex-wrap gap-1 text-xs text-gray-600">
-                                                <span className="rounded bg-gray-100 px-2 py-0.5">
-                                                    H{pokemon.base_stats.h}
-                                                </span>
-                                                <span className="rounded bg-gray-100 px-2 py-0.5">
-                                                    A{pokemon.base_stats.a}
-                                                </span>
-                                                <span className="rounded bg-gray-100 px-2 py-0.5">
-                                                    B{pokemon.base_stats.b}
-                                                </span>
-                                                <span className="rounded bg-gray-100 px-2 py-0.5">
-                                                    C{pokemon.base_stats.c}
-                                                </span>
-                                                <span className="rounded bg-gray-100 px-2 py-0.5">
-                                                    D{pokemon.base_stats.d}
-                                                </span>
-                                                <span className="rounded bg-gray-100 px-2 py-0.5">
-                                                    S{pokemon.base_stats.s}
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            handleRemoveOpponentPokemon(pokemon)
-                                        }
-                                        className="rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50"
+                                return (
+                                    <div
+                                        key={`${pokemon.key}-${pokemon.form_key}`}
+                                        className="rounded border p-3"
                                     >
-                                        削除
-                                    </button>
-                                </div>
-                            ))}
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div className="flex items-center gap-3">
+                                                {pokemon.image_url ? (
+                                                    <img
+                                                        src={pokemon.image_url}
+                                                        alt={pokemon.name}
+                                                        className="h-14 w-14 object-contain"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm">
+                                                        ?
+                                                    </div>
+                                                )}
+
+                                                <div>
+                                                    <p className="font-bold">
+                                                        {pokemon.name}
+                                                    </p>
+
+                                                    <p className="text-xs text-gray-600">
+                                                        {pokemon.types.join(
+                                                            " / ",
+                                                        )}
+                                                    </p>
+
+                                                    <p className="mt-2 flex flex-wrap gap-1 text-xs text-gray-600">
+                                                        <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                            H
+                                                            {
+                                                                pokemon
+                                                                    .base_stats
+                                                                    .h
+                                                            }
+                                                        </span>
+                                                        <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                            A
+                                                            {
+                                                                pokemon
+                                                                    .base_stats
+                                                                    .a
+                                                            }
+                                                        </span>
+                                                        <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                            B
+                                                            {
+                                                                pokemon
+                                                                    .base_stats
+                                                                    .b
+                                                            }
+                                                        </span>
+                                                        <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                            C
+                                                            {
+                                                                pokemon
+                                                                    .base_stats
+                                                                    .c
+                                                            }
+                                                        </span>
+                                                        <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                            D
+                                                            {
+                                                                pokemon
+                                                                    .base_stats
+                                                                    .d
+                                                            }
+                                                        </span>
+                                                        <span className="rounded bg-gray-100 px-2 py-0.5">
+                                                            S
+                                                            {
+                                                                pokemon
+                                                                    .base_stats
+                                                                    .s
+                                                            }
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    handleRemoveOpponentPokemon(
+                                                        pokemon,
+                                                    )
+                                                }
+                                                className="rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50"
+                                            >
+                                                削除
+                                            </button>
+                                        </div>
+
+                                        {abilityWarnings.length > 0 && (
+                                            <details className="mt-3 rounded bg-amber-50 p-3">
+                                                <summary className="cursor-pointer text-xs font-semibold text-amber-800">
+                                                    警戒特性{" "}
+                                                    {abilityWarnings.length}件
+                                                </summary>
+
+                                                <div className="mt-3 space-y-3">
+                                                    {abilityWarnings.map(
+                                                        (ability) => (
+                                                            <div
+                                                                key={ability.id}
+                                                            >
+                                                                <p className="text-sm font-semibold text-amber-900">
+                                                                    {
+                                                                        ability.name
+                                                                    }
+                                                                    {ability.is_hidden && (
+                                                                        <span className="ml-2 text-xs font-normal text-amber-700">
+                                                                            隠れ特性
+                                                                        </span>
+                                                                    )}
+                                                                </p>
+
+                                                                <ul className="mt-1 space-y-1 text-xs text-amber-800">
+                                                                    {ability.effect_rules.map(
+                                                                        (
+                                                                            rule,
+                                                                        ) => (
+                                                                            <li
+                                                                                key={
+                                                                                    rule.id
+                                                                                }
+                                                                            >
+                                                                                ・
+                                                                                {rule.description ||
+                                                                                    "注意が必要な特性です。"}
+                                                                            </li>
+                                                                        ),
+                                                                    )}
+                                                                </ul>
+                                                            </div>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            </details>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </section>
