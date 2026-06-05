@@ -5,3 +5,4 @@
 !data/
 data/*
 !data/pokemon.csv
+!data/pokemon_abilities.csv

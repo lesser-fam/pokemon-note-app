@@ -17,6 +17,9 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             RoleTagSeeder::class,
+
+            AbilityEffectRuleSeeder::class,
+            PokemonAbilitySeeder::class,
         ]);
     }
 }
