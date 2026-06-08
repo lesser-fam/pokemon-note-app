@@ -1,6 +1,7 @@
 import { BattlePokemonCard } from "@/features/battlePreview/components/BattlePokemonCard";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import { AbilityTooltip } from "./AbilityTooltip";
 import type { PokemonStatKey } from "./PokemonStatLabels";
 
 type OpponentAbility = PokemonAbilityWarning["abilities"][number];
@@ -55,13 +56,14 @@ export function OpponentPartyColumn({
                                     abilities.length > 0 ? (
                                         <div className="flex flex-wrap gap-1">
                                             {abilities.map((ability) => (
-                                                <span
+                                                <AbilityTooltip
                                                     key={ability.id}
-                                                    className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-800"
-                                                >
-                                                    {ability.name}
-                                                    {ability.is_hidden && "※"}
-                                                </span>
+                                                    name={ability.name}
+                                                    description={
+                                                        ability.description
+                                                    }
+                                                    isHidden={ability.is_hidden}
+                                                />
                                             ))}
                                         </div>
                                     ) : (

@@ -1,6 +1,7 @@
 import { BattlePokemonCard } from "@/features/battlePreview/components/BattlePokemonCard";
 import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
+import { AbilityTooltip } from "./AbilityTooltip";
 import type { PokemonStatKey } from "./PokemonStatLabels";
 
 type OwnPartyColumnProps = {
@@ -84,9 +85,15 @@ export function OwnPartyColumn({
                                 }
                                 footer={
                                     partyPokemon.ability_master ? (
-                                        <span className="inline-block rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
-                                            {partyPokemon.ability_master.name}
-                                        </span>
+                                        <AbilityTooltip
+                                            name={
+                                                partyPokemon.ability_master.name
+                                            }
+                                            description={
+                                                partyPokemon.ability_master
+                                                    .description
+                                            }
+                                        />
                                     ) : (
                                         <span className="text-xs text-gray-400">
                                             特性未登録

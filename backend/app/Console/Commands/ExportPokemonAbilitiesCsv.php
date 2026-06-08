@@ -18,9 +18,12 @@ class ExportPokemonAbilitiesCsv extends Command
     /**
      * PokéAPIの特性名を何度も取得しないための簡易キャッシュ
      *
-     * @var array<string, string>
+     * @var array<string, array{
+     *     name:string,
+     *     description:string|null
+     * }>
      */
-    private array $abilityNameCache = [];
+    private array $abilityDataCache = [];
 
     public function handle(): int
     {
@@ -78,6 +81,7 @@ class ExportPokemonAbilitiesCsv extends Command
             'form_key',
             'ability_key',
             'ability_name',
+            'ability_description',
             'is_hidden',
             'slot',
         ]);
@@ -199,8 +203,8 @@ class ExportPokemonAbilitiesCsv extends Command
                             continue;
                         }
 
-                        $abilityName =
-                            $this->getJapaneseAbilityName(
+                        $abilityData =
+                            $this->getAbilityData(
                                 abilityKey: $abilityKey,
                                 abilityUrl: $abilityUrl,
                             );
@@ -209,7 +213,8 @@ class ExportPokemonAbilitiesCsv extends Command
                             $speciesKey,
                             $formKey,
                             $abilityKey,
-                            $abilityName,
+                            $abilityData['name'],
+                            $abilityData['description'],
                             $isHidden ? 1 : 0,
                             $slot,
                         ]);
@@ -340,16 +345,22 @@ class ExportPokemonAbilitiesCsv extends Command
             ->all();
     }
 
-    private function getJapaneseAbilityName(
+    /**
+     * @return array{
+     *     name: string,
+     *     description: string|null
+     * }
+     */
+    private function getAbilityData(
         string $abilityKey,
         string $abilityUrl,
-    ): string {
+    ): array {
         if (
             isset(
-                $this->abilityNameCache[$abilityKey],
+                $this->abilityDataCache[$abilityKey],
             )
         ) {
-            return $this->abilityNameCache[$abilityKey];
+            return $this->abilityDataCache[$abilityKey];
         }
 
         $ability = $this->fetchJson(
@@ -372,15 +383,83 @@ class ExportPokemonAbilitiesCsv extends Command
                 ),
             );
 
-        $name =
+        /*
+     * 同じ特性でも複数世代の説明が存在する場合があります。
+     * 最後に登録されている日本語説明を採用します。
+     */
+        $japaneseDescription = collect(
+            $ability['flavor_text_entries']
+                ?? [],
+        )
+            ->filter(
+                fn(array $entry): bool =>
+                in_array(
+                    $entry['language']['name']
+                        ?? '',
+                    [
+                        'ja',
+                        'ja-Hrkt',
+                    ],
+                    true,
+                ),
+            )
+            ->last();
+
+        $description =
+            $this->normalizeDescription(
+                $japaneseDescription['flavor_text']
+                    ?? null,
+            );
+
+        $abilityData = [
+            'name' =>
             (string) (
                 $japaneseName['name']
                 ?? $abilityKey
-            );
+            ),
+            'description' => $description,
+        ];
 
-        $this->abilityNameCache[$abilityKey] = $name;
+        $this->abilityDataCache[$abilityKey] = $abilityData;
 
-        return $name;
+        return $abilityData;
+    }
+
+    private function normalizeDescription(
+        mixed $description,
+    ): ?string {
+        if (! is_string($description)) {
+            return null;
+        }
+
+        /*
+     * API内の改行や改ページ文字を、
+     * ホバー表示しやすい空白へそろえます。
+     */
+        $normalized = preg_replace(
+            '/[\r\n\f]+/u',
+            ' ',
+            $description,
+        );
+
+        if (! is_string($normalized)) {
+            return null;
+        }
+
+        $normalized = preg_replace(
+            '/\s+/u',
+            ' ',
+            trim($normalized),
+        );
+
+        if (
+            ! is_string($normalized)
+            || $normalized === ''
+        ) {
+            return null;
+        }
+
+        return $normalized;
     }
 
     private function fetchJson(

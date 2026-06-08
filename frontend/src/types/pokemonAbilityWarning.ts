@@ -4,6 +4,7 @@ export type PokemonAbilityWarningAbility = {
     id: number;
     key: string;
     name: string;
+    description: string | null;
     is_hidden: boolean;
     effect_rules: MatchupEffectRule[];
 };

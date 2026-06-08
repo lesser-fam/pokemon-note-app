@@ -22,6 +22,7 @@ export type AbilityMaster = {
     id: number;
     key: string;
     name: string;
+    description: string | null;
     effect_rules?: MatchupEffectRule[];
 };
 

@@ -86,6 +86,7 @@ class PokemonAbilityWarningController extends Controller
                         'id' => $pokemonAbility->ability->id,
                         'key' => $pokemonAbility->ability->key,
                         'name' => $pokemonAbility->ability->name,
+                        'description' => $pokemonAbility->ability->description,
                         'is_hidden' => $pokemonAbility->is_hidden,
                         'effect_rules' =>
                         $pokemonAbility

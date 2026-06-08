@@ -95,6 +95,12 @@ class PokemonAbilitySeeder extends Seeder
                             [
                                 'name' =>
                                 $row['ability_name'],
+                                'description' =>
+                                filled(
+                                    $row['ability_description'] ?? null,
+                                )
+                                    ? $row['ability_description']
+                                    : null,
                             ],
                         );
 
