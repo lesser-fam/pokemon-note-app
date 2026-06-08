@@ -6,9 +6,12 @@ import { OwnPartyColumn } from "@/features/battlePreview/components/OwnPartyColu
 import { PokemonStatLegend } from "@/features/battlePreview/components/PokemonStatLegend";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
+import {
+    findDefaultForm,
+    isMegaForm,
+} from "@/features/battlePreview/utils/megaEvolution";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
-import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
@@ -129,6 +132,23 @@ export default function BattlePreviewPage() {
         });
     };
 
+    const resetOtherOpponentMegaForms = (
+        currentList: Pokemon[],
+        excludedPokemonKey?: string,
+    ): Pokemon[] => {
+        return currentList.map((pokemon) => {
+            if (pokemon.key === excludedPokemonKey) {
+                return pokemon;
+            }
+
+            if (!isMegaForm(pokemon)) {
+                return pokemon;
+            }
+
+            return findDefaultForm(pokemonList, pokemon.key) ?? pokemon;
+        });
+    };
+
     const handleAddOpponentPokemon = (pokemon: Pokemon) => {
         if (opponentPokemonList.length >= 6) {
             return;
@@ -142,7 +162,13 @@ export default function BattlePreviewPage() {
             return;
         }
 
-        setOpponentPokemonList((currentList) => [...currentList, pokemon]);
+        setOpponentPokemonList((currentList) => {
+            const nextList = isMegaForm(pokemon)
+                ? resetOtherOpponentMegaForms(currentList)
+                : currentList;
+
+            return [...nextList, pokemon];
+        });
     };
 
     const handleRemoveOpponentPokemon = (pokemon: Pokemon) => {
@@ -306,11 +332,15 @@ export default function BattlePreviewPage() {
         currentPokemon: Pokemon,
         nextPokemon: Pokemon,
     ) => {
-        setOpponentPokemonList((currentList) =>
-            currentList.map((pokemon) =>
+        setOpponentPokemonList((currentList) => {
+            const baseList = isMegaForm(nextPokemon)
+                ? resetOtherOpponentMegaForms(currentList, currentPokemon.key)
+                : currentList;
+
+            return baseList.map((pokemon) =>
                 pokemon.key === currentPokemon.key ? nextPokemon : pokemon,
-            ),
-        );
+            );
+        });
     };
 
     const ownHighlightedStats =
