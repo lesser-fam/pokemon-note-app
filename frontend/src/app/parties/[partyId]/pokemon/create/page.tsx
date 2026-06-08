@@ -9,6 +9,7 @@ import {
 import { BattleMasterTextSelector } from "@/features/master/components/BattleMasterTextSelector";
 import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { NatureSelector } from "@/features/master/components/NatureSelector";
+import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import type { Party } from "@/types/party";
@@ -113,6 +114,9 @@ export default function CreatePartyPokemonPage() {
     const handleSelectPokemon = (pokemon: Pokemon) => {
         setPokemonKey(pokemon.key);
         setFormKey(pokemon.form_key);
+
+        setAbility("");
+        setAbilityId(null);
     };
 
     const handleToggleType = (type: string) => {
@@ -629,21 +633,24 @@ export default function CreatePartyPokemonPage() {
                                     特性
                                 </label>
 
-                                <div className="mt-1">
-                                    <BattleMasterTextSelector
-                                        resource="ability"
-                                        value={ability}
-                                        onChangeText={(value) => {
-                                            setAbility(value);
-                                            setAbilityId(null);
+                                <div className="mt-2">
+                                    <PokemonAbilitySelector
+                                        pokemonKey={pokemonKey}
+                                        formKey={formKey}
+                                        selectedAbilityId={abilityId}
+                                        onSelect={(selectedAbility) => {
+                                            setAbility(selectedAbility.name);
+
+                                            setAbilityId(selectedAbility.id);
                                         }}
-                                        onSelect={(option) => {
-                                            setAbility(option.name);
-                                            setAbilityId(option.id);
-                                        }}
-                                        placeholder="特性名を検索"
                                     />
                                 </div>
+
+                                {ability && (
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        選択中：{ability}
+                                    </p>
+                                )}
                             </div>
 
                             <div>

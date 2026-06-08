@@ -9,6 +9,7 @@ import {
 import { BattleMasterTextSelector } from "@/features/master/components/BattleMasterTextSelector";
 import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { NatureSelector } from "@/features/master/components/NatureSelector";
+import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
 import type { Party } from "@/types/party";
@@ -728,39 +729,41 @@ export default function CreatePartyVersionPage() {
                                                     特性
                                                 </label>
 
-                                                <div className="mt-1">
-                                                    <BattleMasterTextSelector
-                                                        resource="ability"
-                                                        value={pokemon.ability}
-                                                        onChangeText={(
-                                                            value,
+                                                <div className="mt-2">
+                                                    <PokemonAbilitySelector
+                                                        pokemonKey={
+                                                            pokemon.pokemon_key
+                                                        }
+                                                        formKey={
+                                                            pokemon.form_key
+                                                        }
+                                                        selectedAbilityId={
+                                                            pokemon.ability_id
+                                                        }
+                                                        onSelect={(
+                                                            selectedAbility,
                                                         ) => {
                                                             updatePokemon(
                                                                 index,
                                                                 "ability",
-                                                                value,
+                                                                selectedAbility.name,
                                                             );
+
                                                             updatePokemon(
                                                                 index,
                                                                 "ability_id",
-                                                                null,
+                                                                selectedAbility.id,
                                                             );
                                                         }}
-                                                        onSelect={(option) => {
-                                                            updatePokemon(
-                                                                index,
-                                                                "ability",
-                                                                option.name,
-                                                            );
-                                                            updatePokemon(
-                                                                index,
-                                                                "ability_id",
-                                                                option.id,
-                                                            );
-                                                        }}
-                                                        placeholder="特性名を検索"
                                                     />
                                                 </div>
+
+                                                {pokemon.ability && (
+                                                    <p className="mt-2 text-xs text-gray-500">
+                                                        選択中：
+                                                        {pokemon.ability}
+                                                    </p>
+                                                )}
                                             </div>
 
                                             <div>
