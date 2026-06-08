@@ -8,6 +8,7 @@ import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOppo
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
+import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
@@ -190,14 +191,70 @@ export default function BattlePreviewPage() {
             return;
         }
 
-        setOwnPokemonFormOverrides((currentOverrides) => ({
-            ...currentOverrides,
-            [partyPokemonId]: nextPokemon.form_key,
-        }));
+        const isNextMegaForm = isMegaForm(nextPokemon);
 
         /*
-         * DBへ登録済みの元フォームへ戻す場合は、
-         * 一時特性を解除して登録済み特性へ戻します。
+         * メガフォームへ切り替える場合は、
+         * ほかのポケモンを登録時のフォームへ戻します。
+         *
+         * DBの値は変更せず、
+         * 対戦前画面の一時上書きだけを解除します。
+         */
+        setOwnPokemonFormOverrides((currentOverrides) => {
+            const nextOverrides = {
+                ...currentOverrides,
+            };
+
+            if (isNextMegaForm) {
+                currentPokemonList.forEach((partyPokemon) => {
+                    if (partyPokemon.id === partyPokemonId) {
+                        return;
+                    }
+
+                    delete nextOverrides[partyPokemon.id];
+                });
+            }
+
+            /*
+             * 登録時のフォームへ戻す場合は、
+             * 自分自身の一時上書きも削除します。
+             */
+            if (nextPokemon.form_key === originalPartyPokemon.form_key) {
+                delete nextOverrides[partyPokemonId];
+
+                return nextOverrides;
+            }
+
+            nextOverrides[partyPokemonId] = nextPokemon.form_key;
+
+            return nextOverrides;
+        });
+
+        /*
+         * ほかのメガ状態を解除した場合は、
+         * そのポケモンへ一時適用していた特性も解除します。
+         */
+        if (isNextMegaForm) {
+            setOwnPokemonAbilityOverrides((currentOverrides) => {
+                const nextOverrides = {
+                    ...currentOverrides,
+                };
+
+                currentPokemonList.forEach((partyPokemon) => {
+                    if (partyPokemon.id === partyPokemonId) {
+                        return;
+                    }
+
+                    delete nextOverrides[partyPokemon.id];
+                });
+
+                return nextOverrides;
+            });
+        }
+
+        /*
+         * 登録時のフォームへ戻した場合は、
+         * 登録済みの元の特性へ戻します。
          */
         if (nextPokemon.form_key === originalPartyPokemon.form_key) {
             setOwnPokemonAbilityOverrides((currentOverrides) => {
@@ -213,6 +270,9 @@ export default function BattlePreviewPage() {
             return;
         }
 
+        /*
+         * 切り替え後フォームの特性候補を取得します。
+         */
         try {
             const data = await fetchPokemonAbilityWarnings([
                 `${nextPokemon.key}:${nextPokemon.form_key}`,
@@ -221,10 +281,9 @@ export default function BattlePreviewPage() {
             const abilityCandidates = data[0]?.abilities ?? [];
 
             /*
-             * 候補が1件だけなら自動適用します。
-             *
-             * 複数候補の場合は、誤った特性を勝手に
-             * 適用しないように一時的に未選択扱いにします。
+             * 候補が1件なら自動適用します。
+             * 複数候補なら誤った特性を勝手に選ばず、
+             * 一時的に未選択として扱います。
              */
             const temporaryAbility =
                 abilityCandidates.length === 1 ? abilityCandidates[0] : null;
@@ -564,7 +623,7 @@ export default function BattlePreviewPage() {
 
     return (
         <main className="mx-auto max-w-450 p-6">
-            <div className="grid items-start gap-4 xl:grid-cols-[minmax(17rem,1fr)_minmax(0,1.5fr)_minmax(17rem,1fr)]">
+            <div className="grid items-start gap-4 xl:grid-cols-[minmax(19rem,1fr)_minmax(0,1.35fr)_minmax(19rem,1fr)]">
                 <div className="xl:sticky xl:top-4">
                     <OwnPartyColumn
                         partyPokemonList={effectiveCurrentPokemonList}

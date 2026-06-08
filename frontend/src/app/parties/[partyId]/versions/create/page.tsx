@@ -10,6 +10,7 @@ import { BattleMasterTextSelector } from "@/features/master/components/BattleMas
 import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { NatureSelector } from "@/features/master/components/NatureSelector";
 import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
+import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
 import type { Party } from "@/types/party";
@@ -319,7 +320,9 @@ export default function CreatePartyVersionPage() {
             selectedTypes.length === 0 ||
             selectedTypes.every((type) => pokemon.types.includes(type));
 
-        return matchesKeyword && matchesTypes;
+        const isSelectableForm = !isMegaForm(pokemon);
+        
+        return isSelectableForm && matchesKeyword && matchesTypes;
     });
 
     const hasPokemonFilter =

@@ -91,7 +91,7 @@ export function OwnPartyColumn({
                                         onClick={() =>
                                             onToggleSelection(partyPokemon.id)
                                         }
-                                        className={`w-full rounded border px-2 py-1 text-xs font-semibold ${
+                                        className={`flex h-4 w-full items-center justify-center whitespace-nowrap rounded border px-0.5 text-[10px] font-semibold leading-none ${
                                             selectionOrder
                                                 ? "border-black bg-black text-white"
                                                 : "text-gray-600 hover:bg-gray-50"
@@ -112,7 +112,7 @@ export function OwnPartyColumn({
                                             }
                                         />
                                     ) : (
-                                        <span className="text-xs text-gray-400">
+                                        <span className="text-[10px] leading-none text-gray-400">
                                             特性未登録
                                         </span>
                                     )

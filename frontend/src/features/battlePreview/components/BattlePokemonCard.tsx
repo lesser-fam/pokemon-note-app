@@ -19,22 +19,22 @@ export function BattlePokemonCard({
     highlightedStats = [],
 }: BattlePokemonCardProps) {
     return (
-        <div className="rounded border bg-white p-1.5">
+        <div className="rounded border bg-white p-2">
             <div className="grid grid-cols-[2.75rem_minmax(0,1fr)] gap-1.5">
-                <div>
+                <div className="flex h-17 flex-col justify-between">
                     {pokemon.image_url ? (
                         <img
                             src={pokemon.image_url}
                             alt={pokemon.name}
-                            className="h-11 w-11 object-contain"
+                            className="mx-auto h-11 w-11 object-contain"
                         />
                     ) : (
-                        <div className="flex h-11 w-11 items-center justify-center rounded bg-gray-100 text-xs text-gray-500">
+                        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded bg-gray-100 text-xs text-gray-500">
                             ?
                         </div>
                     )}
 
-                    {imageAction && <div className="mt-1">{imageAction}</div>}
+                    {imageAction && <div className="mt-0.5">{imageAction}</div>}
                 </div>
 
                 <div className="min-w-0">
@@ -61,7 +61,11 @@ export function BattlePokemonCard({
                         />
                     </div>
 
-                    {footer && <div className="mt-1.5">{footer}</div>}
+                    {footer && (
+                        <div className="mt-0.5 flex min-h-4 items-center">
+                            {footer}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
