@@ -19,6 +19,7 @@ import { toHiragana } from "@/utils/kana";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { PokemonStatLegend } from "@/features/battlePreview/components/PokemonStatLegend";
 
 type ComparisonMode =
     | "speed"
@@ -838,6 +839,8 @@ export default function BattlePreviewPage() {
                             </div>
                         )}
                     </section>
+
+                    <PokemonStatLegend />
 
                     <section className="rounded border bg-white p-4">
                         <h2 className="font-bold">能力値を比較</h2>
