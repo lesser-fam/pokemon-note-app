@@ -38,6 +38,10 @@ export default function BattlePreviewPage() {
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
 
+    const [selectedPartyPokemonIds, setSelectedPartyPokemonIds] = useState<
+        number[]
+    >([]);
+
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -132,6 +136,20 @@ export default function BattlePreviewPage() {
                     ),
             ),
         );
+    };
+
+    const handleTogglePartyPokemonSelection = (partyPokemonId: number) => {
+        setSelectedPartyPokemonIds((currentIds) => {
+            if (currentIds.includes(partyPokemonId)) {
+                return currentIds.filter((id) => id !== partyPokemonId);
+            }
+
+            if (currentIds.length >= 3) {
+                return currentIds;
+            }
+
+            return [...currentIds, partyPokemonId];
+        });
     };
 
     const normalizedKeyword = toHiragana(searchKeyword.trim());
@@ -347,9 +365,19 @@ export default function BattlePreviewPage() {
         );
     }
 
-    const battleLogCreateHref = `/parties/${party.id}/battle-logs/create?opponents=${opponentPokemonList
+    const opponentQuery = opponentPokemonList
         .map((pokemon) => `${pokemon.key}:${pokemon.form_key}`)
-        .join(",")}`;
+        .join(",");
+
+    const selectedQuery = selectedPartyPokemonIds.join(",");
+
+    const battleLogCreateHref =
+        `/parties/${party.id}/battle-logs/create` +
+        `?opponents=${opponentQuery}` +
+        `&selected=${selectedQuery}`;
+
+    const canCreateBattleLog =
+        opponentPokemonList.length > 0 && selectedPartyPokemonIds.length === 3;
 
     const getPartyPokemonDisplayName = (partyPokemon?: PartyPokemon | null) => {
         if (!partyPokemon) {
@@ -374,7 +402,9 @@ export default function BattlePreviewPage() {
                 <div className="xl:sticky xl:top-4">
                     <OwnPartyColumn
                         partyPokemonList={currentPokemonList}
+                        selectedPartyPokemonIds={selectedPartyPokemonIds}
                         findPokemonMaster={findPokemonMaster}
+                        onToggleSelection={handleTogglePartyPokemonSelection}
                     />
                 </div>
 
@@ -575,10 +605,35 @@ export default function BattlePreviewPage() {
                                                     {index + 1}位
                                                 </h3>
 
-                                                <span className="rounded bg-white px-3 py-1 text-sm font-semibold">
-                                                    合計 {suggestion.totalScore}
-                                                    点
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="rounded bg-white px-3 py-1 text-sm font-semibold">
+                                                        合計{" "}
+                                                        {suggestion.totalScore}
+                                                        点
+                                                    </span>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setSelectedPartyPokemonIds(
+                                                                [
+                                                                    suggestion
+                                                                        .leadPokemon
+                                                                        .id,
+                                                                    suggestion
+                                                                        .switchPokemon
+                                                                        .id,
+                                                                    suggestion
+                                                                        .finisherPokemon
+                                                                        .id,
+                                                                ],
+                                                            )
+                                                        }
+                                                        className="rounded bg-black px-3 py-1 text-sm text-white hover:bg-gray-800"
+                                                    >
+                                                        これにする
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -741,16 +796,28 @@ export default function BattlePreviewPage() {
                                 <h2 className="font-bold">選出を決めたら</h2>
 
                                 <p className="mt-1 text-xs text-gray-500">
-                                    相手パーティを引き継いで、対戦ログ作成画面へ進みます。
+                                    相手パーティと、自分の選出3匹を引き継いで対戦ログ作成画面へ進みます。
                                 </p>
+
+                                {opponentPokemonList.length === 0 && (
+                                    <p className="mt-2 text-xs text-red-600">
+                                        相手ポケモンを1匹以上選んでください。
+                                    </p>
+                                )}
+
+                                {selectedPartyPokemonIds.length < 3 && (
+                                    <p className="mt-1 text-xs text-red-600">
+                                        自パーティから選出する3匹を選んでください。
+                                    </p>
+                                )}
                             </div>
 
                             <Link
                                 href={battleLogCreateHref}
                                 className={`rounded px-4 py-2 text-sm text-white ${
-                                    opponentPokemonList.length === 0
-                                        ? "pointer-events-none bg-gray-400"
-                                        : "bg-black hover:bg-gray-800"
+                                    canCreateBattleLog
+                                        ? "bg-black hover:bg-gray-800"
+                                        : "pointer-events-none bg-gray-400"
                                 }`}
                             >
                                 対戦ログ作成へ

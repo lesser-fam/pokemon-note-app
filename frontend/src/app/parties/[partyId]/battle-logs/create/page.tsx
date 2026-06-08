@@ -25,15 +25,27 @@ export default function CreateBattleLogPage() {
     const router = useRouter();
     const params = useParams<{ partyId: string }>();
     const searchParams = useSearchParams();
+    const selectedQuery = searchParams.get("selected") ?? "";
+
+    const initialSelectedPartyPokemonIds = selectedQuery
+        .split(",")
+        .map((id) => Number(id))
+        .filter((id) => Number.isInteger(id) && id > 0)
+        .slice(0.3);
 
     const partyId = Number(params.partyId);
     const isInvalidPartyId = Number.isNaN(partyId);
+
+    const [selectedOpponentPokemonKeys, setSelectedOpponentPokemonKeys] =
+        useState<string[]>([]);
 
     const [party, setParty] = useState<Party | null>(null);
     const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
 
     const [result, setResult] = useState<"win" | "lose">("win");
-    const [selectedPokemonIds, setSelectedPokemonIds] = useState<number[]>([]);
+    const [selectedPokemonIds, setSelectedPokemonIds] = useState<number[]>(
+        initialSelectedPartyPokemonIds,
+    );
     const [heavyOpponent, setHeavyOpponent] = useState("");
     const [neededPokemonId, setNeededPokemonId] = useState("");
     const [lossTags, setLossTags] = useState<string[]>([]);
@@ -57,6 +69,18 @@ export default function CreateBattleLogPage() {
                 form_key: formKey || "default",
             };
         });
+
+    const createOpponentPokemonKey = (pokemonKey: string, formKey: string) => {
+        return `${pokemonKey}:${formKey}`;
+    };
+
+    const handleChangeResult = (nextResult: "win" | "lose") => {
+        setResult(nextResult);
+
+        if (nextResult === "win") {
+            setLossTags([]);
+        }
+    };
 
     useEffect(() => {
         const loadData = async () => {
@@ -106,6 +130,28 @@ export default function CreateBattleLogPage() {
         });
     };
 
+    const handleToggleSelectedOpponentPokemon = (
+        pokemonKey: string,
+        formKey: string,
+    ) => {
+        const opponentPokemonKey = createOpponentPokemonKey(
+            pokemonKey,
+            formKey,
+        );
+
+        setSelectedOpponentPokemonKeys((currentKeys) => {
+            if (currentKeys.includes(opponentPokemonKey)) {
+                return currentKeys.filter((key) => key !== opponentPokemonKey);
+            }
+
+            if (currentKeys.length >= 3) {
+                return currentKeys;
+            }
+
+            return [...currentKeys, opponentPokemonKey];
+        });
+    };
+
     const handleToggleLossTag = (tag: string) => {
         setLossTags((currentTags) => {
             if (currentTags.includes(tag)) {
@@ -124,8 +170,24 @@ export default function CreateBattleLogPage() {
             return;
         }
 
+        if (selectedPokemonIds.length !== 3) {
+            setErrorMessage("実際に選出したポケモンを3匹選んでください。");
+            return;
+        }
+
         setIsSubmitting(true);
         setErrorMessage("");
+
+        const selectedOpponentPokemonPairs = selectedOpponentPokemonKeys.map(
+            (value) => {
+                const [key, formKey] = value.split(":");
+
+                return {
+                    key,
+                    form_key: formKey || "default",
+                };
+            },
+        );
 
         try {
             const payload = {
@@ -148,6 +210,19 @@ export default function CreateBattleLogPage() {
                 selected_pokemon_2_id: selectedPokemonIds[1],
                 selected_pokemon_3_id: selectedPokemonIds[2],
 
+                selected_opponent_pokemon_1:
+                    selectedOpponentPokemonPairs[0]?.key,
+                selected_opponent_form_1:
+                    selectedOpponentPokemonPairs[0]?.form_key,
+                selected_opponent_pokemon_2:
+                    selectedOpponentPokemonPairs[1]?.key,
+                selected_opponent_form_2:
+                    selectedOpponentPokemonPairs[1]?.form_key,
+                selected_opponent_pokemon_3:
+                    selectedOpponentPokemonPairs[2]?.key,
+                selected_opponent_form_3:
+                    selectedOpponentPokemonPairs[2]?.form_key,
+
                 heavy_opponent_key: heavyOpponent
                     ? heavyOpponent.split(":")[0]
                     : undefined,
@@ -159,7 +234,7 @@ export default function CreateBattleLogPage() {
                     ? Number(neededPokemonId)
                     : undefined,
 
-                loss_tags: lossTags,
+                loss_tags: result === "lose" ? lossTags : [],
                 reflection,
                 next_note: nextNote,
             };
@@ -259,10 +334,32 @@ export default function CreateBattleLogPage() {
                                     opponent.form_key,
                                 );
 
+                                const opponentPokemonKey =
+                                    createOpponentPokemonKey(
+                                        opponent.key,
+                                        opponent.form_key,
+                                    );
+
+                                const isSelected =
+                                    selectedOpponentPokemonKeys.includes(
+                                        opponentPokemonKey,
+                                    );
+
                                 return (
-                                    <div
+                                    <button
                                         key={`${opponent.key}-${opponent.form_key}`}
-                                        className="rounded border p-3"
+                                        type="button"
+                                        onClick={() =>
+                                            handleToggleSelectedOpponentPokemon(
+                                                opponent.key,
+                                                opponent.form_key,
+                                            )
+                                        }
+                                        className={`rounded border p-3 text-left ${
+                                            isSelected
+                                                ? "border-black bg-gray-100"
+                                                : "hover:bg-gray-50"
+                                        }`}
                                     >
                                         {pokemonMaster?.image_url && (
                                             <img
@@ -282,11 +379,22 @@ export default function CreateBattleLogPage() {
                                                 )}
                                             </p>
                                         )}
-                                    </div>
+
+                                        {isSelected && (
+                                            <span className="mt-2 inline-block rounded bg-black px-2 py-0.5 text-xs text-white">
+                                                選出
+                                            </span>
+                                        )}
+                                    </button>
                                 );
                             })}
                         </div>
                     </section>
+
+                    <p className="mt-3 text-sm text-gray-600">
+                        相手の実選出：
+                        {selectedOpponentPokemonKeys.length} / 3
+                    </p>
 
                     <section className="rounded border p-6">
                         <h2 className="text-lg font-bold">勝敗</h2>
@@ -294,7 +402,7 @@ export default function CreateBattleLogPage() {
                         <div className="mt-4 flex gap-3">
                             <button
                                 type="button"
-                                onClick={() => setResult("win")}
+                                onClick={() => handleChangeResult("win")}
                                 className={`rounded border px-4 py-2 ${
                                     result === "win"
                                         ? "bg-black text-white"
@@ -306,7 +414,7 @@ export default function CreateBattleLogPage() {
 
                             <button
                                 type="button"
-                                onClick={() => setResult("lose")}
+                                onClick={() => handleChangeResult("lose")}
                                 className={`rounded border px-4 py-2 ${
                                     result === "lose"
                                         ? "bg-black text-white"
@@ -335,6 +443,14 @@ export default function CreateBattleLogPage() {
                                     partyPokemon.id,
                                 );
 
+                                const selectedIndex =
+                                    selectedPokemonIds.indexOf(partyPokemon.id);
+
+                                const selectionOrder =
+                                    selectedIndex >= 0
+                                        ? selectedIndex + 1
+                                        : null;
+
                                 return (
                                     <button
                                         key={partyPokemon.id}
@@ -350,11 +466,20 @@ export default function CreateBattleLogPage() {
                                                 : "hover:bg-gray-50"
                                         }`}
                                     >
-                                        <p className="font-bold">
-                                            {partyPokemon.nickname ||
-                                                pokemonMaster?.name ||
-                                                partyPokemon.pokemon_key}
-                                        </p>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <p className="font-bold">
+                                                {partyPokemon.nickname ||
+                                                    pokemonMaster?.name ||
+                                                    partyPokemon.pokemon_key}
+                                            </p>
+
+                                            {selectionOrder && (
+                                                <span className="rounded bg-black px-2 py-0.5 text-xs font-semibold text-white">
+                                                    {selectionOrder}
+                                                </span>
+                                            )}
+                                        </div>
+
                                         {pokemonMaster && (
                                             <p className="text-xs text-gray-600">
                                                 {pokemonMaster.types.join(
@@ -440,31 +565,34 @@ export default function CreateBattleLogPage() {
                             </div>
                         </div>
 
-                        <div className="mt-6">
-                            <p className="text-sm font-medium">敗因タグ</p>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                {lossTagOptions.map((tag) => {
-                                    const isSelected = lossTags.includes(tag);
+                        {result === "lose" && (
+                            <div className="mt-6">
+                                <p className="text-sm font-medium">敗因タグ</p>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {lossTagOptions.map((tag) => {
+                                        const isSelected =
+                                            lossTags.includes(tag);
 
-                                    return (
-                                        <button
-                                            key={tag}
-                                            type="button"
-                                            onClick={() =>
-                                                handleToggleLossTag(tag)
-                                            }
-                                            className={`rounded-full border px-3 py-1 text-sm ${
-                                                isSelected
-                                                    ? "bg-black text-white"
-                                                    : "hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            {tag}
-                                        </button>
-                                    );
-                                })}
+                                        return (
+                                            <button
+                                                key={tag}
+                                                type="button"
+                                                onClick={() =>
+                                                    handleToggleLossTag(tag)
+                                                }
+                                                className={`rounded-full border px-3 py-1 text-sm ${
+                                                    isSelected
+                                                        ? "bg-black text-white"
+                                                        : "hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                {tag}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         <div className="mt-6">
                             <label className="block text-sm font-medium">
@@ -497,7 +625,9 @@ export default function CreateBattleLogPage() {
 
                     <button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={
+                            isSubmitting || selectedPokemonIds.length !== 3
+                        }
                         className="rounded bg-black px-5 py-3 text-white disabled:opacity-50"
                     >
                         {isSubmitting ? "保存中..." : "対戦ログを保存する"}

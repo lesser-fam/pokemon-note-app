@@ -17,9 +17,26 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             RoleTagSeeder::class,
+            NatureSeeder::class,
 
-            AbilityEffectRuleSeeder::class,
+            /*
+             * pokemon_abilities.csv を読み込み、
+             * abilities に不足している特性を追加しながら、
+             * ポケモンと特性を紐づける。
+             */
             PokemonAbilitySeeder::class,
+
+            /*
+             * abilities が登録された後に、
+             * 特性による相性補正を登録する。
+             */
+            AbilityEffectRuleSeeder::class,
+
+            /*
+             * items が登録された後に、
+             * 持ち物による相性補正を登録する。
+             */
+            ItemEffectRuleSeeder::class,
         ]);
     }
 }

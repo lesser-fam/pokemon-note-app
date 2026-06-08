@@ -21,6 +21,13 @@ export type StoreBattleLogPayload = {
     selected_pokemon_2_id?: number;
     selected_pokemon_3_id?: number;
 
+    selected_opponent_pokemon_1?: string;
+    selected_opponent_form_1?: string;
+    selected_opponent_pokemon_2?: string;
+    selected_opponent_form_2?: string;
+    selected_opponent_pokemon_3?: string;
+    selected_opponent_form_3?: string;
+
     heavy_opponent_key?: string;
     heavy_opponent_form?: string;
 

@@ -4,15 +4,19 @@ import type { Pokemon } from "@/types/pokemon";
 
 type OwnPartyColumnProps = {
     partyPokemonList: PartyPokemon[];
+    selectedPartyPokemonIds: number[];
     findPokemonMaster: (
         pokemonKey: string,
         formKey: string,
     ) => Pokemon | undefined;
+    onToggleSelection: (partyPokemonId: number) => void;
 };
 
 export function OwnPartyColumn({
     partyPokemonList,
+    selectedPartyPokemonIds,
     findPokemonMaster,
+    onToggleSelection,
 }: OwnPartyColumnProps) {
     return (
         <aside className="rounded border bg-white p-3">
@@ -20,12 +24,12 @@ export function OwnPartyColumn({
                 <h2 className="text-base font-bold">自パーティ</h2>
 
                 <p className="text-sm font-medium text-gray-600">
-                    {partyPokemonList.length} / 6
+                    {selectedPartyPokemonIds.length} / 3
                 </p>
             </div>
 
             {partyPokemonList.length === 0 ? (
-                <p className="mt-4 rounded bg-gray-50 p-3 text-sm text-gray-600">
+                <p className="mt-3 rounded bg-gray-50 p-3 text-sm text-gray-600">
                     ポケモンが登録されていません。
                 </p>
             ) : (
@@ -48,6 +52,13 @@ export function OwnPartyColumn({
                             );
                         }
 
+                        const selectedIndex = selectedPartyPokemonIds.indexOf(
+                            partyPokemon.id,
+                        );
+
+                        const selectionOrder =
+                            selectedIndex >= 0 ? selectedIndex + 1 : null;
+
                         return (
                             <BattlePokemonCard
                                 key={partyPokemon.id}
@@ -55,14 +66,21 @@ export function OwnPartyColumn({
                                 imageAction={
                                     <button
                                         type="button"
-                                        className="w-full rounded border px-2 py-1 text-xs text-gray-500 hover:bg-gray-50"
+                                        onClick={() =>
+                                            onToggleSelection(partyPokemon.id)
+                                        }
+                                        className={`w-full rounded border px-2 py-1 text-xs font-semibold ${
+                                            selectionOrder
+                                                ? "border-black bg-black text-white"
+                                                : "text-gray-600 hover:bg-gray-50"
+                                        }`}
                                     >
-                                        選出外
+                                        {selectionOrder ?? "選出外"}
                                     </button>
                                 }
                                 footer={
                                     partyPokemon.ability_master ? (
-                                        <span className="inline-block rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-700">
+                                        <span className="inline-block rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
                                             {partyPokemon.ability_master.name}
                                         </span>
                                     ) : (
