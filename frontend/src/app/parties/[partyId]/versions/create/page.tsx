@@ -321,7 +321,7 @@ export default function CreatePartyVersionPage() {
             selectedTypes.every((type) => pokemon.types.includes(type));
 
         const isSelectableForm = !isMegaForm(pokemon);
-        
+
         return isSelectableForm && matchesKeyword && matchesTypes;
     });
 
@@ -1115,6 +1115,9 @@ export default function CreatePartyVersionPage() {
                                         <label className="block text-sm font-medium">
                                             ポケモン名で検索
                                         </label>
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            メガシンカは対戦前選出画面で一時的に切り替えます。自パーティには通常フォームを登録してください。
+                                        </p>
                                         <input
                                             className="mt-1 w-full rounded border p-3"
                                             value={searchKeyword}

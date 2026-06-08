@@ -436,6 +436,9 @@ export default function CreatePartyPokemonPage() {
                             <label className="block text-sm font-medium">
                                 ポケモン名で検索
                             </label>
+                            <p className="mt-1 text-xs text-gray-500">
+                                メガシンカは対戦前選出画面で一時的に切り替えます。自パーティには通常フォームを登録してください。
+                            </p>
                             <input
                                 className="mt-1 w-full rounded border p-3"
                                 value={searchKeyword}
