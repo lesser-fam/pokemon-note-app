@@ -2,22 +2,27 @@ import { BattlePokemonCard } from "@/features/battlePreview/components/BattlePok
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import { AbilityTooltip } from "./AbilityTooltip";
+import { MegaFormToggle } from "./MegaFormToggle";
 import type { PokemonStatKey } from "./PokemonStatLabels";
 
 type OpponentAbility = PokemonAbilityWarning["abilities"][number];
 
 type OpponentPartyColumnProps = {
     opponentPokemonList: Pokemon[];
+    pokemonList: Pokemon[];
     highlightedStats?: PokemonStatKey[];
     getPokemonAbilities: (pokemon: Pokemon) => OpponentAbility[];
     onRemove: (pokemon: Pokemon) => void;
+    onChangeForm: (currentPokemon: Pokemon, nextPokemon: Pokemon) => void;
 };
 
 export function OpponentPartyColumn({
     opponentPokemonList,
+    pokemonList,
     highlightedStats = [],
     getPokemonAbilities,
     onRemove,
+    onChangeForm,
 }: OpponentPartyColumnProps) {
     return (
         <aside className="rounded border bg-white p-3">
@@ -43,6 +48,15 @@ export function OpponentPartyColumn({
                                 key={`${pokemon.key}-${pokemon.form_key}`}
                                 pokemon={pokemon}
                                 highlightedStats={highlightedStats}
+                                headerAction={
+                                    <MegaFormToggle
+                                        pokemon={pokemon}
+                                        pokemonList={pokemonList}
+                                        onChange={(nextPokemon) =>
+                                            onChangeForm(pokemon, nextPokemon)
+                                        }
+                                    />
+                                }
                                 imageAction={
                                     <button
                                         type="button"

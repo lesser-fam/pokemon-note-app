@@ -3,6 +3,7 @@
 import { pokemonTypes } from "@/constants/pokemonTypes";
 import { OpponentPartyColumn } from "@/features/battlePreview/components/OpponentPartyColumn";
 import { OwnPartyColumn } from "@/features/battlePreview/components/OwnPartyColumn";
+import { PokemonStatLegend } from "@/features/battlePreview/components/PokemonStatLegend";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
@@ -19,7 +20,6 @@ import { toHiragana } from "@/utils/kana";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { PokemonStatLegend } from "@/features/battlePreview/components/PokemonStatLegend";
 
 type ComparisonMode =
     | "speed"
@@ -51,6 +51,9 @@ export default function BattlePreviewPage() {
         number[]
     >([]);
 
+    const [ownPokemonFormOverrides, setOwnPokemonFormOverrides] = useState<
+        Record<number, string>
+    >({});
     const [comparisonMode, setComparisonMode] = useState<ComparisonMode>(null);
 
     const [isLoading, setIsLoading] = useState(true);
@@ -168,6 +171,27 @@ export default function BattlePreviewPage() {
     ) => {
         setComparisonMode((currentMode) =>
             currentMode === nextMode ? null : nextMode,
+        );
+    };
+
+    const handleChangeOwnPokemonForm = (
+        partyPokemonId: number,
+        pokemon: Pokemon,
+    ) => {
+        setOwnPokemonFormOverrides((currentOverrides) => ({
+            ...currentOverrides,
+            [partyPokemonId]: pokemon.form_key,
+        }));
+    };
+
+    const handleChangeOpponentPokemonForm = (
+        currentPokemon: Pokemon,
+        nextPokemon: Pokemon,
+    ) => {
+        setOpponentPokemonList((currentList) =>
+            currentList.map((pokemon) =>
+                pokemon.key === currentPokemon.key ? nextPokemon : pokemon,
+            ),
         );
     };
 
@@ -330,7 +354,22 @@ export default function BattlePreviewPage() {
 
     const currentPokemonList = party?.current_version?.pokemon ?? [];
 
-    const offensiveMatchupResults = currentPokemonList
+    const effectiveCurrentPokemonList = currentPokemonList.map(
+        (partyPokemon) => {
+            const overriddenFormKey = ownPokemonFormOverrides[partyPokemon.id];
+
+            if (!overriddenFormKey) {
+                return partyPokemon;
+            }
+
+            return {
+                ...partyPokemon,
+                form_key: overriddenFormKey,
+            };
+        },
+    );
+
+    const offensiveMatchupResults = effectiveCurrentPokemonList
         .map((partyPokemon) => {
             const moveTypes = [
                 partyPokemon.move_1_type,
@@ -351,7 +390,7 @@ export default function BattlePreviewPage() {
         })
         .sort((a, b) => b.matchupResult.score - a.matchupResult.score);
 
-    const defensiveMatchupResults = currentPokemonList
+    const defensiveMatchupResults = effectiveCurrentPokemonList
         .map((partyPokemon) => {
             const pokemonMaster = findPokemonMaster(
                 partyPokemon.pokemon_key,
@@ -373,13 +412,15 @@ export default function BattlePreviewPage() {
         })
         .sort((a, b) => b.matchupResult.score - a.matchupResult.score);
 
-    const suggestedSelection = suggestBasicSelection(currentPokemonList);
+    const suggestedSelection = suggestBasicSelection(
+        effectiveCurrentPokemonList,
+    );
     const savedSelectionTemplates =
         party?.current_version?.selection_templates ?? [];
     const battleLogs = party?.current_version?.battle_logs ?? [];
 
     const matchupSelectionSuggestions = suggestMatchupSelections({
-        partyPokemonList: currentPokemonList,
+        partyPokemonList: effectiveCurrentPokemonList,
         pokemonMasterList: pokemonList,
         opponentPokemonList,
         savedSelectionTemplates,
@@ -450,11 +491,13 @@ export default function BattlePreviewPage() {
             <div className="grid items-start gap-4 xl:grid-cols-[minmax(17rem,1fr)_minmax(0,1.5fr)_minmax(17rem,1fr)]">
                 <div className="xl:sticky xl:top-4">
                     <OwnPartyColumn
-                        partyPokemonList={currentPokemonList}
+                        partyPokemonList={effectiveCurrentPokemonList}
+                        pokemonList={pokemonList}
                         selectedPartyPokemonIds={selectedPartyPokemonIds}
                         highlightedStats={ownHighlightedStats}
                         findPokemonMaster={findPokemonMaster}
                         onToggleSelection={handleTogglePartyPokemonSelection}
+                        onChangeForm={handleChangeOwnPokemonForm}
                     />
                 </div>
 
@@ -1648,9 +1691,11 @@ export default function BattlePreviewPage() {
                 <div className="xl:sticky xl:top-4">
                     <OpponentPartyColumn
                         opponentPokemonList={opponentPokemonList}
+                        pokemonList={pokemonList}
                         highlightedStats={opponentHighlightedStats}
                         getPokemonAbilities={getPokemonAbilities}
                         onRemove={handleRemoveOpponentPokemon}
+                        onChangeForm={handleChangeOpponentPokemonForm}
                     />
                 </div>
             </div>

@@ -3,9 +3,11 @@ import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import { AbilityTooltip } from "./AbilityTooltip";
 import type { PokemonStatKey } from "./PokemonStatLabels";
+import { MegaFormToggle } from "./MegaFormToggle";
 
 type OwnPartyColumnProps = {
     partyPokemonList: PartyPokemon[];
+    pokemonList: Pokemon[];
     selectedPartyPokemonIds: number[];
     highlightedStats?: PokemonStatKey[];
     findPokemonMaster: (
@@ -13,14 +15,17 @@ type OwnPartyColumnProps = {
         formKey: string,
     ) => Pokemon | undefined;
     onToggleSelection: (partyPokemonId: number) => void;
+    onChangeForm: (partyPokemonId: number, pokemon: Pokemon) => void;
 };
 
 export function OwnPartyColumn({
     partyPokemonList,
+    pokemonList,
     selectedPartyPokemonIds,
     highlightedStats = [],
     findPokemonMaster,
     onToggleSelection,
+    onChangeForm,
 }: OwnPartyColumnProps) {
     return (
         <aside className="rounded border bg-white p-3">
@@ -68,6 +73,18 @@ export function OwnPartyColumn({
                                 key={partyPokemon.id}
                                 pokemon={pokemonMaster}
                                 highlightedStats={highlightedStats}
+                                headerAction={
+                                    <MegaFormToggle
+                                        pokemon={pokemonMaster}
+                                        pokemonList={pokemonList}
+                                        onChange={(pokemon) =>
+                                            onChangeForm(
+                                                partyPokemon.id,
+                                                pokemon,
+                                            )
+                                        }
+                                    />
+                                }
                                 imageAction={
                                     <button
                                         type="button"
