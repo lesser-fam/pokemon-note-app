@@ -29,6 +29,8 @@ type ComparisonMode =
     | "own_special_defense_vs_opponent_special_attack"
     | null;
 
+type PokemonAbilityCandidate = PokemonAbilityWarning["abilities"][number];
+
 export default function BattlePreviewPage() {
     const params = useParams<{ partyId: string }>();
     const partyId = Number(params.partyId);
@@ -54,6 +56,8 @@ export default function BattlePreviewPage() {
     const [ownPokemonFormOverrides, setOwnPokemonFormOverrides] = useState<
         Record<number, string>
     >({});
+    const [ownPokemonAbilityOverrides, setOwnPokemonAbilityOverrides] =
+        useState<Record<number, PokemonAbilityCandidate | null>>({});
     const [comparisonMode, setComparisonMode] = useState<ComparisonMode>(null);
 
     const [isLoading, setIsLoading] = useState(true);
@@ -174,14 +178,69 @@ export default function BattlePreviewPage() {
         );
     };
 
-    const handleChangeOwnPokemonForm = (
+    const handleChangeOwnPokemonForm = async (
         partyPokemonId: number,
-        pokemon: Pokemon,
+        nextPokemon: Pokemon,
     ) => {
+        const originalPartyPokemon = currentPokemonList.find(
+            (partyPokemon) => partyPokemon.id === partyPokemonId,
+        );
+
+        if (!originalPartyPokemon) {
+            return;
+        }
+
         setOwnPokemonFormOverrides((currentOverrides) => ({
             ...currentOverrides,
-            [partyPokemonId]: pokemon.form_key,
+            [partyPokemonId]: nextPokemon.form_key,
         }));
+
+        /*
+         * DBへ登録済みの元フォームへ戻す場合は、
+         * 一時特性を解除して登録済み特性へ戻します。
+         */
+        if (nextPokemon.form_key === originalPartyPokemon.form_key) {
+            setOwnPokemonAbilityOverrides((currentOverrides) => {
+                const nextOverrides = {
+                    ...currentOverrides,
+                };
+
+                delete nextOverrides[partyPokemonId];
+
+                return nextOverrides;
+            });
+
+            return;
+        }
+
+        try {
+            const data = await fetchPokemonAbilityWarnings([
+                `${nextPokemon.key}:${nextPokemon.form_key}`,
+            ]);
+
+            const abilityCandidates = data[0]?.abilities ?? [];
+
+            /*
+             * 候補が1件だけなら自動適用します。
+             *
+             * 複数候補の場合は、誤った特性を勝手に
+             * 適用しないように一時的に未選択扱いにします。
+             */
+            const temporaryAbility =
+                abilityCandidates.length === 1 ? abilityCandidates[0] : null;
+
+            setOwnPokemonAbilityOverrides((currentOverrides) => ({
+                ...currentOverrides,
+                [partyPokemonId]: temporaryAbility,
+            }));
+        } catch (error) {
+            console.error(error);
+
+            setOwnPokemonAbilityOverrides((currentOverrides) => ({
+                ...currentOverrides,
+                [partyPokemonId]: null,
+            }));
+        }
     };
 
     const handleChangeOpponentPokemonForm = (
@@ -358,13 +417,30 @@ export default function BattlePreviewPage() {
         (partyPokemon) => {
             const overriddenFormKey = ownPokemonFormOverrides[partyPokemon.id];
 
-            if (!overriddenFormKey) {
-                return partyPokemon;
-            }
+            const hasAbilityOverride = Object.prototype.hasOwnProperty.call(
+                ownPokemonAbilityOverrides,
+                partyPokemon.id,
+            );
+
+            const overriddenAbility =
+                ownPokemonAbilityOverrides[partyPokemon.id];
 
             return {
                 ...partyPokemon,
-                form_key: overriddenFormKey,
+
+                form_key: overriddenFormKey ?? partyPokemon.form_key,
+
+                ability: hasAbilityOverride
+                    ? (overriddenAbility?.name ?? "")
+                    : partyPokemon.ability,
+
+                ability_id: hasAbilityOverride
+                    ? (overriddenAbility?.id ?? null)
+                    : partyPokemon.ability_id,
+
+                ability_master: hasAbilityOverride
+                    ? overriddenAbility
+                    : partyPokemon.ability_master,
             };
         },
     );
