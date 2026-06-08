@@ -1,10 +1,12 @@
 import { BattlePokemonCard } from "@/features/battlePreview/components/BattlePokemonCard";
 import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
+import type { PokemonStatKey } from "./PokemonStatLabels";
 
 type OwnPartyColumnProps = {
     partyPokemonList: PartyPokemon[];
     selectedPartyPokemonIds: number[];
+    highlightedStats?: PokemonStatKey[];
     findPokemonMaster: (
         pokemonKey: string,
         formKey: string,
@@ -15,6 +17,7 @@ type OwnPartyColumnProps = {
 export function OwnPartyColumn({
     partyPokemonList,
     selectedPartyPokemonIds,
+    highlightedStats = [],
     findPokemonMaster,
     onToggleSelection,
 }: OwnPartyColumnProps) {
@@ -63,6 +66,7 @@ export function OwnPartyColumn({
                             <BattlePokemonCard
                                 key={partyPokemon.id}
                                 pokemon={pokemonMaster}
+                                highlightedStats={highlightedStats}
                                 imageAction={
                                     <button
                                         type="button"

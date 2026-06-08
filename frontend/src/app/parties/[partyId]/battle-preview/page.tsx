@@ -20,6 +20,14 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+type ComparisonMode =
+    | "speed"
+    | "own_attack_vs_opponent_defense"
+    | "own_defense_vs_opponent_attack"
+    | "own_special_attack_vs_opponent_special_defense"
+    | "own_special_defense_vs_opponent_special_attack"
+    | null;
+
 export default function BattlePreviewPage() {
     const params = useParams<{ partyId: string }>();
     const partyId = Number(params.partyId);
@@ -41,6 +49,8 @@ export default function BattlePreviewPage() {
     const [selectedPartyPokemonIds, setSelectedPartyPokemonIds] = useState<
         number[]
     >([]);
+
+    const [comparisonMode, setComparisonMode] = useState<ComparisonMode>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
@@ -151,6 +161,44 @@ export default function BattlePreviewPage() {
             return [...currentIds, partyPokemonId];
         });
     };
+
+    const handleToggleComparisonMode = (
+        nextMode: Exclude<ComparisonMode, null>,
+    ) => {
+        setComparisonMode((currentMode) =>
+            currentMode === nextMode ? null : nextMode,
+        );
+    };
+
+    const ownHighlightedStats =
+        comparisonMode === "speed"
+            ? ["s" as const]
+            : comparisonMode === "own_attack_vs_opponent_defense"
+              ? ["a" as const]
+              : comparisonMode === "own_defense_vs_opponent_attack"
+                ? ["b" as const]
+                : comparisonMode ===
+                    "own_special_attack_vs_opponent_special_defense"
+                  ? ["c" as const]
+                  : comparisonMode ===
+                      "own_special_defense_vs_opponent_special_attack"
+                    ? ["d" as const]
+                    : [];
+
+    const opponentHighlightedStats =
+        comparisonMode === "speed"
+            ? ["s" as const]
+            : comparisonMode === "own_attack_vs_opponent_defense"
+              ? ["b" as const]
+              : comparisonMode === "own_defense_vs_opponent_attack"
+                ? ["a" as const]
+                : comparisonMode ===
+                    "own_special_attack_vs_opponent_special_defense"
+                  ? ["d" as const]
+                  : comparisonMode ===
+                      "own_special_defense_vs_opponent_special_attack"
+                    ? ["c" as const]
+                    : [];
 
     const normalizedKeyword = toHiragana(searchKeyword.trim());
 
@@ -403,6 +451,7 @@ export default function BattlePreviewPage() {
                     <OwnPartyColumn
                         partyPokemonList={currentPokemonList}
                         selectedPartyPokemonIds={selectedPartyPokemonIds}
+                        highlightedStats={ownHighlightedStats}
                         findPokemonMaster={findPokemonMaster}
                         onToggleSelection={handleTogglePartyPokemonSelection}
                     />
@@ -788,6 +837,64 @@ export default function BattlePreviewPage() {
                                 )}
                             </div>
                         )}
+                    </section>
+
+                    <section className="rounded border bg-white p-4">
+                        <h2 className="font-bold">能力値を比較</h2>
+
+                        <p className="mt-1 text-xs text-gray-500">
+                            比較したい項目を押すと、左右のポケモンカード内で該当する能力値を強調します。
+                        </p>
+
+                        <div className="mt-3 grid gap-2 sm:grid-cols-5">
+                            {[
+                                {
+                                    mode: "speed",
+                                    label: "S比較",
+                                },
+                                {
+                                    mode: "own_attack_vs_opponent_defense",
+                                    label: "A → B",
+                                },
+                                {
+                                    mode: "own_defense_vs_opponent_attack",
+                                    label: "B ← A",
+                                },
+                                {
+                                    mode: "own_special_attack_vs_opponent_special_defense",
+                                    label: "C → D",
+                                },
+                                {
+                                    mode: "own_special_defense_vs_opponent_special_attack",
+                                    label: "D ← C",
+                                },
+                            ].map((comparison) => {
+                                const isSelected =
+                                    comparisonMode === comparison.mode;
+
+                                return (
+                                    <button
+                                        key={comparison.mode}
+                                        type="button"
+                                        onClick={() =>
+                                            handleToggleComparisonMode(
+                                                comparison.mode as Exclude<
+                                                    ComparisonMode,
+                                                    null
+                                                >,
+                                            )
+                                        }
+                                        className={`rounded border px-3 py-2 text-sm ${
+                                            isSelected
+                                                ? "border-black bg-black text-white"
+                                                : "hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        {comparison.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </section>
 
                     <section className="rounded border bg-white p-4">
@@ -1538,6 +1645,7 @@ export default function BattlePreviewPage() {
                 <div className="xl:sticky xl:top-4">
                     <OpponentPartyColumn
                         opponentPokemonList={opponentPokemonList}
+                        highlightedStats={opponentHighlightedStats}
                         getPokemonAbilities={getPokemonAbilities}
                         onRemove={handleRemoveOpponentPokemon}
                     />

@@ -1,17 +1,20 @@
 import { BattlePokemonCard } from "@/features/battlePreview/components/BattlePokemonCard";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import type { PokemonStatKey } from "./PokemonStatLabels";
 
 type OpponentAbility = PokemonAbilityWarning["abilities"][number];
 
 type OpponentPartyColumnProps = {
     opponentPokemonList: Pokemon[];
+    highlightedStats?: PokemonStatKey[];
     getPokemonAbilities: (pokemon: Pokemon) => OpponentAbility[];
     onRemove: (pokemon: Pokemon) => void;
 };
 
 export function OpponentPartyColumn({
     opponentPokemonList,
+    highlightedStats = [],
     getPokemonAbilities,
     onRemove,
 }: OpponentPartyColumnProps) {
@@ -38,6 +41,7 @@ export function OpponentPartyColumn({
                             <BattlePokemonCard
                                 key={`${pokemon.key}-${pokemon.form_key}`}
                                 pokemon={pokemon}
+                                highlightedStats={highlightedStats}
                                 imageAction={
                                     <button
                                         type="button"
