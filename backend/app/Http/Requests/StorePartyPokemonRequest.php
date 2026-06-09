@@ -50,7 +50,7 @@ class StorePartyPokemonRequest extends FormRequest
 
             'memo'              => 'nullable|string',
 
-            'role_tag_ids'      => 'nullable|array',
+            'role_tag_ids'      => 'nullable|array|max:3',
             'role_tag_ids.*'    => 'integer|exists:role_tags,id',
 
 

@@ -191,6 +191,10 @@ export default function CreatePartyVersionPage() {
 
                 const hasTag = pokemon.role_tag_ids.includes(roleTagId);
 
+                if (!hasTag && pokemon.role_tag_ids.length >= 3) {
+                    return pokemon;
+                }
+
                 return {
                     ...pokemon,
                     role_tag_ids: hasTag
@@ -1040,6 +1044,15 @@ export default function CreatePartyVersionPage() {
                                         <div className="mt-4">
                                             <p className="text-sm font-medium">
                                                 役割タグ
+                                            </p>
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                主な役割を3個まで選べます。重要な役割だけを登録してください。
+                                            </p>
+
+                                            <p className="mt-2 text-xs font-medium text-gray-600">
+                                                選択中：
+                                                {pokemon.role_tag_ids.length} /
+                                                3
                                             </p>
                                             <div className="mt-3 flex flex-wrap gap-2">
                                                 {roleTags.map((tag) => {

@@ -142,6 +142,10 @@ export default function CreatePartyPokemonPage() {
                 return currentIds.filter((id) => id !== roleTagId);
             }
 
+            if (currentIds.length >= 3) {
+                return currentIds;
+            }
+
             return [...currentIds, roleTagId];
         });
     };
@@ -882,7 +886,15 @@ export default function CreatePartyPokemonPage() {
                     <section className="rounded border p-6">
                         <h2 className="text-lg font-bold">役割タグ</h2>
                         <p className="mt-1 text-sm text-gray-600">
-                            このポケモンがパーティ内で担当する役割を選びます。
+                            このポケモンの主な役割を3個まで選べます。
+                        </p>
+                        <p className="mt-1 text-xs text-gray-500">
+                            タグを付けすぎると、おすすめ選出の点数が偏るため、重要な役割だけを選んでください。
+                        </p>
+
+                        <p className="mt-2 text-xs font-medium text-gray-600">
+                            選択中：
+                            {setSelectedRoleTagIds.length} / 3
                         </p>
 
                         <div className="mt-4 flex flex-wrap gap-3">
