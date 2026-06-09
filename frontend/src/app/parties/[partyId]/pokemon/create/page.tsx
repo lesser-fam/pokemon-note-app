@@ -2,6 +2,7 @@
 
 import { AppHeader } from "@/components/AppHeader";
 import { pokemonTypes } from "@/constants/pokemonTypes";
+import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import {
     fetchPokemonList,
     fetchRoleTags,
@@ -10,9 +11,9 @@ import { BattleMasterTextSelector } from "@/features/master/components/BattleMas
 import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { NatureSelector } from "@/features/master/components/NatureSelector";
 import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
-import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
+import type { NatureMaster } from "@/types/battleMaster";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { RoleTag } from "@/types/roleTag";
@@ -45,6 +46,8 @@ export default function CreatePartyPokemonPage() {
 
     const [nature, setNature] = useState("");
     const [natureId, setNatureId] = useState<number | null>(null);
+    const [selectedNatureMaster, setSelectedNatureMaster] =
+        useState<NatureMaster | null>(null);
 
     const [evH, setEvH] = useState("0");
     const [evA, setEvA] = useState("0");
@@ -71,7 +74,6 @@ export default function CreatePartyPokemonPage() {
 
     const [memo, setMemo] = useState("");
     const [selectedRoleTagIds, setSelectedRoleTagIds] = useState<number[]>([]);
-    const [activeRoleTag, setActiveRoleTag] = useState<RoleTag | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,7 +106,7 @@ export default function CreatePartyPokemonPage() {
 
     if (isInvalidPartyId) {
         return (
-            <main className="mx-auto max-w-5x1 p-8">
+            <main className="mx-auto max-w-7xl p-6">
                 <p className="rounded bg-red-100 p-3 text-red-700">
                     パーティIDが正しくありません。
                 </p>
@@ -209,6 +211,48 @@ export default function CreatePartyPokemonPage() {
 
     const toNumber = (value: string) => {
         return Number(value || 0);
+    };
+
+    type NatureStatKey = "h" | "a" | "b" | "c" | "d" | "s";
+
+    type NatureAdjustment = "up" | "down" | null;
+
+    const getNatureAdjustment = (statKey: NatureStatKey): NatureAdjustment => {
+        if (selectedNatureMaster?.increased_stat === statKey) {
+            return "up";
+        }
+
+        if (selectedNatureMaster?.decreased_stat === statKey) {
+            return "down";
+        }
+
+        return null;
+    };
+
+    const getNatureAdjustmentLabel = (adjustment: NatureAdjustment): string => {
+        if (adjustment === "up") {
+            return "↑";
+        }
+
+        if (adjustment === "down") {
+            return "↓";
+        }
+
+        return "";
+    };
+
+    const getNatureAdjustmentClassName = (
+        adjustment: NatureAdjustment,
+    ): string => {
+        if (adjustment === "up") {
+            return "text-red-600";
+        }
+
+        if (adjustment === "down") {
+            return "text-blue-600";
+        }
+
+        return "text-gray-700";
     };
 
     const effortValueTotal =
@@ -389,7 +433,7 @@ export default function CreatePartyPokemonPage() {
             <>
                 <AppHeader />
 
-                <main className="mx-auto max-w-5xl p-8">
+                <main className="mx-auto max-w-7xl p-6">
                     <p>読み込み中...</p>
                 </main>
             </>
@@ -401,7 +445,7 @@ export default function CreatePartyPokemonPage() {
             <>
                 <AppHeader />
 
-                <main className="mx-auto max-w-5xl p-8">
+                <main className="mx-auto max-w-7xl p-6">
                     <p className="rounded bg-red-100 p-3 text-red-700">
                         パーティが見つかりません。
                     </p>
@@ -416,7 +460,7 @@ export default function CreatePartyPokemonPage() {
         <>
             <AppHeader />
 
-            <main className="mx-auto max-w-5xl p-8">
+            <main className="mx-auto max-w-7xl p-6">
                 <Link
                     href={`/parties/${party.id}`}
                     className="text-sm text-blue-600"
@@ -430,463 +474,547 @@ export default function CreatePartyPokemonPage() {
                 </p>
 
                 <form onSubmit={handleSubmit} className="mt-8 space-y-8">
-                    <section className="rounded border p-6">
+                    <section className="rounded border bg-white p-5">
                         <h2 className="text-lg font-bold">ポケモン選択</h2>
+
                         <p className="mt-1 text-sm text-gray-600">
                             名前・かな・タイプから登録するポケモンを探せます。
                         </p>
 
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium">
-                                ポケモン名で検索
-                            </label>
-                            <p className="mt-1 text-xs text-gray-500">
-                                メガシンカは対戦前選出画面で一時的に切り替えます。自パーティには通常フォームを登録してください。
-                            </p>
-                            <input
-                                className="mt-1 w-full rounded border p-3"
-                                value={searchKeyword}
-                                onChange={(event) =>
-                                    setSearchKeyword(event.target.value)
-                                }
-                                placeholder="例：リザードン、りざ、ガブ"
-                            />
-                        </div>
+                        <div className="mt-4 grid gap-5 lg:grid-cols-[19rem_minmax(0,1fr)]">
+                            <div>
+                                <div>
+                                    <label className="block text-sm font-medium">
+                                        ポケモン名で検索
+                                    </label>
 
-                        <div className="mt-5">
-                            <p className="text-sm font-medium">
-                                タイプで絞り込み
-                            </p>
-                            <p className="mt-1 text-xs text-gray-500">
-                                1つ選ぶと、そのタイプを含むポケモンを表示します。2つ選ぶと、その2タイプを両方持つポケモンを表示します。
-                            </p>
+                                    <input
+                                        className="mt-1 w-full rounded border px-3 py-2"
+                                        value={searchKeyword}
+                                        onChange={(event) =>
+                                            setSearchKeyword(event.target.value)
+                                        }
+                                        placeholder="例：リザードン、りざ、ガブ"
+                                    />
+                                </div>
 
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                {pokemonTypes.map((type) => {
-                                    const isSelected =
-                                        selectedTypes.includes(type);
+                                <div className="mt-4">
+                                    <p className="text-sm font-medium">
+                                        タイプで絞り込み
+                                    </p>
 
-                                    return (
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        2つ選ぶと、両方のタイプを持つポケモンを表示します。
+                                    </p>
+
+                                    <div className="mt-2 grid grid-cols-6 gap-1">
+                                        {pokemonTypes.map((type) => {
+                                            const isSelected =
+                                                selectedTypes.includes(type);
+
+                                            return (
+                                                <button
+                                                    key={type}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleToggleType(type)
+                                                    }
+                                                    className={`whitespace-nowrap rounded-full border px-0.5 py-1 text-[9px] leading-none ${
+                                                        isSelected
+                                                            ? "border-black bg-black text-white"
+                                                            : "hover:bg-gray-50"
+                                                    }`}
+                                                >
+                                                    {type}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {selectedTypes.length > 0 && (
                                         <button
-                                            key={type}
                                             type="button"
-                                            onClick={() =>
-                                                handleToggleType(type)
-                                            }
-                                            className={`rounded-full border px-3 py-1 text-sm ${
-                                                isSelected
-                                                    ? "border-black bg-black text-white"
-                                                    : "hover:bg-gray-50"
-                                            }`}
+                                            onClick={() => setSelectedTypes([])}
+                                            className="mt-2 text-xs text-blue-600"
                                         >
-                                            {type}
+                                            タイプ絞り込みを解除
                                         </button>
-                                    );
-                                })}
+                                    )}
+                                </div>
+
+                                <div className="mt-5 rounded bg-gray-50 p-3">
+                                    <p className="text-xs text-gray-500">
+                                        候補：
+                                        {filteredPokemonList.length}件
+                                        {!hasPokemonFilter &&
+                                            filteredPokemonList.length >
+                                                visiblePokemonList.length &&
+                                            ` / 初期表示 ${visiblePokemonList.length}件`}
+                                    </p>
+
+                                    {!hasPokemonFilter &&
+                                        filteredPokemonList.length && (
+                                            <p className="mt-1 text-[10px] text-gray-400">
+                                                名前またはタイプで絞り込むと、ほかの候補も表示されます。
+                                            </p>
+                                        )}
+
+                                    {pokemonKey ? (
+                                        <p className="mt-1 text-sm font-medium">
+                                            選択中：
+                                            {selectedPokemonMaster?.name ||
+                                                pokemonKey}
+                                        </p>
+                                    ) : (
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            ポケモンを選択してください。
+                                        </p>
+                                    )}
+                                </div>
                             </div>
 
-                            {selectedTypes.length > 0 && (
-                                <button
-                                    type="button"
-                                    onClick={() => setSelectedTypes([])}
-                                    className="mt-3 text-sm text-blue-600"
-                                >
-                                    タイプ絞り込みを解除
-                                </button>
-                            )}
-                        </div>
+                            <div>
+                                <div className="max-h-112 overflow-y-auto rounded border bg-gray-50 p-3">
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        {visiblePokemonList.map((pokemon) => {
+                                            const isSelected =
+                                                pokemon.key === pokemonKey &&
+                                                pokemon.form_key === formKey;
 
-                        <div className="mt-6 flex items-center justify-between">
-                            <p className="text-sm text-gray-600">
-                                候補：{filteredPokemonList.length}件
-                                {!hasPokemonFilter &&
-                                    filteredPokemonList.length >
-                                        visiblePokemonList.length &&
-                                    `初期表示 ${visiblePokemonList.length}件`}
-                            </p>
+                                            const isAlreadyRegistered =
+                                                isAlreadyRegisteredPokemon(
+                                                    pokemon,
+                                                );
 
-                            {!hasPokemonFilter &&
-                                filteredPokemonList.length >
-                                    visiblePokemonList.length && (
-                                    <p className="mt-1 text-xs text-gray-500">
-                                        ポケモン名の検索またはタイプ絞り込みで候補を探してください。
+                                            return (
+                                                <button
+                                                    key={`${pokemon.key}-${pokemon.form_key}`}
+                                                    type="button"
+                                                    disabled={
+                                                        isAlreadyRegistered
+                                                    }
+                                                    onClick={() => {
+                                                        if (
+                                                            isAlreadyRegistered
+                                                        ) {
+                                                            return;
+                                                        }
+
+                                                        handleSelectPokemon(
+                                                            pokemon,
+                                                        );
+                                                    }}
+                                                    className={`rounded border bg-white p-3 text-left transition disabled:cursor-not-allowed ${
+                                                        isAlreadyRegistered
+                                                            ? "opacity-50"
+                                                            : isSelected
+                                                              ? "border-black bg-gray-100 ring-2 ring-black"
+                                                              : "hover:bg-gray-50"
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        {pokemon.image_url ? (
+                                                            <img
+                                                                src={
+                                                                    pokemon.image_url
+                                                                }
+                                                                alt={
+                                                                    pokemon.name
+                                                                }
+                                                                className="h-14 w-14 object-contain"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm">
+                                                                ?
+                                                            </div>
+                                                        )}
+
+                                                        <div className="min-w-0">
+                                                            <p className="truncate font-bold">
+                                                                {pokemon.name}
+                                                            </p>
+
+                                                            <p className="text-xs text-gray-600">
+                                                                {pokemon.kana}
+                                                            </p>
+
+                                                            <p className="mt-1 text-xs">
+                                                                {pokemon.types.join(
+                                                                    " / ",
+                                                                )}
+                                                            </p>
+
+                                                            {isAlreadyRegistered && (
+                                                                <p className="mt-1 text-xs text-gray-500">
+                                                                    登録済み
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {filteredPokemonList.length === 0 && (
+                                    <p className="mt-3 rounded bg-gray-50 p-3 text-sm text-gray-600">
+                                        条件に合うポケモンが見つかりません。
                                     </p>
                                 )}
-
-                            {pokemonKey && (
-                                <p className="text-sm font-medium">
-                                    選択中：
-                                    {selectedPokemonMaster?.name || pokemonKey}
-                                    {formKey !== "default" && ` / ${formKey}`}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="mt-4 max-h-128 overflow-y-auto rounded border bg-gray-50 p-3">
-                            <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                                {visiblePokemonList.map((pokemon) => {
-                                    const isSelected =
-                                        pokemon.key === pokemonKey &&
-                                        pokemon.form_key === formKey;
-
-                                    const isAlreadyRegistered =
-                                        isAlreadyRegisteredPokemon(pokemon);
-
-                                    return (
-                                        <button
-                                            key={`${pokemon.key}-${pokemon.form_key}`}
-                                            type="button"
-                                            disabled={isAlreadyRegistered}
-                                            onClick={() => {
-                                                if (isAlreadyRegistered) {
-                                                    return;
-                                                }
-
-                                                handleSelectPokemon(pokemon);
-                                            }}
-                                            className={`rounded border p-3 text-left transition disabled:cursor-not-allowed ${
-                                                isAlreadyRegistered
-                                                    ? "bg-gray-100 opacity-50"
-                                                    : isSelected
-                                                      ? "border-black bg-gray-100 ring-2 ring-black"
-                                                      : "hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                {pokemon.image_url ? (
-                                                    <img
-                                                        src={pokemon.image_url}
-                                                        alt={pokemon.name}
-                                                        className="h-16 w-16 object-contain"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-sm">
-                                                        ?
-                                                    </div>
-                                                )}
-
-                                                <div>
-                                                    <p className="font-bold">
-                                                        {pokemon.name}
-                                                    </p>
-                                                    <p className="text-xs text-gray-600">
-                                                        {pokemon.kana}
-                                                    </p>
-                                                    <p className="mt-1 text-xs">
-                                                        {pokemon.types.join(
-                                                            " / ",
-                                                        )}
-                                                    </p>
-
-                                                    {isAlreadyRegistered && (
-                                                        <p className="mt-1 text-xs text-gray-500">
-                                                            登録済み
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
                             </div>
                         </div>
-
-                        {filteredPokemonList.length === 0 && (
-                            <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                                条件に合うポケモンが見つかりません。
-                            </p>
-                        )}
                     </section>
 
-                    <section className="rounded border p-6">
+                    <section className="rounded border bg-white p-5">
                         <h2 className="text-lg font-bold">型・技情報</h2>
 
-                        <div className="mt-4 grid gap-4 md:grid-cols-2">
-                            <div>
-                                <label className="block text-sm font-medium">
-                                    ニックネーム・表示名
-                                </label>
-                                <input
-                                    className="mt-1 w-full rounded border p-3"
-                                    value={nickname}
-                                    onChange={(event) =>
-                                        setNickname(event.target.value)
-                                    }
-                                    placeholder="空欄ならポケモン名で表示"
-                                />
-                            </div>
+                        <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,17rem)_7rem_minmax(0,20rem)_minmax(0,1fr)] xl:grid-cols-[minmax(0,18rem)_8rem_minmax(0,22rem)_minmax(0,1fr)]">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium">
+                                        ニックネーム・表示名
+                                    </label>
 
-                            <div>
-                                <label className="block text-sm font-medium">
-                                    持ち物
-                                </label>
-
-                                <div className="mt-1">
-                                    <BattleMasterTextSelector
-                                        resource="item"
-                                        value={item}
-                                        onChangeText={(value) => {
-                                            setItem(value);
-                                            setItemId(null);
-                                        }}
-                                        onSelect={(option) => {
-                                            setItem(option.name);
-                                            setItemId(option.id);
-                                        }}
-                                        placeholder="持ち物名を検索"
+                                    <input
+                                        className="mt-1 w-full rounded border px-3 py-2"
+                                        value={nickname}
+                                        onChange={(event) =>
+                                            setNickname(event.target.value)
+                                        }
+                                        placeholder="空欄ならポケモン名で表示"
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium">
+                                        特性
+                                    </label>
+
+                                    <div className="mt-2">
+                                        <PokemonAbilitySelector
+                                            pokemonKey={pokemonKey}
+                                            formKey={formKey}
+                                            selectedAbilityId={abilityId}
+                                            onSelect={(selectedAbility) => {
+                                                setAbility(
+                                                    selectedAbility.name,
+                                                );
+
+                                                setAbilityId(
+                                                    selectedAbility.id,
+                                                );
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium">
+                                        持ち物
+                                    </label>
+
+                                    <div className="mt-1">
+                                        <BattleMasterTextSelector
+                                            resource="item"
+                                            value={item}
+                                            onChangeText={(value) => {
+                                                setItem(value);
+                                                setItemId(null);
+                                            }}
+                                            onSelect={(option) => {
+                                                setItem(option.name);
+                                                setItemId(option.id);
+                                            }}
+                                            placeholder="持ち物名で検索"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium">
+                                        性格
+                                    </label>
+
+                                    <div className="mt-1">
+                                        <NatureSelector
+                                            value={nature}
+                                            selectedNatureId={natureId}
+                                            onChangeText={(value) => {
+                                                setNature(value);
+                                                setNatureId(null);
+                                                setSelectedNatureMaster(null);
+                                            }}
+                                            onSelect={(option) => {
+                                                setNature(option.name);
+                                                setNatureId(option.id);
+                                                setSelectedNatureMaster(option);
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium">
-                                    特性
-                                </label>
-
-                                <div className="mt-2">
-                                    <PokemonAbilitySelector
-                                        pokemonKey={pokemonKey}
-                                        formKey={formKey}
-                                        selectedAbilityId={abilityId}
-                                        onSelect={(selectedAbility) => {
-                                            setAbility(selectedAbility.name);
-
-                                            setAbilityId(selectedAbility.id);
-                                        }}
-                                    />
-                                </div>
-
-                                {ability && (
-                                    <p className="mt-2 text-xs text-gray-500">
-                                        選択中：{ability}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium">
-                                    性格
-                                </label>
-
-                                <div className="mt-1">
-                                    <NatureSelector
-                                        value={nature}
-                                        onChangeText={(value) => {
-                                            setNature(value);
-                                            setNatureId(null);
-                                        }}
-                                        onSelect={(selectedNature) => {
-                                            setNature(selectedNature.name);
-                                            setNatureId(selectedNature.id);
-                                        }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="mt-4 rounded bg-gray-50 p-4 md:col-span-2">
                                 <p className="text-sm font-medium">努力値</p>
+
                                 <p
-                                    className={`mt-1 text-xs ${
+                                    className={`mt-1 text-[10px] ${
                                         effortValueTotal >
                                         effortValueLimits.totalLimit
                                             ? "text-red-600"
                                             : "text-gray-500"
                                     }`}
                                 >
-                                    {effortValueLimits.label}：合計
-                                    {effortValueTotal} /{" "}
-                                    {effortValueLimits.totalLimit}、1項目{""}
-                                    {effortValueLimits.singleLimit}まで
+                                    合計 {effortValueTotal} /{" "}
+                                    {effortValueLimits.totalLimit}
+                                </p>
+
+                                <p className="mt-1 text-[10px] text-gray-500">
+                                    赤↑：上昇 / 青↓：下降
                                 </p>
 
                                 {effortValueTotal >
                                     effortValueLimits.totalLimit && (
-                                    <p className="mt-1 text-xs text-red-600">
-                                        合計努力値が上限を超えています。
+                                    <p className="mt-1 text-[10px] text-red-600">
+                                        上限を超えています。
                                     </p>
                                 )}
 
-                                <div className="mt-3 grid grid-cols-3 gap-3 md:grid-cols-6">
+                                <div className="mt-3 space-y-2">
                                     {[
-                                        ["H", evH, setEvH],
-                                        ["A", evA, setEvA],
-                                        ["B", evB, setEvB],
-                                        ["C", evC, setEvC],
-                                        ["D", evD, setEvD],
-                                        ["S", evS, setEvS],
-                                    ].map(([label, value, setter]) => (
-                                        <div key={label as string}>
-                                            <label className="block text-xs font-medium">
-                                                {label as string}
+                                        ["h", "H", evH, setEvH],
+                                        ["a", "A", evA, setEvA],
+                                        ["b", "B", evB, setEvB],
+                                        ["c", "C", evC, setEvC],
+                                        ["d", "D", evD, setEvD],
+                                        ["s", "S", evS, setEvS],
+                                    ].map(([statKey, label, value, setter]) => {
+                                        const adjustment = getNatureAdjustment(
+                                            statKey as NatureStatKey,
+                                        );
+
+                                        return (
+                                            <div
+                                                key={statKey as string}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <label
+                                                    className={`w-6 text-xs font-bold ${getNatureAdjustmentClassName(
+                                                        adjustment,
+                                                    )}`}
+                                                >
+                                                    {label as string}
+                                                    {getNatureAdjustmentLabel(
+                                                        adjustment,
+                                                    )}
+                                                </label>
+
+                                                <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    className="w-16 rounded border px-2 py-1.5 text-right text-sm"
+                                                    value={value as string}
+                                                    onChange={(event) => {
+                                                        const nextValue =
+                                                            event.target.value;
+
+                                                        if (
+                                                            !/^\d*$/.test(
+                                                                nextValue,
+                                                            )
+                                                        ) {
+                                                            return;
+                                                        }
+
+                                                        if (
+                                                            toNumber(
+                                                                nextValue,
+                                                            ) >
+                                                            effortValueLimits.singleLimit
+                                                        ) {
+                                                            return;
+                                                        }
+
+                                                        (
+                                                            setter as (
+                                                                value: string,
+                                                            ) => void
+                                                        )(nextValue);
+                                                    }}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div>
+                                <p className="text-xs text-gray-500">
+                                    候補から技を選ぶと、攻撃技のタイプが自動設定されます。
+                                </p>
+
+                                <div className="mt-3 space-y-3">
+                                    <div>
+                                        <div className="flex min-h-5 items-center gap-2">
+                                            <label className="text-sm font-medium">
+                                                技1
                                             </label>
-                                            <input
-                                                type="text"
-                                                inputMode="numeric"
-                                                className="mt-1 w-full rounded border p-2"
-                                                value={value as string}
-                                                onChange={(event) => {
-                                                    const nextValue =
-                                                        event.target.value;
 
-                                                    if (
-                                                        !/^\d*$/.test(nextValue)
-                                                    ) {
-                                                        return;
-                                                    }
+                                            {move1Type && (
+                                                <span className="rounded-full border bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-700">
+                                                    {move1Type}
+                                                </span>
+                                            )}
+                                        </div>
 
-                                                    if (
-                                                        toNumber(nextValue) >
-                                                        effortValueLimits.singleLimit
-                                                    ) {
-                                                        return;
-                                                    }
-
-                                                    (
-                                                        setter as (
-                                                            value: string,
-                                                        ) => void
-                                                    )(nextValue);
+                                        <div className="mt-1">
+                                            <MoveSelector
+                                                value={move1}
+                                                onChangeText={(value) => {
+                                                    setMove1(value);
+                                                    setMove1Id(null);
+                                                    setMove1Type("");
+                                                }}
+                                                onSelect={(move) => {
+                                                    setMove1(move.name);
+                                                    setMove1Id(move.id);
+                                                    setMove1Type(
+                                                        move.is_scoring_target
+                                                            ? move.type
+                                                            : "",
+                                                    );
                                                 }}
                                             />
                                         </div>
-                                    ))}
+                                    </div>
+
+                                    <div>
+                                        <div className="flex min-h-5 items-center gap-2">
+                                            <label className="text-sm font-medium">
+                                                技2
+                                            </label>
+
+                                            {move2Type && (
+                                                <span className="rounded-full border bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-700">
+                                                    {move2Type}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="mt-1">
+                                            <MoveSelector
+                                                value={move2}
+                                                onChangeText={(value) => {
+                                                    setMove2(value);
+                                                    setMove2Id(null);
+                                                    setMove2Type("");
+                                                }}
+                                                onSelect={(move) => {
+                                                    setMove2(move.name);
+                                                    setMove2Id(move.id);
+                                                    setMove2Type(
+                                                        move.is_scoring_target
+                                                            ? move.type
+                                                            : "",
+                                                    );
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex min-h-5 items-center gap-2">
+                                            <label className="text-sm font-medium">
+                                                技3
+                                            </label>
+
+                                            {move3Type && (
+                                                <span className="rounded-full border bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-700">
+                                                    {move3Type}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="mt-1">
+                                            <MoveSelector
+                                                value={move3}
+                                                onChangeText={(value) => {
+                                                    setMove3(value);
+                                                    setMove3Id(null);
+                                                    setMove3Type("");
+                                                }}
+                                                onSelect={(move) => {
+                                                    setMove3(move.name);
+                                                    setMove3Id(move.id);
+                                                    setMove3Type(
+                                                        move.is_scoring_target
+                                                            ? move.type
+                                                            : "",
+                                                    );
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex min-h-5 items-center gap-2">
+                                            <label className="text-sm font-medium">
+                                                技4
+                                            </label>
+
+                                            {move4Type && (
+                                                <span className="rounded-full border bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-700">
+                                                    {move4Type}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="mt-1">
+                                            <MoveSelector
+                                                value={move4}
+                                                onChangeText={(value) => {
+                                                    setMove4(value);
+                                                    setMove4Id(null);
+                                                    setMove4Type("");
+                                                }}
+                                                onSelect={(move) => {
+                                                    setMove4(move.name);
+                                                    setMove4Id(move.id);
+                                                    setMove4Type(
+                                                        move.is_scoring_target
+                                                            ? move.type
+                                                            : "",
+                                                    );
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="md:col-span-2">
-                                <p className="text-xs text-gray-500">
-                                    候補から技を選ぶと、攻撃技のタイプが自動設定されます。変化技は攻撃相性点に含まれません。
-                                </p>
-                            </div>
-
-                            <div>
+                            <div className="mt-5 max-w-4xl">
                                 <label className="block text-sm font-medium">
-                                    技1
+                                    メモ
                                 </label>
 
-                                <div className="mt-1">
-                                    <MoveSelector
-                                        value={move1}
-                                        selectedMoveType={move1Type}
-                                        onChangeText={(value) => {
-                                            setMove1(value);
-                                            setMove1Id(null);
-                                            setMove1Type("");
-                                        }}
-                                        onSelect={(move) => {
-                                            setMove1(move.name);
-                                            setMove1Id(move.id);
-                                            setMove1Type(
-                                                move.is_scoring_target
-                                                    ? move.type
-                                                    : "",
-                                            );
-                                        }}
-                                    />
-                                </div>
+                                <textarea
+                                    className="mt-1 w-full rounded border p-3"
+                                    value={memo}
+                                    onChange={(event) =>
+                                        setMemo(event.target.value)
+                                    }
+                                    rows={3}
+                                />
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium">
-                                    技2
-                                </label>
-
-                                <div className="mt-1">
-                                    <MoveSelector
-                                        value={move2}
-                                        selectedMoveType={move2Type}
-                                        onChangeText={(value) => {
-                                            setMove2(value);
-                                            setMove2Id(null);
-                                            setMove2Type("");
-                                        }}
-                                        onSelect={(move) => {
-                                            setMove2(move.name);
-                                            setMove2Id(move.id);
-                                            setMove2Type(
-                                                move.is_scoring_target
-                                                    ? move.type
-                                                    : "",
-                                            );
-                                        }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium">
-                                    技3
-                                </label>
-
-                                <div className="mt-1">
-                                    <MoveSelector
-                                        value={move3}
-                                        selectedMoveType={move3Type}
-                                        onChangeText={(value) => {
-                                            setMove3(value);
-                                            setMove3Id(null);
-                                            setMove3Type("");
-                                        }}
-                                        onSelect={(move) => {
-                                            setMove3(move.name);
-                                            setMove3Id(move.id);
-                                            setMove3Type(
-                                                move.is_scoring_target
-                                                    ? move.type
-                                                    : "",
-                                            );
-                                        }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium">
-                                    技4
-                                </label>
-
-                                <div className="mt-1">
-                                    <MoveSelector
-                                        value={move4}
-                                        selectedMoveType={move4Type}
-                                        onChangeText={(value) => {
-                                            setMove4(value);
-                                            setMove4Id(null);
-                                            setMove4Type("");
-                                        }}
-                                        onSelect={(move) => {
-                                            setMove4(move.name);
-                                            setMove4Id(move.id);
-                                            setMove4Type(
-                                                move.is_scoring_target
-                                                    ? move.type
-                                                    : "",
-                                            );
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium">
-                                メモ
-                            </label>
-                            <textarea
-                                className="mt-1 w-full rounded border p-3"
-                                value={memo}
-                                onChange={(event) =>
-                                    setMemo(event.target.value)
-                                }
-                                rows={4}
-                            />
                         </div>
                     </section>
 
-                    <section className="rounded border p-6">
+                    <section className="rounded border bg-white p-5">
                         <h2 className="text-lg font-bold">役割タグ</h2>
+
                         <p className="mt-1 text-sm text-gray-600">
-                            このポケモンの主な役割を3個まで選べます。
+                            このポケモンの主な役割を3個まで選べます。(タグにマウスを重ねて説明表示)
                         </p>
                         <p className="mt-1 text-xs text-gray-500">
                             タグを付けすぎると、おすすめ選出の点数が偏るため、重要な役割だけを選んでください。
@@ -894,7 +1022,7 @@ export default function CreatePartyPokemonPage() {
 
                         <p className="mt-2 text-xs font-medium text-gray-600">
                             選択中：
-                            {setSelectedRoleTagIds.length} / 3
+                            {selectedRoleTagIds.length} / 3
                         </p>
 
                         <div className="mt-4 flex flex-wrap gap-3">
@@ -906,32 +1034,61 @@ export default function CreatePartyPokemonPage() {
                                 return (
                                     <div
                                         key={tag.id}
-                                        className={`flex items-center overflow-hidden rounded-full border ${isSelected ? "border-black bg-black text-white" : "bg-white"}`}
+                                        className="group relative"
                                     >
                                         <button
                                             type="button"
                                             onClick={() =>
                                                 handleToggleRoleTag(tag.id)
                                             }
-                                            className={`px-4 py-2 text-sm ${
+                                            className={`rounded-full border px-4 py-2 text-sm ${
                                                 isSelected
-                                                    ? "text-white"
-                                                    : "hover:bg-gray-50"
+                                                    ? "border-black bg-black text-white"
+                                                    : "bg-white hover:bg-gray-50"
                                             }`}
                                         >
                                             {tag.name}
                                         </button>
 
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setActiveRoleTag(tag)
-                                            }
-                                            className={`border-l px-3 py-2 text-sm ${isSelected ? "border-gray-600 text-white hover:bg-gray-800" : "text-gray-600 hover:bg-gray-50"}`}
-                                            aria-label={`${tag.name}の説明を見る`}
+                                        <div
+                                            id={`role-tag-${tag.id}-description`}
+                                            role="tooltip"
+                                            className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 hidden w-72 -translate-x-1/2 rounded bg-gray-900 p-3 text-left text-xs leading-relaxed text-white shadow-lg group-hover:block"
                                         >
-                                            ?
-                                        </button>
+                                            <p className="font-semibold">
+                                                {tag.name}
+                                            </p>
+
+                                            <p className="mt-1">
+                                                {tag.description}
+                                            </p>
+
+                                            {tag.examples &&
+                                                tag.examples.length > 0 && (
+                                                    <div className="mt-2">
+                                                        <p className="font-semibold">
+                                                            例
+                                                        </p>
+
+                                                        <ul className="mt-1 space-y-0.5">
+                                                            {tag.examples.map(
+                                                                (example) => (
+                                                                    <li
+                                                                        key={
+                                                                            example
+                                                                        }
+                                                                    >
+                                                                        ・
+                                                                        {
+                                                                            example
+                                                                        }
+                                                                    </li>
+                                                                ),
+                                                            )}
+                                                        </ul>
+                                                    </div>
+                                                )}
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -952,68 +1109,6 @@ export default function CreatePartyPokemonPage() {
                         {isSubmitting ? "登録中..." : "ポケモンを登録する"}
                     </button>
                 </form>
-
-                {activeRoleTag && (
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-                        onClick={() => setActiveRoleTag(null)}
-                    >
-                        <div
-                            className="w-full max-w-lg rounded bg-white p-6 shadow-lg"
-                            onClick={(event) => event.stopPropagation()}
-                        >
-                            <div className="flex items-start justify-between gap-4">
-                                <div>
-                                    <h2 className="text-xl font-bold">
-                                        {activeRoleTag.name}
-                                    </h2>
-                                    <p className="mt-2 text-sm text-gray-700">
-                                        {activeRoleTag.description}
-                                    </p>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveRoleTag(null)}
-                                    className="rounded px-2 py-1 text-sm text-gray-500 hover:bg-gray-100"
-                                >
-                                    閉じる
-                                </button>
-                            </div>
-
-                            {activeRoleTag.examples &&
-                                activeRoleTag.examples.length > 0 && (
-                                    <div className="mt-5">
-                                        <h3 className="font-semibold">
-                                            付ける目安・技や型の例
-                                        </h3>
-
-                                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-700">
-                                            {activeRoleTag.examples.map(
-                                                (example) => (
-                                                    <li key={example}>
-                                                        {example}
-                                                    </li>
-                                                ),
-                                            )}
-                                        </ul>
-                                    </div>
-                                )}
-
-                            <div className="mt-5 rounded bg-gray-50 p-4 text-sm text-gray-700">
-                                <p className="font-semibold">
-                                    おすすめ選出への影響
-                                </p>
-                                <p className="mt-1">
-                                    初手：{activeRoleTag.lead_score}点 /
-                                    引き先：
-                                    {activeRoleTag.switch_score}点 / 勝ち筋：
-                                    {activeRoleTag.finisher_score}点
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </main>
         </>
     );

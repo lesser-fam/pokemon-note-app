@@ -6,8 +6,9 @@ import { useEffect, useState } from "react";
 
 type NatureSelectorProps = {
     value: string;
+    selectedNatureId: number | null;
     onChangeText: (value: string) => void;
-    onSelect: (nature: NatureMaster) => void;
+    onSelect: (option: NatureMaster) => void;
 };
 
 const statLabelMap: Record<string, string> = {

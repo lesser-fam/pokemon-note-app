@@ -6,14 +6,12 @@ import { useEffect, useState } from "react";
 
 type MoveSelectorProps = {
     value: string;
-    selectedMoveType: string;
     onChangeText: (value: string) => void;
     onSelect: (move: MoveMaster) => void;
 };
 
 export function MoveSelector({
     value,
-    selectedMoveType,
     onChangeText,
     onSelect,
 }: MoveSelectorProps) {
@@ -79,7 +77,7 @@ export function MoveSelector({
     return (
         <div className="relative">
             <input
-                className="w-full rounded border p-3"
+                className="w-full rounded border px-3 py-2"
                 value={value}
                 onChange={(event) => handleChange(event.target.value)}
                 onFocus={() => {
@@ -89,12 +87,6 @@ export function MoveSelector({
                 }}
                 placeholder="技名を検索"
             />
-
-            <p className="mt-1 min-h-4 text-sx text-gray-500">
-                {selectedMoveType
-                    ? `攻撃技タイプ：${selectedMoveType}`
-                    : "\u00A0"}
-            </p>
 
             {isOpen && (
                 <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded border bg-white shadow-lg">

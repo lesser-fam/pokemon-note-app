@@ -104,26 +104,47 @@ export function PokemonAbilitySelector({
             {abilityList.map((ability) => {
                 const isSelected = ability.id === selectedAbilityId;
 
+                const description =
+                    ability.description || "説明文は未登録です。";
+
                 return (
-                    <button
-                        key={ability.id}
-                        type="button"
-                        onClick={() => onSelect(ability)}
-                        className={`rounded border px-3 py-2 text-sm ${
-                            isSelected
-                                ? "border-black bg-black text-white"
-                                : "bg-white hover:bg-gray-50"
-                        }`}
-                    >
-                        {ability.name}
-                        {ability.is_hidden && (
-                            <span className="ml-1 text-xs">※</span>
-                        )}
-                    </button>
+                    <div key={ability.id} className="group relative">
+                        <button
+                            type="button"
+                            onClick={() => onSelect(ability)}
+                            className={`rounded border px-3 py-2 text-sm ${
+                                isSelected
+                                    ? "border-black bg-black text-white"
+                                    : "bg-white hover:bg-gray-50"
+                            }`}
+                            aria-describedby={`ability-${ability.id}-description`}
+                        >
+                            {ability.name}
+
+                            {ability.is_hidden && (
+                                <span className="ml-1 text-xs">※</span>
+                            )}
+                        </button>
+
+                        <div
+                            id={`ability-${ability.id}-description`}
+                            role="tooltip"
+                            className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 hidden w-64 -translate-x-1/2 rounded bg-gray-900 p-2 text-left text-xs leading-relaxed text-white shadow-lg group-hover:block"
+                        >
+                            <p className="font-semibold">
+                                {ability.name}
+                                {ability.is_hidden && "（隠れ特性）"}
+                            </p>
+
+                            <p className="mt-1">{description}</p>
+                        </div>
+                    </div>
                 );
             })}
 
-            <p className="w-full text-xs text-gray-500">※は隠れ特性です。</p>
+            <p className="w-full text-xs text-gray-500">
+                ※は隠れ特性です。特性名にマウスを重ねると説明を確認できます。
+            </p>
         </div>
     );
 }
