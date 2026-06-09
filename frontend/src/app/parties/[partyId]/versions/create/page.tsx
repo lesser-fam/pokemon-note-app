@@ -2,6 +2,7 @@
 
 import { AppHeader } from "@/components/AppHeader";
 import { pokemonTypes } from "@/constants/pokemonTypes";
+import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import {
     fetchPokemonList,
     fetchRoleTags,
@@ -10,7 +11,6 @@ import { BattleMasterTextSelector } from "@/features/master/components/BattleMas
 import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { NatureSelector } from "@/features/master/components/NatureSelector";
 import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
-import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
 import type { Party } from "@/types/party";
@@ -19,7 +19,7 @@ import type { RoleTag } from "@/types/roleTag";
 import { toHiragana } from "@/utils/kana";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 type EditablePokemon = {
     pokemon_key: string;
@@ -84,6 +84,8 @@ export default function CreatePartyVersionPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+
+    const pokemonSearchSectionRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const loadData = async () => {
@@ -248,14 +250,39 @@ export default function CreatePartyVersionPage() {
         };
     };
 
+    const handleStartReplacingPokemon = (index: number) => {
+        setReplaceTargetIndex(index);
+
+        setSearchKeyword("");
+        setSelectedTypes([]);
+
+        window.requestAnimationFrame(() => {
+            pokemonSearchSectionRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            });
+        });
+    };
+
     const handleRemovePokemon = (index: number) => {
         setEditablePokemonList((currentList) =>
             currentList.filter((_, currentIndex) => currentIndex !== index),
         );
 
-        if (replaceTargetIndex === index) {
-            setReplaceTargetIndex(null);
-        }
+        setReplaceTargetIndex((currentIndex) => {
+            if (currentIndex === null) {
+                return null;
+            }
+
+            if (currentIndex === index) {
+                return null;
+            }
+
+            if (currentIndex > index) {
+                return currentIndex - 1;
+            }
+            return currentIndex;
+        });
     };
 
     const handleAddPokemon = (pokemon: Pokemon) => {
@@ -518,7 +545,7 @@ export default function CreatePartyVersionPage() {
         return (
             <>
                 <AppHeader />
-                <main className="mx-auto max-w-5xl p-8">
+                <main className="mx-auto max-w-7xl p-6">
                     <p className="rounded bg-red-100 p-3 text-red-700">
                         パーティIDが正しくありません。
                     </p>
@@ -531,7 +558,7 @@ export default function CreatePartyVersionPage() {
         return (
             <>
                 <AppHeader />
-                <main className="mx-auto max-w-5xl p-8">
+                <main className="mx-auto max-w-7xl p-6">
                     <p>読み込み中...</p>
                 </main>
             </>
@@ -542,7 +569,7 @@ export default function CreatePartyVersionPage() {
         return (
             <>
                 <AppHeader />
-                <main className="mx-auto max-w-5xl p-8">
+                <main className="mx-auto max-w-7xl p-6">
                     <p className="rounded bg-red-100 p-3 text-red-700">
                         パーティが見つかりません。
                     </p>
@@ -557,7 +584,7 @@ export default function CreatePartyVersionPage() {
         <>
             <AppHeader />
 
-            <main className="mx-auto max-w-6xl p-8">
+            <main className="mx-auto max-w-7xl p-6">
                 <Link
                     href={`/parties/${party.id}`}
                     className="text-sm text-blue-600"
@@ -608,49 +635,37 @@ export default function CreatePartyVersionPage() {
                                 return (
                                     <div
                                         key={`${pokemon.pokemon_key}-${pokemon.form_key}-${index}`}
-                                        className="rounded border p-4"
+                                        className={`rounded border bg-white ${
+                                            replaceTargetIndex === index
+                                                ? "border-blue-500 ring-2 ring-blue-100"
+                                                : ""
+                                        }`}
                                     >
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex items-center gap-4">
-                                                {pokemonMaster?.image_url ? (
-                                                    <img
-                                                        src={
-                                                            pokemonMaster.image_url
-                                                        }
-                                                        alt={pokemonMaster.name}
-                                                        className="h-16 w-16 object-contain"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-sm">
-                                                        ?
-                                                    </div>
+                                        <div className="flex items-center justify-between gap-4 p-4">
+                                            <div>
+                                                <p className="text-xs text-gray-400">
+                                                    {index + 1}匹目
+                                                </p>
+
+                                                <p className="mt-1 font-bold">
+                                                    {pokemonMaster?.name ||
+                                                        pokemon.pokemon_key}
+                                                </p>
+
+                                                {pokemonMaster && (
+                                                    <p className="mt-0.5 text-sm text-gray-600">
+                                                        {pokemonMaster.types.join(
+                                                            " / ",
+                                                        )}
+                                                    </p>
                                                 )}
-
-                                                <div>
-                                                    <p className="font-bold">
-                                                        {pokemonMaster?.name ||
-                                                            pokemon.pokemon_key}
-                                                    </p>
-
-                                                    {pokemonMaster && (
-                                                        <p className="text-sm text-gray-600">
-                                                            {pokemonMaster.types.join(
-                                                                " / ",
-                                                            )}
-                                                        </p>
-                                                    )}
-
-                                                    <p className="mt-1 text-xs text-gray-400">
-                                                        {index + 1}匹目
-                                                    </p>
-                                                </div>
                                             </div>
 
                                             <div className="flex gap-2">
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        setReplaceTargetIndex(
+                                                        handleStartReplacingPokemon(
                                                             index,
                                                         )
                                                     }
@@ -673,422 +688,467 @@ export default function CreatePartyVersionPage() {
                                             </div>
                                         </div>
 
-                                        <div className="mt-4 grid gap-4 md:grid-cols-2">
-                                            <div>
-                                                <label className="block text-sm font-medium">
-                                                    ニックネーム・表示名
-                                                </label>
-                                                <input
-                                                    className="mt-1 w-full rounded border p-3"
-                                                    value={pokemon.nickname}
-                                                    onChange={(event) =>
-                                                        updatePokemon(
-                                                            index,
-                                                            "nickname",
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                />
-                                            </div>
+                                        <details className="border-t">
+                                            <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-blue-600 hover:bg-gray-50">
+                                                型・技情報を編集
+                                            </summary>
 
-                                            <div>
-                                                <label className="block text-sm font-medium">
-                                                    持ち物
-                                                </label>
-
-                                                <div className="mt-1">
-                                                    <BattleMasterTextSelector
-                                                        resource="item"
-                                                        value={pokemon.item}
-                                                        onChangeText={(
-                                                            value,
-                                                        ) => {
-                                                            updatePokemon(
-                                                                index,
-                                                                "item",
-                                                                value,
-                                                            );
-                                                            updatePokemon(
-                                                                index,
-                                                                "item_id",
-                                                                null,
-                                                            );
-                                                        }}
-                                                        onSelect={(option) => {
-                                                            updatePokemon(
-                                                                index,
-                                                                "item",
-                                                                option.name,
-                                                            );
-                                                            updatePokemon(
-                                                                index,
-                                                                "item_id",
-                                                                option.id,
-                                                            );
-                                                        }}
-                                                        placeholder="持ち物名を検索"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium">
-                                                    特性
-                                                </label>
-
-                                                <div className="mt-2">
-                                                    <PokemonAbilitySelector
-                                                        pokemonKey={
-                                                            pokemon.pokemon_key
-                                                        }
-                                                        formKey={
-                                                            pokemon.form_key
-                                                        }
-                                                        selectedAbilityId={
-                                                            pokemon.ability_id
-                                                        }
-                                                        onSelect={(
-                                                            selectedAbility,
-                                                        ) => {
-                                                            updatePokemon(
-                                                                index,
-                                                                "ability",
-                                                                selectedAbility.name,
-                                                            );
-
-                                                            updatePokemon(
-                                                                index,
-                                                                "ability_id",
-                                                                selectedAbility.id,
-                                                            );
-                                                        }}
-                                                    />
-                                                </div>
-
-                                                {pokemon.ability && (
-                                                    <p className="mt-2 text-xs text-gray-500">
-                                                        選択中：
-                                                        {pokemon.ability}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium">
-                                                    性格
-                                                </label>
-
-                                                <div className="mt-1">
-                                                    <NatureSelector
-                                                        value={pokemon.nature}
-                                                        onChangeText={(
-                                                            value,
-                                                        ) => {
-                                                            updatePokemon(
-                                                                index,
-                                                                "nature",
-                                                                value,
-                                                            );
-                                                            updatePokemon(
-                                                                index,
-                                                                "nature_id",
-                                                                null,
-                                                            );
-                                                        }}
-                                                        onSelect={(
-                                                            selectedNature,
-                                                        ) => {
-                                                            updatePokemon(
-                                                                index,
-                                                                "nature",
-                                                                selectedNature.name,
-                                                            );
-                                                            updatePokemon(
-                                                                index,
-                                                                "nature_id",
-                                                                selectedNature.id,
-                                                            );
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="mt-4 rounded bg-gray-50 p-4 md:col-span-2">
-                                                <div className="flex items-center justify-between gap-4">
+                                            <div className="border-t bg-gray-50/50 p-4">
+                                                <div className="mt-4 grid gap-4 md:grid-cols-2">
                                                     <div>
-                                                        <p className="text-sm font-medium">
-                                                            努力値
-                                                        </p>
-                                                        <p
-                                                            className={`mt-1 text-xs ${
-                                                                calculateEffortValueTotal(
-                                                                    pokemon,
-                                                                ) >
-                                                                effortValueLimits.totalLimit
-                                                                    ? "text-red-600"
-                                                                    : "text-gray-500"
-                                                            }`}
-                                                        >
-                                                            {
-                                                                effortValueLimits.label
-                                                            }
-                                                            ：合計
-                                                            {calculateEffortValueTotal(
-                                                                pokemon,
-                                                            )}
-                                                            /{" "}
-                                                            {
-                                                                effortValueLimits.totalLimit
-                                                            }
-                                                            、1項目
-                                                            {
-                                                                effortValueLimits.singleLimit
-                                                            }
-                                                            まで
-                                                        </p>
-
-                                                        {calculateEffortValueTotal(
-                                                            pokemon,
-                                                        ) >
-                                                            effortValueLimits.totalLimit && (
-                                                            <p className="mt-1 text-xs text-red-600">
-                                                                合計努力値が上限を超えています。
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                <div className="mt-3 grid grid-cols-3 gap-3 md:grid-cols-6">
-                                                    {[
-                                                        ["ev_h", "H"],
-                                                        ["ev_a", "A"],
-                                                        ["ev_b", "B"],
-                                                        ["ev_c", "C"],
-                                                        ["ev_d", "D"],
-                                                        ["ev_s", "S"],
-                                                    ].map(([field, label]) => (
-                                                        <div key={field}>
-                                                            <label className="block text-xs font-medium">
-                                                                {label}
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                inputMode="numeric"
-                                                                className="mt-1 w-full rounded border p-2"
-                                                                value={String(
-                                                                    pokemon[
-                                                                        field as keyof EditablePokemon
-                                                                    ] ?? "",
-                                                                )}
-                                                                onChange={(
-                                                                    event,
-                                                                ) => {
-                                                                    const nextValue =
-                                                                        event
-                                                                            .target
-                                                                            .value;
-
-                                                                    if (
-                                                                        !/^\d*$/.test(
-                                                                            nextValue,
-                                                                        )
-                                                                    ) {
-                                                                        return;
-                                                                    }
-
-                                                                    if (
-                                                                        Number(
-                                                                            nextValue ||
-                                                                                0,
-                                                                        ) >
-                                                                        effortValueLimits.singleLimit
-                                                                    ) {
-                                                                        return;
-                                                                    }
-
-                                                                    updatePokemon(
-                                                                        index,
-                                                                        field as keyof EditablePokemon,
-                                                                        Number(
-                                                                            nextValue ||
-                                                                                0,
-                                                                        ),
-                                                                    );
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div className="md:col-span-2">
-                                                <p className="text-xs text-gray-500">
-                                                    候補から技を選ぶと、攻撃技のタイプが自動設定されます。変化技は攻撃相性点に含まれません。
-                                                </p>
-                                            </div>
-
-                                            {(
-                                                [
-                                                    [
-                                                        "move_1",
-                                                        "move_1_id",
-                                                        "move_1_type",
-                                                    ],
-                                                    [
-                                                        "move_2",
-                                                        "move_2_id",
-                                                        "move_2_type",
-                                                    ],
-                                                    [
-                                                        "move_3",
-                                                        "move_3_id",
-                                                        "move_3_type",
-                                                    ],
-                                                    [
-                                                        "move_4",
-                                                        "move_4_id",
-                                                        "move_4_type",
-                                                    ],
-                                                ] as const
-                                            ).map(
-                                                (
-                                                    [
-                                                        moveField,
-                                                        moveIdField,
-                                                        moveTypeField,
-                                                    ],
-                                                    moveIndex,
-                                                ) => (
-                                                    <div key={moveField}>
                                                         <label className="block text-sm font-medium">
-                                                            技{moveIndex + 1}
+                                                            ニックネーム・表示名
+                                                        </label>
+                                                        <input
+                                                            className="mt-1 w-full rounded border p-3"
+                                                            value={
+                                                                pokemon.nickname
+                                                            }
+                                                            onChange={(event) =>
+                                                                updatePokemon(
+                                                                    index,
+                                                                    "nickname",
+                                                                    event.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-sm font-medium">
+                                                            持ち物
                                                         </label>
 
                                                         <div className="mt-1">
-                                                            <MoveSelector
+                                                            <BattleMasterTextSelector
+                                                                resource="item"
                                                                 value={
-                                                                    pokemon[
-                                                                        moveField
-                                                                    ]
-                                                                }
-                                                                selectedMoveType={
-                                                                    pokemon[
-                                                                        moveTypeField
-                                                                    ]
+                                                                    pokemon.item
                                                                 }
                                                                 onChangeText={(
                                                                     value,
                                                                 ) => {
                                                                     updatePokemon(
                                                                         index,
-                                                                        moveField,
+                                                                        "item",
                                                                         value,
                                                                     );
                                                                     updatePokemon(
                                                                         index,
-                                                                        moveIdField,
+                                                                        "item_id",
                                                                         null,
-                                                                    );
-                                                                    updatePokemon(
-                                                                        index,
-                                                                        moveTypeField,
-                                                                        "",
                                                                     );
                                                                 }}
                                                                 onSelect={(
-                                                                    move,
+                                                                    option,
                                                                 ) => {
                                                                     updatePokemon(
                                                                         index,
-                                                                        moveField,
-                                                                        move.name,
+                                                                        "item",
+                                                                        option.name,
                                                                     );
                                                                     updatePokemon(
                                                                         index,
-                                                                        moveIdField,
-                                                                        move.id,
+                                                                        "item_id",
+                                                                        option.id,
                                                                     );
+                                                                }}
+                                                                placeholder="持ち物名を検索"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-sm font-medium">
+                                                            特性
+                                                        </label>
+
+                                                        <div className="mt-2">
+                                                            <PokemonAbilitySelector
+                                                                pokemonKey={
+                                                                    pokemon.pokemon_key
+                                                                }
+                                                                formKey={
+                                                                    pokemon.form_key
+                                                                }
+                                                                selectedAbilityId={
+                                                                    pokemon.ability_id
+                                                                }
+                                                                onSelect={(
+                                                                    selectedAbility,
+                                                                ) => {
                                                                     updatePokemon(
                                                                         index,
-                                                                        moveTypeField,
-                                                                        move.is_scoring_target
-                                                                            ? move.type
-                                                                            : "",
+                                                                        "ability",
+                                                                        selectedAbility.name,
+                                                                    );
+
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        "ability_id",
+                                                                        selectedAbility.id,
                                                                     );
                                                                 }}
                                                             />
                                                         </div>
                                                     </div>
-                                                ),
-                                            )}
-                                        </div>
 
-                                        <div className="mt-4">
-                                            <label className="block text-sm font-medium">
-                                                メモ
-                                            </label>
-                                            <textarea
-                                                className="mt-1 w-full rounded border p-3"
-                                                rows={3}
-                                                value={pokemon.memo}
-                                                onChange={(event) =>
-                                                    updatePokemon(
-                                                        index,
-                                                        "memo",
-                                                        event.target.value,
-                                                    )
-                                                }
-                                            />
-                                        </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium">
+                                                            性格
+                                                        </label>
 
-                                        <div className="mt-4">
-                                            <p className="text-sm font-medium">
-                                                役割タグ
-                                            </p>
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                主な役割を3個まで選べます。重要な役割だけを登録してください。
-                                            </p>
+                                                        <div className="mt-1">
+                                                            <NatureSelector
+                                                                value={
+                                                                    pokemon.nature
+                                                                }
+                                                                selectedNatureId={
+                                                                    pokemon.nature_id
+                                                                }
+                                                                onChangeText={(
+                                                                    value,
+                                                                ) => {
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        "nature",
+                                                                        value,
+                                                                    );
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        "nature_id",
+                                                                        null,
+                                                                    );
+                                                                }}
+                                                                onSelect={(
+                                                                    selectedNature,
+                                                                ) => {
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        "nature",
+                                                                        selectedNature.name,
+                                                                    );
+                                                                    updatePokemon(
+                                                                        index,
+                                                                        "nature_id",
+                                                                        selectedNature.id,
+                                                                    );
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
 
-                                            <p className="mt-2 text-xs font-medium text-gray-600">
-                                                選択中：
-                                                {pokemon.role_tag_ids.length} /
-                                                3
-                                            </p>
-                                            <div className="mt-3 flex flex-wrap gap-2">
-                                                {roleTags.map((tag) => {
-                                                    const isSelected =
-                                                        pokemon.role_tag_ids.includes(
-                                                            tag.id,
-                                                        );
+                                                    <div className="mt-4 rounded bg-gray-50 p-4 md:col-span-2">
+                                                        <div className="flex items-center justify-between gap-4">
+                                                            <div>
+                                                                <p className="text-sm font-medium">
+                                                                    努力値
+                                                                </p>
+                                                                <p
+                                                                    className={`mt-1 text-xs ${
+                                                                        calculateEffortValueTotal(
+                                                                            pokemon,
+                                                                        ) >
+                                                                        effortValueLimits.totalLimit
+                                                                            ? "text-red-600"
+                                                                            : "text-gray-500"
+                                                                    }`}
+                                                                >
+                                                                    {
+                                                                        effortValueLimits.label
+                                                                    }
+                                                                    ：合計
+                                                                    {calculateEffortValueTotal(
+                                                                        pokemon,
+                                                                    )}
+                                                                    /{" "}
+                                                                    {
+                                                                        effortValueLimits.totalLimit
+                                                                    }
+                                                                    、1項目
+                                                                    {
+                                                                        effortValueLimits.singleLimit
+                                                                    }
+                                                                    まで
+                                                                </p>
 
-                                                    return (
-                                                        <button
-                                                            key={tag.id}
-                                                            type="button"
-                                                            onClick={() =>
-                                                                toggleRoleTag(
-                                                                    index,
+                                                                {calculateEffortValueTotal(
+                                                                    pokemon,
+                                                                ) >
+                                                                    effortValueLimits.totalLimit && (
+                                                                    <p className="mt-1 text-xs text-red-600">
+                                                                        合計努力値が上限を超えています。
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="mt-3 grid grid-cols-3 gap-3 md:grid-cols-6">
+                                                            {[
+                                                                ["ev_h", "H"],
+                                                                ["ev_a", "A"],
+                                                                ["ev_b", "B"],
+                                                                ["ev_c", "C"],
+                                                                ["ev_d", "D"],
+                                                                ["ev_s", "S"],
+                                                            ].map(
+                                                                ([
+                                                                    field,
+                                                                    label,
+                                                                ]) => (
+                                                                    <div
+                                                                        key={
+                                                                            field
+                                                                        }
+                                                                    >
+                                                                        <label className="block text-xs font-medium">
+                                                                            {
+                                                                                label
+                                                                            }
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            inputMode="numeric"
+                                                                            className="mt-1 w-full rounded border p-2"
+                                                                            value={String(
+                                                                                pokemon[
+                                                                                    field as keyof EditablePokemon
+                                                                                ] ??
+                                                                                    "",
+                                                                            )}
+                                                                            onChange={(
+                                                                                event,
+                                                                            ) => {
+                                                                                const nextValue =
+                                                                                    event
+                                                                                        .target
+                                                                                        .value;
+
+                                                                                if (
+                                                                                    !/^\d*$/.test(
+                                                                                        nextValue,
+                                                                                    )
+                                                                                ) {
+                                                                                    return;
+                                                                                }
+
+                                                                                if (
+                                                                                    Number(
+                                                                                        nextValue ||
+                                                                                            0,
+                                                                                    ) >
+                                                                                    effortValueLimits.singleLimit
+                                                                                ) {
+                                                                                    return;
+                                                                                }
+
+                                                                                updatePokemon(
+                                                                                    index,
+                                                                                    field as keyof EditablePokemon,
+                                                                                    Number(
+                                                                                        nextValue ||
+                                                                                            0,
+                                                                                    ),
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                ),
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="md:col-span-2">
+                                                        <p className="text-xs text-gray-500">
+                                                            候補から技を選ぶと、攻撃技のタイプが自動設定されます。変化技は攻撃相性点に含まれません。
+                                                        </p>
+                                                    </div>
+
+                                                    {(
+                                                        [
+                                                            [
+                                                                "move_1",
+                                                                "move_1_id",
+                                                                "move_1_type",
+                                                            ],
+                                                            [
+                                                                "move_2",
+                                                                "move_2_id",
+                                                                "move_2_type",
+                                                            ],
+                                                            [
+                                                                "move_3",
+                                                                "move_3_id",
+                                                                "move_3_type",
+                                                            ],
+                                                            [
+                                                                "move_4",
+                                                                "move_4_id",
+                                                                "move_4_type",
+                                                            ],
+                                                        ] as const
+                                                    ).map(
+                                                        (
+                                                            [
+                                                                moveField,
+                                                                moveIdField,
+                                                                moveTypeField,
+                                                            ],
+                                                            moveIndex,
+                                                        ) => (
+                                                            <div
+                                                                key={moveField}
+                                                            >
+                                                                <div className="flex min-h-5 items-center gap-2">
+                                                                    <label className="text-sm font-medium">
+                                                                        技
+                                                                        {moveIndex +
+                                                                            1}
+                                                                    </label>
+
+                                                                    {pokemon[
+                                                                        moveTypeField
+                                                                    ] && (
+                                                                        <span className="rounded-full border bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-700">
+                                                                            {
+                                                                                pokemon[
+                                                                                    moveTypeField
+                                                                                ]
+                                                                            }
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+
+                                                                <div className="mt-1">
+                                                                    <MoveSelector
+                                                                        value={
+                                                                            pokemon[
+                                                                                moveField
+                                                                            ]
+                                                                        }
+                                                                        onChangeText={(
+                                                                            value,
+                                                                        ) => {
+                                                                            updatePokemon(
+                                                                                index,
+                                                                                moveField,
+                                                                                value,
+                                                                            );
+                                                                            updatePokemon(
+                                                                                index,
+                                                                                moveIdField,
+                                                                                null,
+                                                                            );
+                                                                            updatePokemon(
+                                                                                index,
+                                                                                moveTypeField,
+                                                                                "",
+                                                                            );
+                                                                        }}
+                                                                        onSelect={(
+                                                                            move,
+                                                                        ) => {
+                                                                            updatePokemon(
+                                                                                index,
+                                                                                moveField,
+                                                                                move.name,
+                                                                            );
+                                                                            updatePokemon(
+                                                                                index,
+                                                                                moveIdField,
+                                                                                move.id,
+                                                                            );
+                                                                            updatePokemon(
+                                                                                index,
+                                                                                moveTypeField,
+                                                                                move.is_scoring_target
+                                                                                    ? move.type
+                                                                                    : "",
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        ),
+                                                    )}
+                                                </div>
+
+                                                <div className="mt-4">
+                                                    <label className="block text-sm font-medium">
+                                                        メモ
+                                                    </label>
+                                                    <textarea
+                                                        className="mt-1 w-full rounded border p-3"
+                                                        rows={3}
+                                                        value={pokemon.memo}
+                                                        onChange={(event) =>
+                                                            updatePokemon(
+                                                                index,
+                                                                "memo",
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+
+                                                <div className="mt-4">
+                                                    <p className="text-sm font-medium">
+                                                        役割タグ
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-gray-500">
+                                                        主な役割を3個まで選べます。重要な役割だけを登録してください。
+                                                    </p>
+
+                                                    <p className="mt-2 text-xs font-medium text-gray-600">
+                                                        選択中：
+                                                        {
+                                                            pokemon.role_tag_ids
+                                                                .length
+                                                        }{" "}
+                                                        / 3
+                                                    </p>
+                                                    <div className="mt-3 flex flex-wrap gap-2">
+                                                        {roleTags.map((tag) => {
+                                                            const isSelected =
+                                                                pokemon.role_tag_ids.includes(
                                                                     tag.id,
-                                                                )
-                                                            }
-                                                            className={`rounded-full border px-3 py-1 text-sm ${
-                                                                isSelected
-                                                                    ? "bg-black text-white"
-                                                                    : "hover:bg-gray-50"
-                                                            }`}
-                                                        >
-                                                            {tag.name}
-                                                        </button>
-                                                    );
-                                                })}
+                                                                );
+
+                                                            return (
+                                                                <button
+                                                                    key={tag.id}
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        toggleRoleTag(
+                                                                            index,
+                                                                            tag.id,
+                                                                        )
+                                                                    }
+                                                                    className={`rounded-full border px-3 py-1 text-sm ${
+                                                                        isSelected
+                                                                            ? "bg-black text-white"
+                                                                            : "hover:bg-gray-50"
+                                                                    }`}
+                                                                >
+                                                                    {tag.name}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </details>
                                     </div>
                                 );
                             })}
                         </div>
 
-                        <div className="mt-8 rounded bg-gray-50 p-4">
+                        <div
+                            ref={pokemonSearchSectionRef}
+                            className="mt-8 scroll-mt-4 rounded bg-gray-50 p-4"
+                        >
                             <div className="flex items-center justify-between gap-4">
                                 <div>
                                     <h3 className="font-bold">
@@ -1124,174 +1184,190 @@ export default function CreatePartyVersionPage() {
                                 </p>
                             ) : (
                                 <>
-                                    <div className="mt-4 rounded bg-white p-4">
-                                        <label className="block text-sm font-medium">
-                                            ポケモン名で検索
-                                        </label>
-                                        <p className="mt-1 text-xs text-gray-500">
-                                            メガシンカは対戦前選出画面で一時的に切り替えます。自パーティには通常フォームを登録してください。
-                                        </p>
-                                        <input
-                                            className="mt-1 w-full rounded border p-3"
-                                            value={searchKeyword}
-                                            onChange={(event) =>
-                                                setSearchKeyword(
-                                                    event.target.value,
-                                                )
-                                            }
-                                            placeholder="例：リザードン、りざ、ガブ"
-                                        />
+                                    <div className="mt-4 grid gap-5 lg:grid-cols-[19rem_minmax(0,1fr)]">
+                                        <div className="rounded bg-white p-4">
+                                            <label className="block text-sm font-medium">
+                                                ポケモン名で検索
+                                            </label>
 
-                                        <div className="mt-5">
-                                            <p className="text-sm font-medium">
-                                                タイプで絞り込み
-                                            </p>
                                             <p className="mt-1 text-xs text-gray-500">
-                                                1つ選ぶと、そのタイプを含むポケモンを表示します。2つ選ぶと、その2タイプを両方持つポケモンを表示します。
+                                                メガシンカは対戦前選出画面で一時的に切り替えます。
                                             </p>
 
-                                            <div className="mt-3 flex flex-wrap gap-2">
-                                                {pokemonTypes.map((type) => {
-                                                    const isSelected =
-                                                        selectedTypes.includes(
-                                                            type,
-                                                        );
+                                            <input
+                                                className="mt-2 w-full rounded border px-3 py-2"
+                                                value={searchKeyword}
+                                                onChange={(event) =>
+                                                    setSearchKeyword(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                placeholder="例：リザードン、りざ、ガブ"
+                                            />
 
-                                                    return (
-                                                        <button
-                                                            key={type}
-                                                            type="button"
-                                                            onClick={() =>
-                                                                handleToggleType(
+                                            <div className="mt-4">
+                                                <p className="text-sm font-medium">
+                                                    タイプで絞り込み
+                                                </p>
+
+                                                <p className="mt-1 text-xs text-gray-500">
+                                                    2つ選ぶと、両方のタイプを持つポケモンを表示します。
+                                                </p>
+
+                                                <div className="mt-2 grid grid-cols-6 gap-1">
+                                                    {pokemonTypes.map(
+                                                        (type) => {
+                                                            const isSelected =
+                                                                selectedTypes.includes(
                                                                     type,
-                                                                )
-                                                            }
-                                                            className={`rounded-full border px-3 py-1 text-sm ${
-                                                                isSelected
-                                                                    ? "border-black bg-black text-white"
-                                                                    : "bg-white hover:bg-gray-50"
-                                                            }`}
-                                                        >
-                                                            {type}
-                                                        </button>
-                                                    );
-                                                })}
+                                                                );
+
+                                                            return (
+                                                                <button
+                                                                    key={type}
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        handleToggleType(
+                                                                            type,
+                                                                        )
+                                                                    }
+                                                                    className={`whitespace-nowrap rounded-full border px-0.5 py-1 text-[9px] leading-none ${
+                                                                        isSelected
+                                                                            ? "border-black bg-black text-white"
+                                                                            : "hover:bg-gray-50"
+                                                                    }`}
+                                                                >
+                                                                    {type}
+                                                                </button>
+                                                            );
+                                                        },
+                                                    )}
+                                                </div>
+
+                                                {selectedTypes.length > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setSelectedTypes([])
+                                                        }
+                                                        className="mt-2 text-xs text-blue-600"
+                                                    >
+                                                        タイプ絞り込みを解除
+                                                    </button>
+                                                )}
                                             </div>
 
-                                            {selectedTypes.length > 0 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setSelectedTypes([])
-                                                    }
-                                                    className="mt-3 text-sm text-blue-600"
-                                                >
-                                                    タイプ絞り込みを解除
-                                                </button>
-                                            )}
+                                            <p className="mt-4 text-xs text-gray-500">
+                                                候補：
+                                                {filteredPokemonList.length}件
+                                                {!hasPokemonFilter &&
+                                                    filteredPokemonList.length >
+                                                        visiblePokemonList.length &&
+                                                    ` / 初期表示 ${visiblePokemonList.length}件`}
+                                            </p>
+
+                                            {!hasPokemonFilter &&
+                                                filteredPokemonList.length && (
+                                                    <p className="mt-1 text-[10px] text-gray-400">
+                                                        名前またはタイプで絞り込むと、ほかの候補も表示されます。
+                                                    </p>
+                                                )}
                                         </div>
 
-                                        <p className="mt-4 text-sm text-gray-600">
-                                            候補：{filteredPokemonList.length}件
-                                            {!hasPokemonFilter &&
-                                                filteredPokemonList.length >
-                                                    visiblePokemonList.length &&
-                                                `初期表示 ${visiblePokemonList.length}件`}
-                                        </p>
+                                        <div className="max-h-112 overflow-y-auto rounded border bg-white p-3">
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                {visiblePokemonList.map(
+                                                    (pokemon) => {
+                                                        const isSelected =
+                                                            isAlreadySelectedPokemon(
+                                                                pokemon,
+                                                            );
 
-                                        {!hasPokemonFilter &&
-                                            filteredPokemonList.length >
-                                                visiblePokemonList.length && (
-                                                <p className="mt-1 text-xs text-gray-500">
-                                                    ポケモン名の検索またはタイプ絞り込みで候補を探してください。
-                                                </p>
-                                            )}
-                                    </div>
+                                                        return (
+                                                            <button
+                                                                key={`${pokemon.key}-${pokemon.form_key}`}
+                                                                type="button"
+                                                                disabled={
+                                                                    isSelected
+                                                                }
+                                                                onClick={() => {
+                                                                    if (
+                                                                        replaceTargetIndex ===
+                                                                        null
+                                                                    ) {
+                                                                        handleAddPokemon(
+                                                                            pokemon,
+                                                                        );
 
-                                    <div className="mt-4 max-h-128 overflow-y-auto rounded border bg-gray-50 p-3">
-                                        <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                                            {visiblePokemonList.map(
-                                                (pokemon) => {
-                                                    const isSelected =
-                                                        isAlreadySelectedPokemon(
-                                                            pokemon,
-                                                        );
+                                                                        return;
+                                                                    }
 
-                                                    return (
-                                                        <button
-                                                            key={`${pokemon.key}-${pokemon.form_key}`}
-                                                            type="button"
-                                                            disabled={
-                                                                isSelected
-                                                            }
-                                                            onClick={() => {
-                                                                if (
-                                                                    replaceTargetIndex ===
-                                                                    null
-                                                                ) {
-                                                                    handleAddPokemon(
+                                                                    handleReplacePokemon(
                                                                         pokemon,
                                                                     );
-                                                                    return;
-                                                                }
-
-                                                                handleReplacePokemon(
-                                                                    pokemon,
-                                                                );
-                                                            }}
-                                                            className={`rounded border p-3 text-left disabled:cursor-not-allowed ${
-                                                                isSelected
-                                                                    ? "bg-gray-100 opacity-50"
-                                                                    : "bg-white hover:bg-gray-50"
-                                                            }`}
-                                                        >
-                                                            <div className="flex items-center gap-3">
-                                                                {pokemon.image_url ? (
-                                                                    <img
-                                                                        src={
-                                                                            pokemon.image_url
-                                                                        }
-                                                                        alt={
-                                                                            pokemon.name
-                                                                        }
-                                                                        className="h-14 w-14 object-contain"
-                                                                    />
-                                                                ) : (
-                                                                    <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm">
-                                                                        ?
-                                                                    </div>
-                                                                )}
-
-                                                                <div>
-                                                                    <p className="font-bold">
-                                                                        {
-                                                                            pokemon.name
-                                                                        }
-                                                                    </p>
-                                                                    <p className="text-xs text-gray-600">
-                                                                        {pokemon.types.join(
-                                                                            " / ",
-                                                                        )}
-                                                                    </p>
-                                                                    {isSelected && (
-                                                                        <p className="mt-1 text-xs text-gray-500">
-                                                                            選択済み
-                                                                        </p>
+                                                                }}
+                                                                className={`rounded border p-3 text-left disabled:cursor-not-allowed ${
+                                                                    isSelected
+                                                                        ? "bg-gray-100 opacity-50"
+                                                                        : "bg-white hover:bg-gray-50"
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-center gap-3">
+                                                                    {pokemon.image_url ? (
+                                                                        <img
+                                                                            src={
+                                                                                pokemon.image_url
+                                                                            }
+                                                                            alt={
+                                                                                pokemon.name
+                                                                            }
+                                                                            className="h-14 w-14 object-contain"
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm">
+                                                                            ?
+                                                                        </div>
                                                                     )}
-                                                                </div>
-                                                            </div>
-                                                        </button>
-                                                    );
-                                                },
-                                            )}
-                                        </div>
-                                    </div>
 
-                                    {filteredPokemonList.length === 0 && (
-                                        <p className="mt-4 rounded bg-white p-4 text-sm text-gray-600">
-                                            条件に合うポケモンが見つかりません。
-                                        </p>
-                                    )}
+                                                                    <div className="min-w-0">
+                                                                        <p className="truncate font-bold">
+                                                                            {
+                                                                                pokemon.name
+                                                                            }
+                                                                        </p>
+
+                                                                        <p className="text-xs text-gray-600">
+                                                                            {
+                                                                                pokemon.kana
+                                                                            }
+                                                                        </p>
+
+                                                                        <p className="mt-1 text-xs text-gray-600">
+                                                                            {pokemon.types.join(
+                                                                                " / ",
+                                                                            )}
+                                                                        </p>
+
+                                                                        {isSelected && (
+                                                                            <p className="mt-1 text-xs text-gray-500">
+                                                                                選択済み
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    },
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {filteredPokemonList.length === 0 && (
+                                            <p className="mt-3 rounded bg-gray-50 p-3 text-sm text-gray-600">
+                                                条件に合うポケモンが見つかりません。
+                                            </p>
+                                        )}
+                                    </div>
                                 </>
                             )}
                         </div>
