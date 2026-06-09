@@ -3,7 +3,6 @@
 import { pokemonTypes } from "@/constants/pokemonTypes";
 import { OpponentPartyColumn } from "@/features/battlePreview/components/OpponentPartyColumn";
 import { OwnPartyColumn } from "@/features/battlePreview/components/OwnPartyColumn";
-import { PokemonStatLegend } from "@/features/battlePreview/components/PokemonStatLegend";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
 import {
@@ -421,20 +420,20 @@ export default function BattlePreviewPage() {
         }
 
         return (
-            <div className="mt-3 flex flex-wrap gap-3">
+            <div className="mt-2 flex flex-wrap gap-2">
                 {pokemonList.map((pokemon) => (
                     <div
                         key={`${pokemon.key}-${pokemon.form_key}-${valueLabel}`}
-                        className="rounded bg-white p-3 text-center"
+                        className="rounded bg-white px-2 py-1.5 text-center"
                     >
                         {pokemon.image_url ? (
                             <img
                                 src={pokemon.image_url}
                                 alt={pokemon.name}
-                                className="mx-auto h-14 w-14 object-contain"
+                                className="mx-auto h-10 w-10 object-contain"
                             />
                         ) : (
-                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm">
+                            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded bg-gray-100 text-xs">
                                 ?
                             </div>
                         )}
@@ -666,103 +665,115 @@ export default function BattlePreviewPage() {
                     />
                 </div>
 
-                <div className="min-w-0 space-y-6">
-                    <section className="rounded border bg-white p-4">
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div className="min-w-0 space-y-3 xl:max-h-[calc(100vh-1rem)] xl:overflow-y-auto xl:pr-1">
+                    <section className="rounded border bg-white px-3 py-2">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                             <Link
                                 href={`/parties/${party.id}`}
-                                className="text-sm text-blue-600"
+                                className="text-xs text-blue-600"
                             >
                                 ← パーティ詳細へ戻る
                             </Link>
 
-                            <h1 className="text-xl font-bold">対戦前選出</h1>
+                            <h1 className="text-base font-bold">対戦前選出</h1>
 
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs text-gray-500">
                                 相手の6匹を入力して、選出判断の準備をします。
                             </p>
                         </div>
                     </section>
 
-                    <section className="mt-8 rounded border p-6">
-                        <h2 className="text-xl font-bold">
-                            相手ポケモンを探す
-                        </h2>
+                    <section className="rounded border bg-white p-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-base font-bold">
+                                相手ポケモンを探す
+                            </h2>
 
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium">
-                                ポケモン名で検索
-                            </label>
-                            <input
-                                className="mt-1 w-full rounded border p-3"
-                                value={searchKeyword}
-                                onChange={(event) =>
-                                    setSearchKeyword(event.target.value)
-                                }
-                                placeholder="例：リザードン、りざ、ガブ"
-                            />
+                            <p className="text-xs text-gray-500">
+                                相手：
+                                {opponentPokemonList.length} / 6
+                            </p>
                         </div>
 
-                        <div className="mt-5">
-                            <p className="text-sm font-medium">
-                                タイプで絞り込み
-                            </p>
+                        <div className="mt-2 grid gap-3 md:grid-cols-[10rem_minmax(0,1fr)]">
+                            <div>
+                                <label className="block text-xs font-medium">
+                                    名前で検索
+                                </label>
 
-                            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
-                                {pokemonTypes.map((type) => {
-                                    const isSelected =
-                                        selectedTypes.includes(type);
-
-                                    return (
-                                        <button
-                                            key={type}
-                                            type="button"
-                                            onClick={() =>
-                                                handleToggleType(type)
-                                            }
-                                            className={`rounded-full border px-2 py-1 text-xs ${
-                                                isSelected
-                                                    ? "border-black bg-black text-white"
-                                                    : "hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            {type}
-                                        </button>
-                                    );
-                                })}
+                                <input
+                                    className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
+                                    value={searchKeyword}
+                                    onChange={(event) =>
+                                        setSearchKeyword(event.target.value)
+                                    }
+                                    placeholder="例：ガブ、りざ"
+                                />
                             </div>
 
-                            {selectedTypes.length > 0 && (
-                                <button
-                                    type="button"
-                                    onClick={() => setSelectedTypes([])}
-                                    className="mt-3 text-sm text-blue-600"
-                                >
-                                    タイプ絞り込みを解除
-                                </button>
-                            )}
+                            <div>
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="text-xs font-medium">
+                                        タイプで絞り込み
+                                    </p>
+
+                                    {selectedTypes.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedTypes([])}
+                                            className="text-xs text-blue-600"
+                                        >
+                                            解除
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="mt-1 grid grid-cols-6 gap-1">
+                                    {pokemonTypes.map((type) => {
+                                        const isSelected =
+                                            selectedTypes.includes(type);
+
+                                        return (
+                                            <button
+                                                key={type}
+                                                type="button"
+                                                onClick={() =>
+                                                    handleToggleType(type)
+                                                }
+                                                className={`whitespace-nowrap rounded-full border px-0.5 py-1 text-[9px] leading-none ${
+                                                    isSelected
+                                                        ? "border-black bg-black text-white"
+                                                        : "hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                {type}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="mt-6 flex items-center justify-between">
-                            <p className="text-sm text-gray-600">
+                        <div className="mt-2 flex items-center justify-between gap-3">
+                            <p className="text-xs text-gray-500">
                                 候補：{filteredPokemonList.length}件
                                 {!hasPokemonFilter &&
                                     filteredPokemonList.length >
                                         visiblePokemonList.length &&
-                                    `初期表示 ${visiblePokemonList.length}件`}
+                                    ` / 初期表示 ${visiblePokemonList.length}件`}
                             </p>
 
                             {!hasPokemonFilter &&
                                 filteredPokemonList.length >
                                     visiblePokemonList.length && (
-                                    <p className="mt-1 text-xs text-gray-500">
-                                        ポケモン名の検索またはタイプ絞り込みで候補を探してください。
+                                    <p className="text-[10px] text-gray-400">
+                                        名前またはタイプで絞り込めます。
                                     </p>
                                 )}
                         </div>
 
-                        <div className="mt-4 max-h-88 overflow-y-auto rounded border bg-gray-50 p-3">
-                            <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="mt-2 max-h-44 overflow-y-auto rounded border bg-gray-50 p-2">
+                            <div className="grid gap-2 sm:grid-cols-2">
                                 {visiblePokemonList.map((pokemon) => {
                                     const isSelected = opponentPokemonList.some(
                                         (selectedPokemon) =>
@@ -782,39 +793,38 @@ export default function BattlePreviewPage() {
                                                 isSelected ||
                                                 opponentPokemonList.length >= 6
                                             }
-                                            className={`rounded border p-3 text-left transition disabled:cursor-not-allowed ${
+                                            className={`rounded border bg-white p-2 text-left transition disabled:cursor-not-allowed ${
                                                 isSelected
                                                     ? "border-black bg-gray-100"
                                                     : "hover:bg-gray-50"
                                             }`}
                                         >
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-2">
                                                 {pokemon.image_url ? (
                                                     <img
                                                         src={pokemon.image_url}
                                                         alt={pokemon.name}
-                                                        className="h-16 w-16 object-contain"
+                                                        className="h-10 w-10 object-contain"
                                                     />
                                                 ) : (
-                                                    <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-sm">
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-100 text-xs">
                                                         ?
                                                     </div>
                                                 )}
 
-                                                <div>
-                                                    <p className="font-bold">
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-bold">
                                                         {pokemon.name}
                                                     </p>
-                                                    <p className="text-xs text-gray-600">
-                                                        {pokemon.kana}
-                                                    </p>
-                                                    <p className="mt-1 text-xs">
+
+                                                    <p className="truncate text-[10px] text-gray-500">
                                                         {pokemon.types.join(
                                                             " / ",
                                                         )}
                                                     </p>
+
                                                     {isSelected && (
-                                                        <p className="mt-1 text-xs font-medium">
+                                                        <p className="text-[10px] font-medium text-gray-600">
                                                             選択済み
                                                         </p>
                                                     )}
@@ -827,19 +837,25 @@ export default function BattlePreviewPage() {
                         </div>
 
                         {filteredPokemonList.length === 0 && (
-                            <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                            <p className="mt-2 rounded bg-gray-50 p-2 text-xs text-gray-600">
                                 条件に合うポケモンが見つかりません。
                             </p>
                         )}
                     </section>
 
-                    <section className="mt-8 rounded border p-6">
-                        <h2 className="text-xl font-bold">おすすめ選出β</h2>
-                        <p className="mt-1 text-sm text-gray-600">
-                            攻撃相性、防御相性、特性、持ち物、役割タグ、素早さ、保存済み基本選出、過去ログから簡易採点しています。
-                        </p>
-                        <p className="mt-1 text-xs text-gray-500">
-                            相手の技構成や特性は未反映です。相手のタイプ一致技を基準にした簡易提案です。
+                    <section className="rounded border bg-white p-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-base font-bold">
+                                おすすめ選出β
+                            </h2>
+
+                            <span className="text-[10px] text-gray-400">
+                                相手の型は未確定
+                            </span>
+                        </div>
+
+                        <p className="mt-1 text-[11px] text-gray-500">
+                            攻撃相性、防御相性、特性、持ち物、役割、素早さ、保存済み基本選出、過去ログから簡易採点しています。
                         </p>
 
                         {opponentPokemonList.length === 0 ? (
@@ -851,196 +867,230 @@ export default function BattlePreviewPage() {
                                 おすすめ選出を表示するには、自分のポケモンを3匹以上登録してください。
                             </p>
                         ) : (
-                            <div className="mt-4 space-y-4">
+                            <div className="mt-2 space-y-2">
                                 {matchupSelectionSuggestions.map(
                                     (suggestion, index) => (
                                         <div
                                             key={`${suggestion.leadPokemon.id}-${suggestion.switchPokemon.id}-${suggestion.finisherPokemon.id}`}
-                                            className="rounded bg-gray-50 p-4"
+                                            className="rounded border bg-gray-50 p-2"
                                         >
-                                            <div className="flex flex-wrap items-center justify-between gap-3">
-                                                <h3 className="font-bold">
-                                                    {index + 1}位
-                                                </h3>
-
+                                            <div className="flex items-center justify-between gap-2">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="rounded bg-white px-3 py-1 text-sm font-semibold">
-                                                        合計{" "}
+                                                    <h3 className="text-sm font-bold">
+                                                        {index + 1}位
+                                                    </h3>
+
+                                                    <span className="rounded bg-white px-2 py-0.5 text-xs font-semibold">
                                                         {suggestion.totalScore}
                                                         点
                                                     </span>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            setSelectedPartyPokemonIds(
-                                                                [
-                                                                    suggestion
-                                                                        .leadPokemon
-                                                                        .id,
-                                                                    suggestion
-                                                                        .switchPokemon
-                                                                        .id,
-                                                                    suggestion
-                                                                        .finisherPokemon
-                                                                        .id,
-                                                                ],
-                                                            )
-                                                        }
-                                                        className="rounded bg-black px-3 py-1 text-sm text-white hover:bg-gray-800"
-                                                    >
-                                                        これにする
-                                                    </button>
                                                 </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setSelectedPartyPokemonIds(
+                                                            [
+                                                                suggestion
+                                                                    .leadPokemon
+                                                                    .id,
+                                                                suggestion
+                                                                    .switchPokemon
+                                                                    .id,
+                                                                suggestion
+                                                                    .finisherPokemon
+                                                                    .id,
+                                                            ],
+                                                        )
+                                                    }
+                                                    className="rounded bg-black px-2 py-1 text-xs text-white hover:bg-gray-800"
+                                                >
+                                                    これにする
+                                                </button>
                                             </div>
 
-                                            <div className="mt-4 grid gap-3 md:grid-cols-3">
-                                                <div className="rounded bg-white p-3">
-                                                    <p className="text-xs font-semibold text-gray-500">
+                                            <div className="mt-2 grid grid-cols-3 gap-1.5">
+                                                <div className="rounded bg-white px-2 py-1.5">
+                                                    <p className="text-[10px] font-semibold text-gray-500">
                                                         初手
                                                     </p>
-                                                    <p className="mt-1 font-bold">
+
+                                                    <p className="truncate text-sm font-bold">
                                                         {getPartyPokemonDisplayName(
                                                             suggestion.leadPokemon,
                                                         )}
                                                     </p>
-                                                    <p className="mt-2 text-xs text-gray-600">
-                                                        役割タグ{" "}
-                                                        {
-                                                            suggestion
-                                                                .leadBreakdown
-                                                                .roleTagScore
-                                                        }{" "}
-                                                        / 攻撃{" "}
-                                                        {
-                                                            suggestion
-                                                                .leadBreakdown
-                                                                .offensiveScore
-                                                        }{" "}
-                                                        / 防御{" "}
-                                                        {
-                                                            suggestion
-                                                                .leadBreakdown
-                                                                .defensiveScore
-                                                        }{" "}
-                                                        / 素早さ{" "}
-                                                        {
-                                                            suggestion
-                                                                .leadBreakdown
-                                                                .speedScore
-                                                        }{" "}
-                                                        / 過去ログ{" "}
-                                                        {
-                                                            suggestion
-                                                                .leadBreakdown
-                                                                .battleLogScore
-                                                        }
-                                                    </p>
                                                 </div>
 
-                                                <div className="rounded bg-white p-3">
-                                                    <p className="text-xs font-semibold text-gray-500">
+                                                <div className="rounded bg-white px-2 py-1.5">
+                                                    <p className="text-[10px] font-semibold text-gray-500">
                                                         引き先
                                                     </p>
-                                                    <p className="mt-1 font-bold">
+
+                                                    <p className="truncate text-sm font-bold">
                                                         {getPartyPokemonDisplayName(
                                                             suggestion.switchPokemon,
                                                         )}
                                                     </p>
-                                                    <p className="mt-2 text-xs text-gray-600">
-                                                        役割タグ{" "}
-                                                        {
-                                                            suggestion
-                                                                .switchBreakdown
-                                                                .roleTagScore
-                                                        }{" "}
-                                                        / 攻撃{" "}
-                                                        {
-                                                            suggestion
-                                                                .switchBreakdown
-                                                                .offensiveScore
-                                                        }{" "}
-                                                        / 防御{" "}
-                                                        {
-                                                            suggestion
-                                                                .switchBreakdown
-                                                                .defensiveScore
-                                                        }{" "}
-                                                        / 過去ログ{" "}
-                                                        {
-                                                            suggestion
-                                                                .switchBreakdown
-                                                                .battleLogScore
-                                                        }
-                                                    </p>
                                                 </div>
 
-                                                <div className="rounded bg-white p-3">
-                                                    <p className="text-xs font-semibold text-gray-500">
+                                                <div className="rounded bg-white px-2 py-1.5">
+                                                    <p className="text-[10px] font-semibold text-gray-500">
                                                         勝ち筋
                                                     </p>
-                                                    <p className="mt-1 font-bold">
+
+                                                    <p className="truncate text-sm font-bold">
                                                         {getPartyPokemonDisplayName(
                                                             suggestion.finisherPokemon,
                                                         )}
                                                     </p>
-                                                    <p className="mt-2 text-xs text-gray-600">
-                                                        役割タグ{" "}
-                                                        {
-                                                            suggestion
-                                                                .finisherBreakdown
-                                                                .roleTagScore
-                                                        }{" "}
-                                                        / 攻撃{" "}
-                                                        {
-                                                            suggestion
-                                                                .finisherBreakdown
-                                                                .offensiveScore
-                                                        }{" "}
-                                                        / 防御{" "}
-                                                        {
-                                                            suggestion
-                                                                .finisherBreakdown
-                                                                .defensiveScore
-                                                        }{" "}
-                                                        / 素早さ{" "}
-                                                        {
-                                                            suggestion
-                                                                .finisherBreakdown
-                                                                .speedScore
-                                                        }{" "}
-                                                        / 過去ログ{" "}
-                                                        {
-                                                            suggestion
-                                                                .finisherBreakdown
-                                                                .battleLogScore
-                                                        }
-                                                    </p>
                                                 </div>
                                             </div>
 
-                                            {suggestion.savedTemplateBonus >
-                                                0 && (
-                                                <p className="mt-3 text-xs font-medium text-blue-700">
-                                                    保存済み基本選出との一致：+
-                                                    {
-                                                        suggestion.savedTemplateBonus
-                                                    }
-                                                    点
-                                                </p>
-                                            )}
+                                            <details className="mt-1.5">
+                                                <summary className="cursor-pointer text-[11px] text-blue-600">
+                                                    点数の内訳を見る
+                                                </summary>
 
-                                            {suggestion.reasons.length > 0 && (
-                                                <ul className="mt-3 space-y-1 text-xs text-gray-600">
-                                                    {suggestion.reasons.map(
-                                                        (reason) => (
-                                                            <li key={reason}>
-                                                                ・{reason}
-                                                            </li>
-                                                        ),
-                                                    )}
-                                                </ul>
-                                            )}
+                                                <div className="mt-2 grid gap-1.5 text-[10px] text-gray-600 md:grid-cols-3">
+                                                    <div className="rounded bg-white p-2">
+                                                        <p className="font-semibold">
+                                                            初手
+                                                        </p>
+
+                                                        <p className="mt-1">
+                                                            役割タグ{" "}
+                                                            {
+                                                                suggestion
+                                                                    .leadBreakdown
+                                                                    .roleTagScore
+                                                            }{" "}
+                                                            / 攻撃{" "}
+                                                            {
+                                                                suggestion
+                                                                    .leadBreakdown
+                                                                    .offensiveScore
+                                                            }{" "}
+                                                            / 防御{" "}
+                                                            {
+                                                                suggestion
+                                                                    .leadBreakdown
+                                                                    .defensiveScore
+                                                            }{" "}
+                                                            / 素早さ{" "}
+                                                            {
+                                                                suggestion
+                                                                    .leadBreakdown
+                                                                    .speedScore
+                                                            }{" "}
+                                                            / 過去ログ{" "}
+                                                            {
+                                                                suggestion
+                                                                    .leadBreakdown
+                                                                    .battleLogScore
+                                                            }
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="rounded bg-white p-2">
+                                                        <p className="font-semibold">
+                                                            引き先
+                                                        </p>
+
+                                                        <p className="mt-1">
+                                                            役割タグ{" "}
+                                                            {
+                                                                suggestion
+                                                                    .switchBreakdown
+                                                                    .roleTagScore
+                                                            }{" "}
+                                                            / 攻撃{" "}
+                                                            {
+                                                                suggestion
+                                                                    .switchBreakdown
+                                                                    .offensiveScore
+                                                            }{" "}
+                                                            / 防御{" "}
+                                                            {
+                                                                suggestion
+                                                                    .switchBreakdown
+                                                                    .defensiveScore
+                                                            }{" "}
+                                                            / 過去ログ{" "}
+                                                            {
+                                                                suggestion
+                                                                    .switchBreakdown
+                                                                    .battleLogScore
+                                                            }
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="rounded bg-white p-2">
+                                                        <p className="font-semibold">
+                                                            勝ち筋
+                                                        </p>
+
+                                                        <p className="mt-1">
+                                                            役割タグ{" "}
+                                                            {
+                                                                suggestion
+                                                                    .finisherBreakdown
+                                                                    .roleTagScore
+                                                            }{" "}
+                                                            / 攻撃{" "}
+                                                            {
+                                                                suggestion
+                                                                    .finisherBreakdown
+                                                                    .offensiveScore
+                                                            }{" "}
+                                                            / 防御{" "}
+                                                            {
+                                                                suggestion
+                                                                    .finisherBreakdown
+                                                                    .defensiveScore
+                                                            }{" "}
+                                                            / 素早さ{" "}
+                                                            {
+                                                                suggestion
+                                                                    .finisherBreakdown
+                                                                    .speedScore
+                                                            }{" "}
+                                                            / 過去ログ{" "}
+                                                            {
+                                                                suggestion
+                                                                    .finisherBreakdown
+                                                                    .battleLogScore
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {suggestion.savedTemplateBonus >
+                                                    0 && (
+                                                    <p className="mt-2 text-[10px] font-medium text-blue-700">
+                                                        保存済み基本選出との一致：+
+                                                        {
+                                                            suggestion.savedTemplateBonus
+                                                        }
+                                                        点
+                                                    </p>
+                                                )}
+
+                                                {suggestion.reasons.length >
+                                                    0 && (
+                                                    <ul className="mt-2 space-y-0.5 text-[10px] text-gray-600">
+                                                        {suggestion.reasons.map(
+                                                            (reason) => (
+                                                                <li
+                                                                    key={reason}
+                                                                >
+                                                                    ・{reason}
+                                                                </li>
+                                                            ),
+                                                        )}
+                                                    </ul>
+                                                )}
+                                            </details>
                                         </div>
                                     ),
                                 )}
@@ -1048,16 +1098,17 @@ export default function BattlePreviewPage() {
                         )}
                     </section>
 
-                    <PokemonStatLegend />
+                    <section className="rounded border bg-white p-3">
+                        <div className="flex items-center justify-between gap-2">
+                            <h2 className="text-sm font-bold">能力値を比較</h2>
 
-                    <section className="rounded border bg-white p-4">
-                        <h2 className="font-bold">能力値を比較</h2>
+                            <div className="text-[10px] text-gray-400">
+                                H：HP / A：攻撃 / B：防御 / C：特攻 / D：特防 /
+                                S：素早さ
+                            </div>
+                        </div>
 
-                        <p className="mt-1 text-xs text-gray-500">
-                            比較したい項目を押すと、左右のポケモンカード内で該当する能力値を強調します。
-                        </p>
-
-                        <div className="mt-3 grid gap-2 sm:grid-cols-5">
+                        <div className="mt-2 grid grid-cols-5 gap-1">
                             {[
                                 {
                                     mode: "speed",
@@ -1095,7 +1146,7 @@ export default function BattlePreviewPage() {
                                                 >,
                                             )
                                         }
-                                        className={`rounded border px-3 py-2 text-sm ${
+                                        className={`rounded border px-1 py-1 text-xs ${
                                             isSelected
                                                 ? "border-black bg-black text-white"
                                                 : "hover:bg-gray-50"
@@ -1108,7 +1159,7 @@ export default function BattlePreviewPage() {
                         </div>
                     </section>
 
-                    <section className="rounded border bg-white p-4">
+                    <section className="sticky bottom-o z-10 rounded border bg-white/95 p-3 shadow-sm backdrop-blur">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
                                 <h2 className="font-bold">選出を決めたら</h2>
@@ -1143,8 +1194,8 @@ export default function BattlePreviewPage() {
                         </div>
                     </section>
 
-                    <details className="mt-8 rounded border p-6">
-                        <summary className="cursor-pointer text-xl font-bold">
+                    <details className="rounded border bg-white p-3">
+                        <summary className="cursor-pointer text-sm font-bold">
                             詳細分析を見る
                         </summary>
 
@@ -1190,6 +1241,7 @@ export default function BattlePreviewPage() {
                                                                                 item.attackType
                                                                             }
                                                                         </p>
+
                                                                         <p className="mt-1 text-sm text-gray-600">
                                                                             弱点{" "}
                                                                             {
@@ -1204,13 +1256,6 @@ export default function BattlePreviewPage() {
                                                                                 ` / 無効 ${item.immuneCount}匹`}
                                                                         </p>
                                                                     </div>
-
-                                                                    <span className="rounded bg-gray-100 px-3 py-1 text-sm">
-                                                                        スコア{" "}
-                                                                        {
-                                                                            item.totalScore
-                                                                        }
-                                                                    </span>
                                                                 </div>
 
                                                                 <div className="mt-3 space-y-3">
@@ -1328,10 +1373,10 @@ export default function BattlePreviewPage() {
                                             )}
                                         </div>
 
-                                        <div className="grid gap-4 lg:grid-cols-2">
+                                        <div className="grid gap-3">
                                             <div className="rounded bg-gray-50 p-4">
                                                 <h3 className="font-bold">
-                                                    物理火力 A 上位3匹
+                                                    物理火力 A Top3
                                                 </h3>
                                                 {renderPokemonIconRanking(
                                                     opponentAnalysis.attackTop3,
@@ -1341,7 +1386,7 @@ export default function BattlePreviewPage() {
 
                                             <div className="rounded bg-gray-50 p-4">
                                                 <h3 className="font-bold">
-                                                    特殊火力 C 上位3匹
+                                                    特殊火力 C Top3
                                                 </h3>
                                                 {renderPokemonIconRanking(
                                                     opponentAnalysis.specialAttackTop3,
@@ -1351,14 +1396,16 @@ export default function BattlePreviewPage() {
                                         </div>
 
                                         <div className="rounded bg-gray-50 p-4">
-                                            <h3 className="font-bold">
-                                                火力傾向
-                                            </h3>
-                                            <p className="mt-1 text-sm text-gray-700">
-                                                {
-                                                    opponentAnalysis.attackBiasLabel
-                                                }
-                                            </p>
+                                            <div className="flex items-center justify-between gap-4">
+                                                <h3 className="font-bold">
+                                                    火力傾向
+                                                </h3>
+                                                <p className="text-sm text-gray-700">
+                                                    {
+                                                        opponentAnalysis.attackBiasLabel
+                                                    }
+                                                </p>
+                                            </div>
 
                                             {renderRatioBar(
                                                 "攻撃",
@@ -1368,10 +1415,10 @@ export default function BattlePreviewPage() {
                                             )}
                                         </div>
 
-                                        <div className="grid gap-4 lg:grid-cols-2">
+                                        <div className="grid gap-3">
                                             <div className="rounded bg-gray-50 p-4">
                                                 <h3 className="font-bold">
-                                                    物理耐久 B 上位3匹
+                                                    物理耐久 B Top3
                                                 </h3>
                                                 {renderPokemonIconRanking(
                                                     opponentAnalysis.defenseTop3,
@@ -1381,7 +1428,7 @@ export default function BattlePreviewPage() {
 
                                             <div className="rounded bg-gray-50 p-4">
                                                 <h3 className="font-bold">
-                                                    特殊耐久 D 上位3匹
+                                                    特殊耐久 D Top3
                                                 </h3>
                                                 {renderPokemonIconRanking(
                                                     opponentAnalysis.specialDefenseTop3,
@@ -1391,14 +1438,16 @@ export default function BattlePreviewPage() {
                                         </div>
 
                                         <div className="rounded bg-gray-50 p-4">
-                                            <h3 className="font-bold">
-                                                耐久傾向
-                                            </h3>
-                                            <p className="mt-1 text-sm text-gray-700">
-                                                {
-                                                    opponentAnalysis.defenseBiasLabel
-                                                }
-                                            </p>
+                                            <div className="flex items-center justify-between gap-4">
+                                                <h3 className="font-bold">
+                                                    耐久傾向
+                                                </h3>
+                                                <p className="text-sm text-gray-700">
+                                                    {
+                                                        opponentAnalysis.defenseBiasLabel
+                                                    }
+                                                </p>
+                                            </div>
 
                                             {renderRatioBar(
                                                 "防御",
