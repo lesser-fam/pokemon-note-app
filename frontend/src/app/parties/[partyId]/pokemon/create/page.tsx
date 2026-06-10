@@ -8,6 +8,7 @@ import {
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
 import { BattleMasterTextSelector } from "@/features/master/components/BattleMasterTextSelector";
+import { EffortValueEditor } from "@/features/partyPokemon/components/EffortValueEditor";
 import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { NatureSelector } from "@/features/master/components/NatureSelector";
 import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
@@ -211,48 +212,6 @@ export default function CreatePartyPokemonPage() {
 
     const toNumber = (value: string) => {
         return Number(value || 0);
-    };
-
-    type NatureStatKey = "h" | "a" | "b" | "c" | "d" | "s";
-
-    type NatureAdjustment = "up" | "down" | null;
-
-    const getNatureAdjustment = (statKey: NatureStatKey): NatureAdjustment => {
-        if (selectedNatureMaster?.increased_stat === statKey) {
-            return "up";
-        }
-
-        if (selectedNatureMaster?.decreased_stat === statKey) {
-            return "down";
-        }
-
-        return null;
-    };
-
-    const getNatureAdjustmentLabel = (adjustment: NatureAdjustment): string => {
-        if (adjustment === "up") {
-            return "↑";
-        }
-
-        if (adjustment === "down") {
-            return "↓";
-        }
-
-        return "";
-    };
-
-    const getNatureAdjustmentClassName = (
-        adjustment: NatureAdjustment,
-    ): string => {
-        if (adjustment === "up") {
-            return "text-red-600";
-        }
-
-        if (adjustment === "down") {
-            return "text-blue-600";
-        }
-
-        return "text-gray-700";
     };
 
     const effortValueTotal =
@@ -755,99 +714,30 @@ export default function CreatePartyPokemonPage() {
                                 </div>
                             </div>
 
-                            <div>
-                                <p className="text-sm font-medium">努力値</p>
+                            <EffortValueEditor
+                                values={{
+                                    h: evH,
+                                    a: evA,
+                                    b: evB,
+                                    c: evC,
+                                    d: evD,
+                                    s: evS,
+                                }}
+                                limits={effortValueLimits}
+                                nature={selectedNatureMaster}
+                                onChange={(statKey, value) => {
+                                    const setterMap = {
+                                        h: setEvH,
+                                        a: setEvA,
+                                        b: setEvB,
+                                        c: setEvC,
+                                        d: setEvD,
+                                        s: setEvS,
+                                    };
 
-                                <p
-                                    className={`mt-1 text-[10px] ${
-                                        effortValueTotal >
-                                        effortValueLimits.totalLimit
-                                            ? "text-red-600"
-                                            : "text-gray-500"
-                                    }`}
-                                >
-                                    合計 {effortValueTotal} /{" "}
-                                    {effortValueLimits.totalLimit}
-                                </p>
-
-                                <p className="mt-1 text-[10px] text-gray-500">
-                                    赤↑：上昇 / 青↓：下降
-                                </p>
-
-                                {effortValueTotal >
-                                    effortValueLimits.totalLimit && (
-                                    <p className="mt-1 text-[10px] text-red-600">
-                                        上限を超えています。
-                                    </p>
-                                )}
-
-                                <div className="mt-3 space-y-2">
-                                    {[
-                                        ["h", "H", evH, setEvH],
-                                        ["a", "A", evA, setEvA],
-                                        ["b", "B", evB, setEvB],
-                                        ["c", "C", evC, setEvC],
-                                        ["d", "D", evD, setEvD],
-                                        ["s", "S", evS, setEvS],
-                                    ].map(([statKey, label, value, setter]) => {
-                                        const adjustment = getNatureAdjustment(
-                                            statKey as NatureStatKey,
-                                        );
-
-                                        return (
-                                            <div
-                                                key={statKey as string}
-                                                className="flex items-center gap-2"
-                                            >
-                                                <label
-                                                    className={`w-6 text-xs font-bold ${getNatureAdjustmentClassName(
-                                                        adjustment,
-                                                    )}`}
-                                                >
-                                                    {label as string}
-                                                    {getNatureAdjustmentLabel(
-                                                        adjustment,
-                                                    )}
-                                                </label>
-
-                                                <input
-                                                    type="text"
-                                                    inputMode="numeric"
-                                                    className="w-16 rounded border px-2 py-1.5 text-right text-sm"
-                                                    value={value as string}
-                                                    onChange={(event) => {
-                                                        const nextValue =
-                                                            event.target.value;
-
-                                                        if (
-                                                            !/^\d*$/.test(
-                                                                nextValue,
-                                                            )
-                                                        ) {
-                                                            return;
-                                                        }
-
-                                                        if (
-                                                            toNumber(
-                                                                nextValue,
-                                                            ) >
-                                                            effortValueLimits.singleLimit
-                                                        ) {
-                                                            return;
-                                                        }
-
-                                                        (
-                                                            setter as (
-                                                                value: string,
-                                                            ) => void
-                                                        )(nextValue);
-                                                    }}
-                                                />
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+                                    setterMap[statKey](value);
+                                }}
+                            />
 
                             <div>
                                 <p className="text-xs text-gray-500">
