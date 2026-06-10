@@ -610,7 +610,7 @@ export default function CreatePartyVersionPage() {
         return (
             <>
                 <AppHeader />
-                <main className="mx-auto max-w-7xl p-6">
+                <main className="mx-auto w-full max-w-7xl p-6">
                     <p className="rounded bg-red-100 p-3 text-red-700">
                         パーティIDが正しくありません。
                     </p>
@@ -623,7 +623,7 @@ export default function CreatePartyVersionPage() {
         return (
             <>
                 <AppHeader />
-                <main className="mx-auto max-w-7xl p-6">
+                <main className="mx-auto w-full max-w-7xl p-6">
                     <p>読み込み中...</p>
                 </main>
             </>
@@ -634,7 +634,7 @@ export default function CreatePartyVersionPage() {
         return (
             <>
                 <AppHeader />
-                <main className="mx-auto max-w-7xl p-6">
+                <main className="mx-auto w-full max-w-7xl p-6">
                     <p className="rounded bg-red-100 p-3 text-red-700">
                         パーティが見つかりません。
                     </p>
@@ -658,7 +658,7 @@ export default function CreatePartyVersionPage() {
         <>
             <AppHeader />
 
-            <main className="mx-auto max-w-7xl p-6">
+            <main className="mx-auto w-full max-w-7xl p-6">
                 <Link
                     href={`/parties/${party.id}`}
                     className="text-sm text-blue-600"
@@ -671,7 +671,7 @@ export default function CreatePartyVersionPage() {
                     現在のパーティを元に、6匹を調整して新しいバージョンとして保存します。
                 </p>
 
-                <form onSubmit={handleSubmit} className="mt-8 space-y-8">
+                <form onSubmit={handleSubmit} className="mt-8 w-full space-y-8">
                     <section className="rounded border p-6">
                         <h2 className="text-lg font-bold">変更メモ</h2>
                         <textarea
@@ -685,7 +685,7 @@ export default function CreatePartyVersionPage() {
                         />
                     </section>
 
-                    <section className="rounded border p-6">
+                    <section className="w-full rounded border p-6">
                         <div className="flex flex-wrap items-center justify-between gap-4">
                             <div>
                                 <div className="flex flex-wrap items-center gap-3">
@@ -800,7 +800,7 @@ export default function CreatePartyVersionPage() {
                         {editingPokemon && editingPokemonIndex !== null && (
                             <div
                                 ref={pokemonEditorSectionRef}
-                                className="mt-5 scroll-mt-4 rounded border bg-gray-50 p-5"
+                                className="mt-5 w-full min-w-0 scroll-mt-4 rounded border bg-gray-50 p-5"
                             >
                                 <div className="flex items-center justify-between gap-4">
                                     <div>
@@ -826,8 +826,8 @@ export default function CreatePartyVersionPage() {
                                     </button>
                                 </div>
 
-                                <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,17rem)_8rem_minmax(0,22rem)_minmax(0,1fr)]">
-                                    <div className="space-y-4">
+                                <div className="mt-4 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,17rem)_8rem_minmax(0,22rem)_minmax(0,1fr)]">
+                                    <div className="min-w-0 space-y-4">
                                         <div>
                                             <label className="block text-sm font-medium">
                                                 ニックネーム・表示名
@@ -968,7 +968,7 @@ export default function CreatePartyVersionPage() {
                                         </div>
                                     </div>
 
-                                    <div>
+                                    <div className="min-w-0">
                                         <p className="text-sm font-medium">
                                             努力値
                                         </p>
@@ -1055,7 +1055,7 @@ export default function CreatePartyVersionPage() {
                                         </div>
                                     </div>
 
-                                    <div>
+                                    <div className="min-w-0">
                                         <p className="text-xs text-gray-500">
                                             候補から技を選ぶと、攻撃技のタイプが自動設定されます。
                                         </p>
@@ -1172,7 +1172,7 @@ export default function CreatePartyVersionPage() {
                                         </div>
                                     </div>
 
-                                    <div>
+                                    <div className="min-w-0">
                                         <label className="block text-sm font-medium">
                                             メモ
                                         </label>
