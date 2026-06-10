@@ -1,7 +1,7 @@
 "use client";
 
 import { api, getCsrfCookie } from "@/lib/api";
-import axios from "axios";
+import { getApiErrorMessage } from "@/utils/apiError";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -37,23 +37,9 @@ export default function RegisterPage() {
         } catch (error) {
             console.error(error);
 
-            if (axios.isAxiosError(error) && error.response?.status === 422) {
-                const errors = error.response.data.errors;
-
-                const firstMessage = Object.values(errors)
-                    .flat()
-                    .find((message) => typeof message === "string");
-
-                setErrorMessage(
-                    typeof firstMessage === "string"
-                        ? firstMessage
-                        : "入力内容を確認してください。",
-                );
-
-                return;
-            }
-
-            setErrorMessage("ユーザー登録に失敗しました。");
+            setErrorMessage(
+                getApiErrorMessage(error, "ユーザー登録に失敗しました。"),
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -70,7 +56,11 @@ export default function RegisterPage() {
                     </p>
                 </div>
 
-                <form onSubmit={handleRegister} className="space-y-4">
+                <form
+                    onSubmit={handleRegister}
+                    className="space-y-4"
+                    noValidate
+                >
                     <div>
                         <label className="block text-sm font-medium">
                             名前
@@ -135,7 +125,7 @@ export default function RegisterPage() {
                     </div>
 
                     {errorMessage && (
-                        <p className="rounded bg-red-100 p-3 text-sm text-red-700">
+                        <p className="mt-4 rounded bg-red-100 p-3 text-sm text-red-700">
                             {errorMessage}
                         </p>
                     )}

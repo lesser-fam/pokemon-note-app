@@ -4,6 +4,7 @@ import { api, getCsrfCookie } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -30,7 +31,8 @@ export default function LoginPage() {
             router.push("/parties");
         } catch (error) {
             console.error(error);
-            setMessage("ログイン失敗");
+
+            setMessage(getApiErrorMessage(error, "ログインに失敗しました。"));
         }
     };
 
@@ -44,7 +46,7 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4" noValidate>
                     <div>
                         <label className="block text-sm font-medium">
                             メールアドレス
@@ -73,6 +75,12 @@ export default function LoginPage() {
                         />
                     </div>
 
+                    {message && (
+                        <p className="mt-4 rounded bg-red-100 p-3 text-sm text-red-700">
+                            {message}
+                        </p>
+                    )}
+
                     <button
                         type="submit"
                         className="w-full rounded bg-black px-4 py-3 text-white"
@@ -80,12 +88,6 @@ export default function LoginPage() {
                         ログイン
                     </button>
                 </form>
-
-                {message && (
-                    <p className="mt-4 rounded bg-gray-50 p-3 text-sm text-gray-700">
-                        {message}
-                    </p>
-                )}
 
                 <p className="mt-6 text-center text-sm text-gray-600">
                     アカウントを持っていない場合は
