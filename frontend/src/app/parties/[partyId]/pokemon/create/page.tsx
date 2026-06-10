@@ -12,6 +12,7 @@ import { EffortValueEditor } from "@/features/partyPokemon/components/EffortValu
 import { MoveListEditor } from "@/features/partyPokemon/components/MoveListEditor";
 import { NatureSelector } from "@/features/master/components/NatureSelector";
 import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
+import { RoleTagSelector } from "@/features/partyPokemon/components/RoleTagSelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import type { NatureMaster } from "@/types/battleMaster";
@@ -816,88 +817,11 @@ export default function CreatePartyPokemonPage() {
                     </section>
 
                     <section className="rounded border bg-white p-5">
-                        <h2 className="text-lg font-bold">役割タグ</h2>
-
-                        <p className="mt-1 text-sm text-gray-600">
-                            このポケモンの主な役割を3個まで選べます。(タグにマウスを重ねて説明表示)
-                        </p>
-                        <p className="mt-1 text-xs text-gray-500">
-                            タグを付けすぎると、おすすめ選出の点数が偏るため、重要な役割だけを選んでください。
-                        </p>
-
-                        <p className="mt-2 text-xs font-medium text-gray-600">
-                            選択中：
-                            {selectedRoleTagIds.length} / 3
-                        </p>
-
-                        <div className="mt-4 flex flex-wrap gap-3">
-                            {roleTags.map((tag) => {
-                                const isSelected = selectedRoleTagIds.includes(
-                                    tag.id,
-                                );
-
-                                return (
-                                    <div
-                                        key={tag.id}
-                                        className="group relative"
-                                    >
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleToggleRoleTag(tag.id)
-                                            }
-                                            className={`rounded-full border px-4 py-2 text-sm ${
-                                                isSelected
-                                                    ? "border-black bg-black text-white"
-                                                    : "bg-white hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            {tag.name}
-                                        </button>
-
-                                        <div
-                                            id={`role-tag-${tag.id}-description`}
-                                            role="tooltip"
-                                            className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 hidden w-72 -translate-x-1/2 rounded bg-gray-900 p-3 text-left text-xs leading-relaxed text-white shadow-lg group-hover:block"
-                                        >
-                                            <p className="font-semibold">
-                                                {tag.name}
-                                            </p>
-
-                                            <p className="mt-1">
-                                                {tag.description}
-                                            </p>
-
-                                            {tag.examples &&
-                                                tag.examples.length > 0 && (
-                                                    <div className="mt-2">
-                                                        <p className="font-semibold">
-                                                            例
-                                                        </p>
-
-                                                        <ul className="mt-1 space-y-0.5">
-                                                            {tag.examples.map(
-                                                                (example) => (
-                                                                    <li
-                                                                        key={
-                                                                            example
-                                                                        }
-                                                                    >
-                                                                        ・
-                                                                        {
-                                                                            example
-                                                                        }
-                                                                    </li>
-                                                                ),
-                                                            )}
-                                                        </ul>
-                                                    </div>
-                                                )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                        <RoleTagSelector
+                            roleTags={roleTags}
+                            selectedRoleTagIds={selectedRoleTagIds}
+                            onToggle={handleToggleRoleTag}
+                        />
                     </section>
 
                     {errorMessage && (
