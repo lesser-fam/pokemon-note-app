@@ -9,6 +9,7 @@ import {
     createSelectionTemplate,
     deleteSelectionTemplate,
 } from "@/features/selectionTemplates/api/selectionTemplateApi";
+import { RegisteredPartyPokemonCard } from "@/features/parties/components/RegisteredPartyPokemonCard";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
@@ -57,7 +58,7 @@ export default function PartyDetailPage() {
 
     if (isInvalidPartyId) {
         return (
-            <main className="mx-auto max-w-5x1 p-8">
+            <main className="mx-auto max-w-7xl p-8">
                 <p className="rounded bg-red-100 p-3 text-red-700">
                     パーティIDが正しくありません。
                 </p>
@@ -83,7 +84,7 @@ export default function PartyDetailPage() {
             <>
                 <AppHeader />
 
-                <main className="mx-auto max-w-5xl p-8">
+                <main className="mx-auto max-w-7xl p-8">
                     <p>読み込み中...</p>
                 </main>
             </>
@@ -95,7 +96,7 @@ export default function PartyDetailPage() {
             <>
                 <AppHeader />
 
-                <main className="mx-auto max-w-5xl p-8">
+                <main className="mx-auto max-w-7xl p-8">
                     <p className="rounded bg-red-100 p-3 text-red-700">
                         {errorMessage || "パーティが見つかりません。"}
                     </p>
@@ -220,7 +221,7 @@ export default function PartyDetailPage() {
         <>
             <AppHeader />
 
-            <main className="mx-auto max-w-5xl p-8">
+            <main className="mx-auto max-w-7xl p-8">
                 <Link href="/parties" className="text-sm text-blue-600">
                     ← パーティ一覧へ戻る
                 </Link>
@@ -652,7 +653,7 @@ export default function PartyDetailPage() {
                         </p>
                     )}
 
-                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                         {party.current_version?.pokemon &&
                         party.current_version.pokemon.length > 0 ? (
                             party.current_version.pokemon.map((pokemon) => {
@@ -662,141 +663,21 @@ export default function PartyDetailPage() {
                                 );
 
                                 return (
-                                    <div
+                                    <RegisteredPartyPokemonCard
                                         key={pokemon.id}
-                                        className="rounded border p-4"
-                                    >
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex items-center gap-4">
-                                                {pokemonMaster?.image_url ? (
-                                                    <img
-                                                        src={
-                                                            pokemonMaster.image_url
-                                                        }
-                                                        alt={pokemonMaster.name}
-                                                        className="h-20 w-20 object-contain"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-20 w-20 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
-                                                        ?
-                                                    </div>
-                                                )}
-
-                                                <div>
-                                                    <p className="text-lg font-bold">
-                                                        {pokemon.nickname ||
-                                                            pokemonMaster?.name ||
-                                                            pokemon.pokemon_key}
-                                                    </p>
-
-                                                    {pokemonMaster && (
-                                                        <p className="mt-1 text-sm text-gray-600">
-                                                            {pokemonMaster.types.join(
-                                                                " / ",
-                                                            )}
-                                                        </p>
-                                                    )}
-
-                                                    <p className="mt-1 text-xs text-gray-400">
-                                                        key:{" "}
-                                                        {pokemon.pokemon_key} /
-                                                        form: {pokemon.form_key}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {canRemoveInitialPokemon && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        handleRemoveInitialPokemon(
-                                                            pokemon.id,
-                                                        )
-                                                    }
-                                                    disabled={
-                                                        deletingPartyPokemonId ===
-                                                        pokemon.id
-                                                    }
-                                                    className="shrink-0 rounded border border-red-300 px-3 py-1 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
-                                                >
-                                                    {deletingPartyPokemonId ===
-                                                    pokemon.id
-                                                        ? "処理中..."
-                                                        : "外す"}
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        <div className="mt-4 grid gap-2 text-sm text-gray-700">
-                                            {pokemon.item && (
-                                                <p>持ち物：{pokemon.item}</p>
-                                            )}
-                                            {pokemon.ability && (
-                                                <p>特性：{pokemon.ability}</p>
-                                            )}
-                                            {pokemon.nature && (
-                                                <p>性格：{pokemon.nature}</p>
-                                            )}
-                                        </div>
-
-                                        <div className="mt-4 text-sm text-gray-700">
-                                            <p className="font-medium">技</p>
-
-                                            <ul className="mt-2 space-y-1">
-                                                {[
-                                                    {
-                                                        name: pokemon.move_1,
-                                                        type: pokemon.move_1_type,
-                                                    },
-                                                    {
-                                                        name: pokemon.move_2,
-                                                        type: pokemon.move_2_type,
-                                                    },
-                                                    {
-                                                        name: pokemon.move_3,
-                                                        type: pokemon.move_3_type,
-                                                    },
-                                                    {
-                                                        name: pokemon.move_4,
-                                                        type: pokemon.move_4_type,
-                                                    },
-                                                ]
-                                                    .filter((move) => move.name)
-                                                    .map((move) => (
-                                                        <li
-                                                            key={`${move.name}-${move.type}`}
-                                                            className="flex flex-wrap items-center gap-2"
-                                                        >
-                                                            <span>
-                                                                {move.name}
-                                                            </span>
-
-                                                            {move.type && (
-                                                                <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
-                                                                    {move.type}
-                                                                </span>
-                                                            )}
-                                                        </li>
-                                                    ))}
-                                            </ul>
-                                        </div>
-
-                                        {pokemon.role_tags &&
-                                            pokemon.role_tags.length > 0 && (
-                                                <div className="mt-4 flex flex-wrap gap-2">
-                                                    {pokemon.role_tags.map(
-                                                        (tag) => (
-                                                            <span
-                                                                key={tag.id}
-                                                                className="rounded bg-gray-100 px-2 py-1 text-xs"
-                                                            >
-                                                                {tag.name}
-                                                            </span>
-                                                        ),
-                                                    )}
-                                                </div>
-                                            )}
-                                    </div>
+                                        partyPokemon={pokemon}
+                                        pokemonMaster={pokemonMaster}
+                                        canRemove={canRemoveInitialPokemon}
+                                        isRemoving={
+                                            deletingPartyPokemonId ===
+                                            pokemon.id
+                                        }
+                                        onRemove={() =>
+                                            handleRemoveInitialPokemon(
+                                                pokemon.id,
+                                            )
+                                        }
+                                    />
                                 );
                             })
                         ) : (
