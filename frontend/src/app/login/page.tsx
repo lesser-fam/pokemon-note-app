@@ -8,8 +8,8 @@ import { FormEvent, useState } from "react";
 export default function LoginPage() {
     const router = useRouter();
 
-    const [email, setEmail] = useState("test@example.com");
-    const [password, setPassword] = useState("password");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
 
     const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
@@ -51,8 +51,10 @@ export default function LoginPage() {
                         </label>
                         <input
                             className="mt-1 w-full rounded border p-3"
+                            type="email"
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
+                            autoComplete="email"
                         />
                     </div>
 
@@ -67,6 +69,7 @@ export default function LoginPage() {
                             onChange={(event) =>
                                 setPassword(event.target.value)
                             }
+                            autoComplete="current-password"
                         />
                     </div>
 
