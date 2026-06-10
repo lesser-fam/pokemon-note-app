@@ -39,7 +39,7 @@ export default function PartiesPage() {
         <>
             <AppHeader />
 
-            <main className="mx-auto max-w-5xl p-8">
+            <main className="mx-auto max-w-7xl p-8">
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">パーティ一覧</h1>
@@ -78,7 +78,7 @@ export default function PartiesPage() {
                         <Link
                             key={party.id}
                             href={`/parties/${party.id}`}
-                            className="block rounded border bg-white p-5 transition hover:bg-gray-50"
+                            className="flex min-h-64 flex-col rounded border bg-white p-5 transition hover:bg-gray-50"
                         >
                             <div className="flex flex-wrap items-center gap-2">
                                 <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
@@ -92,21 +92,52 @@ export default function PartiesPage() {
                                 )}
                             </div>
 
-                            <h2 className="mt-3 wrap-break-word text-lg font-bold">
+                            <h2
+                                className="mt-3 truncate text-lg font-bold"
+                                title={party.name}
+                            >
                                 {party.name}
                             </h2>
 
                             {party.concept && (
-                                <p className="mt-3 wrap-break-word text-sm text-gray-700">
-                                    {party.concept}
-                                </p>
+                                <div className="mt-4">
+                                    <p className="text-xs font-semibold text-gray-400">
+                                        コンセプト
+                                    </p>
+
+                                    <p
+                                        className="mt-1 line-clamp-2 break-word text-sm text-gray-700"
+                                        title={party.concept}
+                                    >
+                                        {party.concept}
+                                    </p>
+                                </div>
                             )}
 
                             {party.memo && (
-                                <p className="mt-2 wrap-break-word text-sm text-gray-500">
-                                    {party.memo}
+                                <div className="mt-3">
+                                    <p className="text-xs font-semibold text-gray-400">
+                                        メモ
+                                    </p>
+
+                                    <p
+                                        className="mt-1 line-clamp-2 break-word text-sm text-gray-500"
+                                        title={party.memo}
+                                    >
+                                        {party.memo}
+                                    </p>
+                                </div>
+                            )}
+
+                            {!party.concept && !party.memo && (
+                                <p className="mt-4 text-sm text-gray-400">
+                                    コンセプト・メモは未登録です。
                                 </p>
                             )}
+
+                            <p className="mt-auto pt-5 text-right text-sm font-medium text-blue-600">
+                                詳細を見る →
+                            </p>
                         </Link>
                     ))}
                 </div>
