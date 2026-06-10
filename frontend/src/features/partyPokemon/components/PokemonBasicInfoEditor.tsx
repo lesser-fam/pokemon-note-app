@@ -4,9 +4,10 @@ import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbil
 import type { NatureMaster } from "@/types/battleMaster";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 
-type PokemonAbilityCandidate = PokemonAbilityWarning["abilities"][number];
+export type PokemonAbilityCandidate =
+    PokemonAbilityWarning["abilities"][number];
 
-type BattleMasterOption = {
+export type BattleMasterOption = {
     id: number;
     key: string;
     name: string;

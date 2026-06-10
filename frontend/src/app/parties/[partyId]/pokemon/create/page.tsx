@@ -7,11 +7,7 @@ import {
     fetchPokemonList,
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
-import { PokemonBasicInfoEditor } from "@/features/partyPokemon/components/PokemonBasicInfoEditor";
-import { EffortValueEditor } from "@/features/partyPokemon/components/EffortValueEditor";
-import { MoveListEditor } from "@/features/partyPokemon/components/MoveListEditor";
-
-import { RoleTagSelector } from "@/features/partyPokemon/components/RoleTagSelector";
+import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import type { NatureMaster } from "@/types/battleMaster";
@@ -628,8 +624,8 @@ export default function CreatePartyPokemonPage() {
                     <section className="rounded border bg-white p-5">
                         <h2 className="text-lg font-bold">型・技情報</h2>
 
-                        <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,17rem)_7rem_minmax(0,20rem)_minmax(0,1fr)] xl:grid-cols-[minmax(0,18rem)_8rem_minmax(0,22rem)_minmax(0,1fr)]">
-                            <PokemonBasicInfoEditor
+                        <div className="mt-4">
+                            <PokemonBuildEditor
                                 pokemonKey={pokemonKey}
                                 formKey={formKey}
                                 nickname={nickname}
@@ -651,6 +647,7 @@ export default function CreatePartyPokemonPage() {
                                 }}
                                 nature={nature}
                                 natureId={natureId}
+                                natureMaster={selectedNatureMaster}
                                 onChangeNatureText={(value) => {
                                     setNature(value);
                                     setNatureId(null);
@@ -661,10 +658,7 @@ export default function CreatePartyPokemonPage() {
                                     setNatureId(option.id);
                                     setSelectedNatureMaster(option);
                                 }}
-                            />
-
-                            <EffortValueEditor
-                                values={{
+                                effortValues={{
                                     h: evH,
                                     a: evA,
                                     b: evB,
@@ -672,9 +666,8 @@ export default function CreatePartyPokemonPage() {
                                     d: evD,
                                     s: evS,
                                 }}
-                                limits={effortValueLimits}
-                                nature={selectedNatureMaster}
-                                onChange={(statKey, value) => {
+                                effortValueLimits={effortValueLimits}
+                                onChangeEffortValue={(statKey, value) => {
                                     const setterMap = {
                                         h: setEvH,
                                         a: setEvA,
@@ -686,9 +679,6 @@ export default function CreatePartyPokemonPage() {
 
                                     setterMap[statKey](value);
                                 }}
-                            />
-
-                            <MoveListEditor
                                 moves={[
                                     {
                                         name: move1,
@@ -711,7 +701,7 @@ export default function CreatePartyPokemonPage() {
                                         type: move4Type,
                                     },
                                 ]}
-                                onChange={(moveIndex, move) => {
+                                onChangeMove={(moveIndex, move) => {
                                     const setterList = [
                                         {
                                             setName: setMove1,
@@ -745,31 +735,13 @@ export default function CreatePartyPokemonPage() {
                                     setter.setId(move.id);
                                     setter.setType(move.type);
                                 }}
+                                memo={memo}
+                                onChangeMemo={setMemo}
+                                roleTags={roleTags}
+                                selectedRoleTagIds={selectedRoleTagIds}
+                                onToggleRoleTag={handleToggleRoleTag}
                             />
-
-                            <div className="mt-5 max-w-4xl">
-                                <label className="block text-sm font-medium">
-                                    メモ
-                                </label>
-
-                                <textarea
-                                    className="mt-1 w-full rounded border p-3"
-                                    value={memo}
-                                    onChange={(event) =>
-                                        setMemo(event.target.value)
-                                    }
-                                    rows={3}
-                                />
-                            </div>
                         </div>
-                    </section>
-
-                    <section className="rounded border bg-white p-5">
-                        <RoleTagSelector
-                            roleTags={roleTags}
-                            selectedRoleTagIds={selectedRoleTagIds}
-                            onToggle={handleToggleRoleTag}
-                        />
                     </section>
 
                     {errorMessage && (

@@ -8,15 +8,9 @@ import {
     fetchPokemonList,
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
-import { PokemonBasicInfoEditor } from "@/features/partyPokemon/components/PokemonBasicInfoEditor";
-import { MoveListEditor } from "@/features/partyPokemon/components/MoveListEditor";
-
-import { RoleTagSelector } from "@/features/partyPokemon/components/RoleTagSelector";
+import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { fetchParty } from "@/features/parties/api/partyApi";
-import {
-    EffortValueEditor,
-    type EffortValueStatKey,
-} from "@/features/partyPokemon/components/EffortValueEditor";
+import type { EffortValueStatKey } from "@/features/partyPokemon/components/EffortValueEditor";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
 import type { NatureMaster } from "@/types/battleMaster";
 import type { Party } from "@/types/party";
@@ -884,8 +878,8 @@ export default function CreatePartyVersionPage() {
                                     </button>
                                 </div>
 
-                                <div className="mt-4 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,17rem)_8rem_minmax(0,22rem)_minmax(0,1fr)]">
-                                    <PokemonBasicInfoEditor
+                                <div className="mt-4">
+                                    <PokemonBuildEditor
                                         pokemonKey={editingPokemon.pokemon_key}
                                         formKey={editingPokemon.form_key}
                                         nickname={editingPokemon.nickname}
@@ -939,6 +933,7 @@ export default function CreatePartyVersionPage() {
                                         }}
                                         nature={editingPokemon.nature}
                                         natureId={editingPokemon.nature_id}
+                                        natureMaster={editingNatureMaster}
                                         onChangeNatureText={(value) => {
                                             updatePokemon(
                                                 editingPokemonIndex,
@@ -965,10 +960,7 @@ export default function CreatePartyVersionPage() {
                                                 option.id,
                                             );
                                         }}
-                                    />
-
-                                    <EffortValueEditor
-                                        values={{
+                                        effortValues={{
                                             h: editingPokemon.ev_h,
                                             a: editingPokemon.ev_a,
                                             b: editingPokemon.ev_b,
@@ -976,18 +968,17 @@ export default function CreatePartyVersionPage() {
                                             d: editingPokemon.ev_d,
                                             s: editingPokemon.ev_s,
                                         }}
-                                        limits={effortValueLimits}
-                                        nature={editingNatureMaster}
-                                        onChange={(statKey, value) => {
+                                        effortValueLimits={effortValueLimits}
+                                        onChangeEffortValue={(
+                                            statKey,
+                                            value,
+                                        ) => {
                                             updatePokemon(
                                                 editingPokemonIndex,
                                                 effortValueFieldMap[statKey],
                                                 Number(value || 0),
                                             );
                                         }}
-                                    />
-
-                                    <MoveListEditor
                                         moves={[
                                             {
                                                 name: editingPokemon.move_1,
@@ -1010,7 +1001,7 @@ export default function CreatePartyVersionPage() {
                                                 type: editingPokemon.move_4_type,
                                             },
                                         ]}
-                                        onChange={(moveIndex, move) => {
+                                        onChangeMove={(moveIndex, move) => {
                                             const fields =
                                                 moveFieldMap[moveIndex];
 
@@ -1036,35 +1027,19 @@ export default function CreatePartyVersionPage() {
                                                 move.type,
                                             );
                                         }}
-                                    />
-
-                                    <div className="min-w-0">
-                                        <label className="block text-sm font-medium">
-                                            メモ
-                                        </label>
-
-                                        <textarea
-                                            className="mt-1 min-h-40 w-full rounded border p-3"
-                                            value={editingPokemon.memo}
-                                            onChange={(event) =>
-                                                updatePokemon(
-                                                    editingPokemonIndex,
-                                                    "memo",
-                                                    event.target.value,
-                                                )
-                                            }
-                                            placeholder="型の意図、選出時の注意点など"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="mt-5 border-t pt-4">
-                                    <RoleTagSelector
+                                        memo={editingPokemon.memo}
+                                        onChangeMemo={(value) =>
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "memo",
+                                                value,
+                                            )
+                                        }
                                         roleTags={roleTags}
                                         selectedRoleTagIds={
                                             editingPokemon.role_tag_ids
                                         }
-                                        onToggle={(roleTagId) =>
+                                        onToggleRoleTag={(roleTagId) =>
                                             toggleRoleTag(
                                                 editingPokemonIndex,
                                                 roleTagId,
