@@ -4,12 +4,14 @@ import { AppHeader } from "@/components/AppHeader";
 import { pokemonTypes } from "@/constants/pokemonTypes";
 import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import {
+    fetchNatureList,
     fetchPokemonList,
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
 import { BattleMasterTextSelector } from "@/features/master/components/BattleMasterTextSelector";
 import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { NatureSelector } from "@/features/master/components/NatureSelector";
+import type { NatureMaster } from "@/types/battleMaster";
 import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
@@ -63,6 +65,10 @@ type EditablePokemon = {
     role_tag_ids: number[];
 };
 
+type NatureStatKey = "h" | "a" | "b" | "c" | "d" | "s";
+
+type NatureAdjustment = "up" | "down" | null;
+
 export default function CreatePartyVersionPage() {
     const router = useRouter();
     const params = useParams<{ partyId: string }>();
@@ -72,6 +78,7 @@ export default function CreatePartyVersionPage() {
     const [party, setParty] = useState<Party | null>(null);
     const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
     const [roleTags, setRoleTags] = useState<RoleTag[]>([]);
+    const [natureList, setNatureList] = useState<NatureMaster[]>([]);
     const [editablePokemonList, setEditablePokemonList] = useState<
         EditablePokemon[]
     >([]);
@@ -99,13 +106,18 @@ export default function CreatePartyVersionPage() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [partyData, pokemonData, roleTagData] = await Promise.all(
-                    [fetchParty(partyId), fetchPokemonList(), fetchRoleTags()],
-                );
+                const [partyData, pokemonData, roleTagData, natureDate] =
+                    await Promise.all([
+                        fetchParty(partyId),
+                        fetchPokemonList(),
+                        fetchRoleTags(),
+                        fetchNatureList("", 100),
+                    ]);
 
                 setParty(partyData);
                 setPokemonList(pokemonData);
                 setRoleTags(roleTagData);
+                setNatureList(natureDate);
 
                 const currentPokemon = partyData.current_version?.pokemon ?? [];
 
@@ -174,6 +186,59 @@ export default function CreatePartyVersionPage() {
             (pokemon) =>
                 pokemon.key === pokemonKey && pokemon.form_key === formKey,
         );
+    };
+
+    const findNatureMaster = (
+        natureId: number | null,
+    ): NatureMaster | undefined => {
+        if (natureId === null) {
+            return undefined;
+        }
+
+        return natureList.find((nature) => nature.id === natureId);
+    };
+
+    const getNatureAdjustment = (
+        pokemon: EditablePokemon,
+        statKey: NatureStatKey,
+    ): NatureAdjustment => {
+        const natureMaster = findNatureMaster(pokemon.nature_id);
+
+        if (natureMaster?.increased_stat === statKey) {
+            return "up";
+        }
+
+        if (natureMaster?.decreased_stat === statKey) {
+            return "down";
+        }
+
+        return null;
+    };
+
+    const getNatureAdjustmentLabel = (adjustment: NatureAdjustment): string => {
+        if (adjustment === "up") {
+            return "↑";
+        }
+
+        if (adjustment === "down") {
+            return "↓";
+        }
+
+        return "";
+    };
+
+    const getNatureAdjustmentClassName = (
+        adjustment: NatureAdjustment,
+    ): string => {
+        if (adjustment === "up") {
+            return "text-red-600";
+        }
+
+        if (adjustment === "down") {
+            return "text-blue-600";
+        }
+
+        return "text-gray-700";
     };
 
     const updatePokemon = (
@@ -989,69 +1054,90 @@ export default function CreatePartyVersionPage() {
                                             / {effortValueLimits.totalLimit}
                                         </p>
 
+                                        <p className="mt-1 text-[10px] text-gray-500">
+                                            赤↑：上昇 / 青↓：下降
+                                        </p>
+
                                         <div className="mt-3 space-y-2">
                                             {(
                                                 [
-                                                    ["ev_h", "H"],
-                                                    ["ev_a", "A"],
-                                                    ["ev_b", "B"],
-                                                    ["ev_c", "C"],
-                                                    ["ev_d", "D"],
-                                                    ["ev_s", "S"],
+                                                    ["ev_h", "h", "H"],
+                                                    ["ev_a", "a", "A"],
+                                                    ["ev_b", "b", "B"],
+                                                    ["ev_c", "c", "C"],
+                                                    ["ev_d", "d", "D"],
+                                                    ["ev_s", "s", "S"],
                                                 ] as const
-                                            ).map(([field, label]) => (
-                                                <div
-                                                    key={field}
-                                                    className="flex items-center gap-2"
-                                                >
-                                                    <label className="w-5 text-xs font-bold">
-                                                        {label}
-                                                    </label>
+                                            ).map(([field, statKey, label]) => {
+                                                const adjustment =
+                                                    getNatureAdjustment(
+                                                        editingPokemon,
+                                                        statKey,
+                                                    );
 
-                                                    <input
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        className="w-16 rounded border px-2 py-1.5 text-right text-sm"
-                                                        value={String(
-                                                            editingPokemon[
-                                                                field
-                                                            ],
-                                                        )}
-                                                        onChange={(event) => {
-                                                            const nextValue =
-                                                                event.target
-                                                                    .value;
+                                                return (
+                                                    <div
+                                                        key={field}
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <label
+                                                            className={`w-6 text-xs font-bold ${getNatureAdjustmentClassName(
+                                                                adjustment,
+                                                            )}`}
+                                                        >
+                                                            {label}
+                                                            {getNatureAdjustmentLabel(
+                                                                adjustment,
+                                                            )}
+                                                        </label>
 
-                                                            if (
-                                                                !/^\d*$/.test(
-                                                                    nextValue,
-                                                                )
-                                                            ) {
-                                                                return;
-                                                            }
+                                                        <input
+                                                            type="text"
+                                                            inputMode="numeric"
+                                                            className="w-16 rounded border px-2 py-1.5 text-right text-sm"
+                                                            value={String(
+                                                                editingPokemon[
+                                                                    field
+                                                                ],
+                                                            )}
+                                                            onChange={(
+                                                                event,
+                                                            ) => {
+                                                                const nextValue =
+                                                                    event.target
+                                                                        .value;
 
-                                                            const numericValue =
-                                                                Number(
-                                                                    nextValue ||
-                                                                        0,
+                                                                if (
+                                                                    !/^\d*$/.test(
+                                                                        nextValue,
+                                                                    )
+                                                                ) {
+                                                                    return;
+                                                                }
+
+                                                                const numericValue =
+                                                                    Number(
+                                                                        nextValue ||
+                                                                            0,
+                                                                    );
+
+                                                                if (
+                                                                    numericValue >
+                                                                    effortValueLimits.singleLimit
+                                                                ) {
+                                                                    return;
+                                                                }
+
+                                                                updatePokemon(
+                                                                    editingPokemonIndex,
+                                                                    field,
+                                                                    numericValue,
                                                                 );
-
-                                                            if (
-                                                                numericValue >
-                                                                effortValueLimits.singleLimit
-                                                            ) {
-                                                                return;
-                                                            }
-
-                                                            updatePokemon(
-                                                                editingPokemonIndex,
-                                                                field,
-                                                                numericValue,
-                                                            );
-                                                        }}
-                                                    />
-                                                </div>
-                                            ))}
+                                                            }}
+                                                        />
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
 
