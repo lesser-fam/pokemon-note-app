@@ -1,7 +1,7 @@
 "use client";
 
 import { AppHeader } from "@/components/AppHeader";
-import { pokemonTypes } from "@/constants/pokemonTypes";
+import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import {
     fetchPokemonList,
@@ -14,7 +14,7 @@ import type { NatureMaster } from "@/types/battleMaster";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { RoleTag } from "@/types/roleTag";
-import { toHiragana } from "@/utils/kana";
+
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -119,22 +119,6 @@ export default function CreatePartyPokemonPage() {
         setAbilityId(null);
     };
 
-    const handleToggleType = (type: string) => {
-        setSelectedTypes((currentTypes) => {
-            if (currentTypes.includes(type)) {
-                return currentTypes.filter(
-                    (currentType) => currentType !== type,
-                );
-            }
-
-            if (currentTypes.length >= 2) {
-                return [currentTypes[1], type];
-            }
-
-            return [...currentTypes, type];
-        });
-    };
-
     const handleToggleRoleTag = (roleTagId: number) => {
         setSelectedRoleTagIds((currentIds) => {
             if (currentIds.includes(roleTagId)) {
@@ -148,33 +132,6 @@ export default function CreatePartyPokemonPage() {
             return [...currentIds, roleTagId];
         });
     };
-
-    const normalizedKeyword = toHiragana(searchKeyword.trim());
-
-    const filteredPokemonList = pokemonList.filter((pokemon) => {
-        const normalizedName = toHiragana(pokemon.name);
-        const normalizedKana = toHiragana(pokemon.kana);
-
-        const matchesKeyword =
-            normalizedKeyword === "" ||
-            normalizedName.includes(normalizedKeyword) ||
-            normalizedKana.includes(normalizedKeyword);
-
-        const matchesTypes =
-            selectedTypes.length === 0 ||
-            selectedTypes.every((type) => pokemon.types.includes(type));
-
-        const isSelectableForm = !isMegaForm(pokemon);
-
-        return isSelectableForm && matchesKeyword && matchesTypes;
-    });
-
-    const hasPokemonFilter =
-        normalizedKeyword !== "" || selectedTypes.length > 0;
-
-    const visiblePokemonList = hasPokemonFilter
-        ? filteredPokemonList
-        : filteredPokemonList.slice(0, 30);
 
     const selectedPokemonMaster = pokemonList.find(
         (pokemon) => pokemon.key === pokemonKey && pokemon.form_key === formKey,
@@ -436,189 +393,51 @@ export default function CreatePartyPokemonPage() {
                             名前・かな・タイプから登録するポケモンを探せます。
                         </p>
 
-                        <div className="mt-4 grid gap-5 lg:grid-cols-[19rem_minmax(0,1fr)]">
-                            <div>
-                                <div>
-                                    <label className="block text-sm font-medium">
-                                        ポケモン名で検索
-                                    </label>
+                        <div className="mt-4">
+                            <PokemonSearchSelector
+                                pokemonList={pokemonList}
+                                searchKeyword={searchKeyword}
+                                onChangeSearchKeyword={setSearchKeyword}
+                                selectedTypes={selectedTypes}
+                                onChangeSelectedTypes={setSelectedTypes}
+                                filterPokemon={(pokemon) =>
+                                    !isMegaForm(pokemon)
+                                }
+                                isPokemonSelected={(pokemon) =>
+                                    pokemon.key === pokemonKey &&
+                                    pokemon.form_key === formKey
+                                }
+                                isPokemonDisabled={isAlreadyRegisteredPokemon}
+                                getPokemonStatusLabel={(pokemon) => {
+                                    if (isAlreadyRegisteredPokemon(pokemon)) {
+                                        return "登録済み";
+                                    }
 
-                                    <input
-                                        className="mt-1 w-full rounded border px-3 py-2"
-                                        value={searchKeyword}
-                                        onChange={(event) =>
-                                            setSearchKeyword(event.target.value)
-                                        }
-                                        placeholder="例：リザードン、りざ、ガブ"
-                                    />
-                                </div>
+                                    if (
+                                        pokemon.key === pokemonKey &&
+                                        pokemon.form_key === formKey
+                                    ) {
+                                        return "選択中";
+                                    }
 
-                                <div className="mt-4">
-                                    <p className="text-sm font-medium">
-                                        タイプで絞り込み
-                                    </p>
+                                    return null;
+                                }}
+                                onSelectPokemon={(pokemon) => {
+                                    if (isAlreadyRegisteredPokemon(pokemon)) {
+                                        return;
+                                    }
 
-                                    <p className="mt-1 text-xs text-gray-500">
-                                        2つ選ぶと、両方のタイプを持つポケモンを表示します。
-                                    </p>
-
-                                    <div className="mt-2 grid grid-cols-6 gap-1">
-                                        {pokemonTypes.map((type) => {
-                                            const isSelected =
-                                                selectedTypes.includes(type);
-
-                                            return (
-                                                <button
-                                                    key={type}
-                                                    type="button"
-                                                    onClick={() =>
-                                                        handleToggleType(type)
-                                                    }
-                                                    className={`whitespace-nowrap rounded-full border px-0.5 py-1 text-[9px] leading-none ${
-                                                        isSelected
-                                                            ? "border-black bg-black text-white"
-                                                            : "hover:bg-gray-50"
-                                                    }`}
-                                                >
-                                                    {type}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-
-                                    {selectedTypes.length > 0 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setSelectedTypes([])}
-                                            className="mt-2 text-xs text-blue-600"
-                                        >
-                                            タイプ絞り込みを解除
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="mt-5 rounded bg-gray-50 p-3">
-                                    <p className="text-xs text-gray-500">
-                                        候補：
-                                        {filteredPokemonList.length}件
-                                        {!hasPokemonFilter &&
-                                            filteredPokemonList.length >
-                                                visiblePokemonList.length &&
-                                            ` / 初期表示 ${visiblePokemonList.length}件`}
-                                    </p>
-
-                                    {!hasPokemonFilter &&
-                                        filteredPokemonList.length && (
-                                            <p className="mt-1 text-[10px] text-gray-400">
-                                                名前またはタイプで絞り込むと、ほかの候補も表示されます。
-                                            </p>
-                                        )}
-
-                                    {pokemonKey ? (
-                                        <p className="mt-1 text-sm font-medium">
-                                            選択中：
-                                            {selectedPokemonMaster?.name ||
-                                                pokemonKey}
-                                        </p>
-                                    ) : (
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            ポケモンを選択してください。
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="max-h-112 overflow-y-auto rounded border bg-gray-50 p-3">
-                                    <div className="grid gap-3 sm:grid-cols-2">
-                                        {visiblePokemonList.map((pokemon) => {
-                                            const isSelected =
-                                                pokemon.key === pokemonKey &&
-                                                pokemon.form_key === formKey;
-
-                                            const isAlreadyRegistered =
-                                                isAlreadyRegisteredPokemon(
-                                                    pokemon,
-                                                );
-
-                                            return (
-                                                <button
-                                                    key={`${pokemon.key}-${pokemon.form_key}`}
-                                                    type="button"
-                                                    disabled={
-                                                        isAlreadyRegistered
-                                                    }
-                                                    onClick={() => {
-                                                        if (
-                                                            isAlreadyRegistered
-                                                        ) {
-                                                            return;
-                                                        }
-
-                                                        handleSelectPokemon(
-                                                            pokemon,
-                                                        );
-                                                    }}
-                                                    className={`rounded border bg-white p-3 text-left transition disabled:cursor-not-allowed ${
-                                                        isAlreadyRegistered
-                                                            ? "opacity-50"
-                                                            : isSelected
-                                                              ? "border-black bg-gray-100 ring-2 ring-black"
-                                                              : "hover:bg-gray-50"
-                                                    }`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        {pokemon.image_url ? (
-                                                            <img
-                                                                src={
-                                                                    pokemon.image_url
-                                                                }
-                                                                alt={
-                                                                    pokemon.name
-                                                                }
-                                                                className="h-14 w-14 object-contain"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm">
-                                                                ?
-                                                            </div>
-                                                        )}
-
-                                                        <div className="min-w-0">
-                                                            <p className="truncate font-bold">
-                                                                {pokemon.name}
-                                                            </p>
-
-                                                            <p className="text-xs text-gray-600">
-                                                                {pokemon.kana}
-                                                            </p>
-
-                                                            <p className="mt-1 text-xs">
-                                                                {pokemon.types.join(
-                                                                    " / ",
-                                                                )}
-                                                            </p>
-
-                                                            {isAlreadyRegistered && (
-                                                                <p className="mt-1 text-xs text-gray-500">
-                                                                    登録済み
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                {filteredPokemonList.length === 0 && (
-                                    <p className="mt-3 rounded bg-gray-50 p-3 text-sm text-gray-600">
-                                        条件に合うポケモンが見つかりません。
-                                    </p>
-                                )}
-                            </div>
+                                    handleSelectPokemon(pokemon);
+                                }}
+                            />
                         </div>
+
+                        {pokemonKey && (
+                            <p className="mt-3 rounded bg-gray-50 p-3 text-sm font-medium">
+                                選択中：
+                                {selectedPokemonMaster?.name || pokemonKey}
+                            </p>
+                        )}
                     </section>
 
                     <section className="rounded border bg-white p-5">
