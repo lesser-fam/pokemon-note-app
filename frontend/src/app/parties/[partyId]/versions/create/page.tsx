@@ -8,10 +8,9 @@ import {
     fetchPokemonList,
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
-import { BattleMasterTextSelector } from "@/features/master/components/BattleMasterTextSelector";
+import { PokemonBasicInfoEditor } from "@/features/partyPokemon/components/PokemonBasicInfoEditor";
 import { MoveListEditor } from "@/features/partyPokemon/components/MoveListEditor";
-import { NatureSelector } from "@/features/master/components/NatureSelector";
-import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
+
 import { RoleTagSelector } from "@/features/partyPokemon/components/RoleTagSelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import {
@@ -886,146 +885,87 @@ export default function CreatePartyVersionPage() {
                                 </div>
 
                                 <div className="mt-4 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,17rem)_8rem_minmax(0,22rem)_minmax(0,1fr)]">
-                                    <div className="min-w-0 space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium">
-                                                ニックネーム・表示名
-                                            </label>
+                                    <PokemonBasicInfoEditor
+                                        pokemonKey={editingPokemon.pokemon_key}
+                                        formKey={editingPokemon.form_key}
+                                        nickname={editingPokemon.nickname}
+                                        onChangeNickname={(value) =>
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "nickname",
+                                                value,
+                                            )
+                                        }
+                                        abilityId={editingPokemon.ability_id}
+                                        onSelectAbility={(selectedAbility) => {
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "ability",
+                                                selectedAbility.name,
+                                            );
 
-                                            <input
-                                                className="mt-1 w-full rounded border px-3 py-2"
-                                                value={editingPokemon.nickname}
-                                                onChange={(event) =>
-                                                    updatePokemon(
-                                                        editingPokemonIndex,
-                                                        "nickname",
-                                                        event.target.value,
-                                                    )
-                                                }
-                                                placeholder="空欄ならポケモン名で表示"
-                                            />
-                                        </div>
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "ability_id",
+                                                selectedAbility.id,
+                                            );
+                                        }}
+                                        item={editingPokemon.item}
+                                        onChangeItemText={(value) => {
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "item",
+                                                value,
+                                            );
 
-                                        <div>
-                                            <label className="block text-sm font-medium">
-                                                特性
-                                            </label>
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "item_id",
+                                                null,
+                                            );
+                                        }}
+                                        onSelectItem={(option) => {
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "item",
+                                                option.name,
+                                            );
 
-                                            <div className="mt-2">
-                                                <PokemonAbilitySelector
-                                                    pokemonKey={
-                                                        editingPokemon.pokemon_key
-                                                    }
-                                                    formKey={
-                                                        editingPokemon.form_key
-                                                    }
-                                                    selectedAbilityId={
-                                                        editingPokemon.ability_id
-                                                    }
-                                                    onSelect={(
-                                                        selectedAbility,
-                                                    ) => {
-                                                        updatePokemon(
-                                                            editingPokemonIndex,
-                                                            "ability",
-                                                            selectedAbility.name,
-                                                        );
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "item_id",
+                                                option.id,
+                                            );
+                                        }}
+                                        nature={editingPokemon.nature}
+                                        natureId={editingPokemon.nature_id}
+                                        onChangeNatureText={(value) => {
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "nature",
+                                                value,
+                                            );
 
-                                                        updatePokemon(
-                                                            editingPokemonIndex,
-                                                            "ability_id",
-                                                            selectedAbility.id,
-                                                        );
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "nature_id",
+                                                null,
+                                            );
+                                        }}
+                                        onSelectNature={(option) => {
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "nature",
+                                                option.name,
+                                            );
 
-                                        <div>
-                                            <label className="block text-sm font-medium">
-                                                持ち物
-                                            </label>
-
-                                            <div className="mt-1">
-                                                <BattleMasterTextSelector
-                                                    resource="item"
-                                                    value={editingPokemon.item}
-                                                    onChangeText={(value) => {
-                                                        updatePokemon(
-                                                            editingPokemonIndex,
-                                                            "item",
-                                                            value,
-                                                        );
-
-                                                        updatePokemon(
-                                                            editingPokemonIndex,
-                                                            "item_id",
-                                                            null,
-                                                        );
-                                                    }}
-                                                    onSelect={(option) => {
-                                                        updatePokemon(
-                                                            editingPokemonIndex,
-                                                            "item",
-                                                            option.name,
-                                                        );
-
-                                                        updatePokemon(
-                                                            editingPokemonIndex,
-                                                            "item_id",
-                                                            option.id,
-                                                        );
-                                                    }}
-                                                    placeholder="持ち物名を検索"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium">
-                                                性格
-                                            </label>
-
-                                            <div className="mt-1">
-                                                <NatureSelector
-                                                    value={
-                                                        editingPokemon.nature
-                                                    }
-                                                    selectedNatureId={
-                                                        editingPokemon.nature_id
-                                                    }
-                                                    onChangeText={(value) => {
-                                                        updatePokemon(
-                                                            editingPokemonIndex,
-                                                            "nature",
-                                                            value,
-                                                        );
-
-                                                        updatePokemon(
-                                                            editingPokemonIndex,
-                                                            "nature_id",
-                                                            null,
-                                                        );
-                                                    }}
-                                                    onSelect={(
-                                                        selectedNature,
-                                                    ) => {
-                                                        updatePokemon(
-                                                            editingPokemonIndex,
-                                                            "nature",
-                                                            selectedNature.name,
-                                                        );
-
-                                                        updatePokemon(
-                                                            editingPokemonIndex,
-                                                            "nature_id",
-                                                            selectedNature.id,
-                                                        );
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                "nature_id",
+                                                option.id,
+                                            );
+                                        }}
+                                    />
 
                                     <EffortValueEditor
                                         values={{
