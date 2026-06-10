@@ -9,7 +9,7 @@ import {
 } from "@/features/master/api/masterApi";
 import { BattleMasterTextSelector } from "@/features/master/components/BattleMasterTextSelector";
 import { EffortValueEditor } from "@/features/partyPokemon/components/EffortValueEditor";
-import { MoveSelector } from "@/features/master/components/MoveSelector";
+import { MoveListEditor } from "@/features/partyPokemon/components/MoveListEditor";
 import { NatureSelector } from "@/features/master/components/NatureSelector";
 import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
@@ -739,149 +739,64 @@ export default function CreatePartyPokemonPage() {
                                 }}
                             />
 
-                            <div>
-                                <p className="text-xs text-gray-500">
-                                    候補から技を選ぶと、攻撃技のタイプが自動設定されます。
-                                </p>
+                            <MoveListEditor
+                                moves={[
+                                    {
+                                        name: move1,
+                                        id: move1Id,
+                                        type: move1Type,
+                                    },
+                                    {
+                                        name: move2,
+                                        id: move2Id,
+                                        type: move2Type,
+                                    },
+                                    {
+                                        name: move3,
+                                        id: move3Id,
+                                        type: move3Type,
+                                    },
+                                    {
+                                        name: move4,
+                                        id: move4Id,
+                                        type: move4Type,
+                                    },
+                                ]}
+                                onChange={(moveIndex, move) => {
+                                    const setterList = [
+                                        {
+                                            setName: setMove1,
+                                            setId: setMove1Id,
+                                            setType: setMove1Type,
+                                        },
+                                        {
+                                            setName: setMove2,
+                                            setId: setMove2Id,
+                                            setType: setMove2Type,
+                                        },
+                                        {
+                                            setName: setMove3,
+                                            setId: setMove3Id,
+                                            setType: setMove3Type,
+                                        },
+                                        {
+                                            setName: setMove4,
+                                            setId: setMove4Id,
+                                            setType: setMove4Type,
+                                        },
+                                    ];
 
-                                <div className="mt-3 space-y-3">
-                                    <div>
-                                        <div className="flex min-h-5 items-center gap-2">
-                                            <label className="text-sm font-medium">
-                                                技1
-                                            </label>
+                                    const setter = setterList[moveIndex];
 
-                                            {move1Type && (
-                                                <span className="rounded-full border bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-700">
-                                                    {move1Type}
-                                                </span>
-                                            )}
-                                        </div>
+                                    if (!setter) {
+                                        return;
+                                    }
 
-                                        <div className="mt-1">
-                                            <MoveSelector
-                                                value={move1}
-                                                onChangeText={(value) => {
-                                                    setMove1(value);
-                                                    setMove1Id(null);
-                                                    setMove1Type("");
-                                                }}
-                                                onSelect={(move) => {
-                                                    setMove1(move.name);
-                                                    setMove1Id(move.id);
-                                                    setMove1Type(
-                                                        move.is_scoring_target
-                                                            ? move.type
-                                                            : "",
-                                                    );
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex min-h-5 items-center gap-2">
-                                            <label className="text-sm font-medium">
-                                                技2
-                                            </label>
-
-                                            {move2Type && (
-                                                <span className="rounded-full border bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-700">
-                                                    {move2Type}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <div className="mt-1">
-                                            <MoveSelector
-                                                value={move2}
-                                                onChangeText={(value) => {
-                                                    setMove2(value);
-                                                    setMove2Id(null);
-                                                    setMove2Type("");
-                                                }}
-                                                onSelect={(move) => {
-                                                    setMove2(move.name);
-                                                    setMove2Id(move.id);
-                                                    setMove2Type(
-                                                        move.is_scoring_target
-                                                            ? move.type
-                                                            : "",
-                                                    );
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex min-h-5 items-center gap-2">
-                                            <label className="text-sm font-medium">
-                                                技3
-                                            </label>
-
-                                            {move3Type && (
-                                                <span className="rounded-full border bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-700">
-                                                    {move3Type}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <div className="mt-1">
-                                            <MoveSelector
-                                                value={move3}
-                                                onChangeText={(value) => {
-                                                    setMove3(value);
-                                                    setMove3Id(null);
-                                                    setMove3Type("");
-                                                }}
-                                                onSelect={(move) => {
-                                                    setMove3(move.name);
-                                                    setMove3Id(move.id);
-                                                    setMove3Type(
-                                                        move.is_scoring_target
-                                                            ? move.type
-                                                            : "",
-                                                    );
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex min-h-5 items-center gap-2">
-                                            <label className="text-sm font-medium">
-                                                技4
-                                            </label>
-
-                                            {move4Type && (
-                                                <span className="rounded-full border bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-700">
-                                                    {move4Type}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <div className="mt-1">
-                                            <MoveSelector
-                                                value={move4}
-                                                onChangeText={(value) => {
-                                                    setMove4(value);
-                                                    setMove4Id(null);
-                                                    setMove4Type("");
-                                                }}
-                                                onSelect={(move) => {
-                                                    setMove4(move.name);
-                                                    setMove4Id(move.id);
-                                                    setMove4Type(
-                                                        move.is_scoring_target
-                                                            ? move.type
-                                                            : "",
-                                                    );
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                    setter.setName(move.name);
+                                    setter.setId(move.id);
+                                    setter.setType(move.type);
+                                }}
+                            />
 
                             <div className="mt-5 max-w-4xl">
                                 <label className="block text-sm font-medium">

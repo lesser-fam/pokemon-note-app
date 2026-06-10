@@ -9,7 +9,7 @@ import {
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
 import { BattleMasterTextSelector } from "@/features/master/components/BattleMasterTextSelector";
-import { MoveSelector } from "@/features/master/components/MoveSelector";
+import { MoveListEditor } from "@/features/partyPokemon/components/MoveListEditor";
 import { NatureSelector } from "@/features/master/components/NatureSelector";
 import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
 import { fetchParty } from "@/features/parties/api/partyApi";
@@ -77,6 +77,29 @@ const effortValueFieldMap: Record<EffortValueStatKey, keyof EditablePokemon> = {
     d: "ev_d",
     s: "ev_s",
 };
+
+const moveFieldMap = [
+    {
+        name: "move_1",
+        id: "move_1_id",
+        type: "move_1_type",
+    },
+    {
+        name: "move_2",
+        id: "move_2_id",
+        type: "move_2_type",
+    },
+    {
+        name: "move_3",
+        id: "move_3_id",
+        type: "move_3_type",
+    },
+    {
+        name: "move_4",
+        id: "move_4_id",
+        type: "move_4_type",
+    },
+] as const;
 
 export default function CreatePartyVersionPage() {
     const router = useRouter();
@@ -1023,122 +1046,56 @@ export default function CreatePartyVersionPage() {
                                         }}
                                     />
 
-                                    <div className="min-w-0">
-                                        <p className="text-xs text-gray-500">
-                                            候補から技を選ぶと、攻撃技のタイプが自動設定されます。
-                                        </p>
+                                    <MoveListEditor
+                                        moves={[
+                                            {
+                                                name: editingPokemon.move_1,
+                                                id: editingPokemon.move_1_id,
+                                                type: editingPokemon.move_1_type,
+                                            },
+                                            {
+                                                name: editingPokemon.move_2,
+                                                id: editingPokemon.move_2_id,
+                                                type: editingPokemon.move_2_type,
+                                            },
+                                            {
+                                                name: editingPokemon.move_3,
+                                                id: editingPokemon.move_3_id,
+                                                type: editingPokemon.move_3_type,
+                                            },
+                                            {
+                                                name: editingPokemon.move_4,
+                                                id: editingPokemon.move_4_id,
+                                                type: editingPokemon.move_4_type,
+                                            },
+                                        ]}
+                                        onChange={(moveIndex, move) => {
+                                            const fields =
+                                                moveFieldMap[moveIndex];
 
-                                        <div className="mt-3 space-y-3">
-                                            {(
-                                                [
-                                                    [
-                                                        "move_1",
-                                                        "move_1_id",
-                                                        "move_1_type",
-                                                    ],
-                                                    [
-                                                        "move_2",
-                                                        "move_2_id",
-                                                        "move_2_type",
-                                                    ],
-                                                    [
-                                                        "move_3",
-                                                        "move_3_id",
-                                                        "move_3_type",
-                                                    ],
-                                                    [
-                                                        "move_4",
-                                                        "move_4_id",
-                                                        "move_4_type",
-                                                    ],
-                                                ] as const
-                                            ).map(
-                                                (
-                                                    [
-                                                        moveField,
-                                                        moveIdField,
-                                                        moveTypeField,
-                                                    ],
-                                                    moveIndex,
-                                                ) => (
-                                                    <div key={moveField}>
-                                                        <div className="flex min-h-5 items-center gap-2">
-                                                            <label className="text-sm font-medium">
-                                                                技
-                                                                {moveIndex + 1}
-                                                            </label>
+                                            if (!fields) {
+                                                return;
+                                            }
 
-                                                            {editingPokemon[
-                                                                moveTypeField
-                                                            ] && (
-                                                                <span className="rounded-full border bg-white px-2 py-0.5 text-[10px] font-medium text-gray-700">
-                                                                    {
-                                                                        editingPokemon[
-                                                                            moveTypeField
-                                                                        ]
-                                                                    }
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                fields.name,
+                                                move.name,
+                                            );
 
-                                                        <div className="mt-1">
-                                                            <MoveSelector
-                                                                value={
-                                                                    editingPokemon[
-                                                                        moveField
-                                                                    ]
-                                                                }
-                                                                onChangeText={(
-                                                                    value,
-                                                                ) => {
-                                                                    updatePokemon(
-                                                                        editingPokemonIndex,
-                                                                        moveField,
-                                                                        value,
-                                                                    );
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                fields.id,
+                                                move.id,
+                                            );
 
-                                                                    updatePokemon(
-                                                                        editingPokemonIndex,
-                                                                        moveIdField,
-                                                                        null,
-                                                                    );
-
-                                                                    updatePokemon(
-                                                                        editingPokemonIndex,
-                                                                        moveTypeField,
-                                                                        "",
-                                                                    );
-                                                                }}
-                                                                onSelect={(
-                                                                    move,
-                                                                ) => {
-                                                                    updatePokemon(
-                                                                        editingPokemonIndex,
-                                                                        moveField,
-                                                                        move.name,
-                                                                    );
-
-                                                                    updatePokemon(
-                                                                        editingPokemonIndex,
-                                                                        moveIdField,
-                                                                        move.id,
-                                                                    );
-
-                                                                    updatePokemon(
-                                                                        editingPokemonIndex,
-                                                                        moveTypeField,
-                                                                        move.is_scoring_target
-                                                                            ? move.type
-                                                                            : "",
-                                                                    );
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                ),
-                                            )}
-                                        </div>
-                                    </div>
+                                            updatePokemon(
+                                                editingPokemonIndex,
+                                                fields.type,
+                                                move.type,
+                                            );
+                                        }}
+                                    />
 
                                     <div className="min-w-0">
                                         <label className="block text-sm font-medium">

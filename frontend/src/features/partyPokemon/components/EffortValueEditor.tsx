@@ -107,7 +107,7 @@ export function EffortValueEditor({
     const hasOverTotalLimit = total > limits.totalLimit;
 
     return (
-        <div className="min-w-0">
+        <div>
             <p className="text-sm font-medium">努力値</p>
 
             <p
