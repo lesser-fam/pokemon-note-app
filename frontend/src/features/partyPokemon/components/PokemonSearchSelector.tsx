@@ -24,6 +24,8 @@ type PokemonSearchSelectorProps = {
     getPokemonStatusLabel?: (pokemon: Pokemon) => string | null;
 
     initialLimit?: number;
+
+    layout?: "wide" | "compact";
 };
 
 export function PokemonSearchSelector({
@@ -38,6 +40,7 @@ export function PokemonSearchSelector({
     isPokemonDisabled = () => false,
     getPokemonStatusLabel = () => null,
     initialLimit = 30,
+    layout = "wide",
 }: PokemonSearchSelectorProps) {
     const handleToggleType = (type: string) => {
         if (selectedTypes.includes(type)) {
@@ -87,8 +90,16 @@ export function PokemonSearchSelector({
         ? filteredPokemonList
         : filteredPokemonList.slice(0, initialLimit);
 
+    const isCompactLayout = layout === "compact";
+
     return (
-        <div className="grid gap-5 lg:grid-cols-[19rem_minmax(0,1fr)]">
+        <div
+            className={
+                isCompactLayout
+                    ? "min-w-0 space-y-4"
+                    : "grid min-w-0 gap-5 lg:grid-cols-[19rem_minmax(0,1fr)]"
+            }
+        >
             <div>
                 <div>
                     <label className="block text-sm font-medium">
@@ -164,9 +175,19 @@ export function PokemonSearchSelector({
                 </div>
             </div>
 
-            <div>
-                <div className="max-h-112 overflow-y-auto rounded border bg-gray-50 p-3">
-                    <div className="grid gap-3 sm:grid-cols-2">
+            <div className="min-w-0">
+                <div
+                    className={`min-w-0 overflow-x-hidden overflow-y-auto rounded border bg-gray-50 ${
+                        isCompactLayout ? "max-h-72 p-2" : "max-h-112 p-3"
+                    }`}
+                >
+                    <div
+                        className={
+                            isCompactLayout
+                                ? "grid min-w-0 grid-cols-2 gap-2"
+                                : "grid min-w-0 gap-3 sm:grid-cols-2"
+                        }
+                    >
                         {visiblePokemonList.map((pokemon) => {
                             const selected = isPokemonSelected(pokemon);
 
@@ -180,7 +201,9 @@ export function PokemonSearchSelector({
                                     type="button"
                                     disabled={disabled}
                                     onClick={() => onSelectPokemon(pokemon)}
-                                    className={`rounded border bg-white p-3 text-left transition disabled:cursor-not-allowed ${
+                                    className={`w-full min-w-0 overflow-hidden rounded border bg-white text-left transition disabled:cursor-not-allowed ${
+                                        isCompactLayout ? "p-2" : "p-3"
+                                    } ${
                                         disabled
                                             ? "opacity-50"
                                             : selected
@@ -188,34 +211,72 @@ export function PokemonSearchSelector({
                                               : "hover:bg-gray-50"
                                     }`}
                                 >
-                                    <div className="flex items-center gap-3">
+                                    <div
+                                        className={`flex min-w-0 items-center ${
+                                            isCompactLayout ? "gap-2" : "gap-3"
+                                        }`}
+                                    >
                                         {pokemon.image_url ? (
                                             <img
                                                 src={pokemon.image_url}
                                                 alt={pokemon.name}
-                                                className="h-14 w-14 shrink-0 object-contain"
+                                                className={`shrink-0 object-contain ${
+                                                    isCompactLayout
+                                                        ? "h-10 w-10"
+                                                        : "h-14 w-14"
+                                                }`}
                                             />
                                         ) : (
-                                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-gray-100 text-sm">
+                                            <div
+                                                className={`flex shrink-0 items-center justify-center rounded bg-gray-100 ${
+                                                    isCompactLayout
+                                                        ? "h-10 w-10 text-xs"
+                                                        : "h-10 w-10 text-sm"
+                                                }`}
+                                            >
                                                 ?
                                             </div>
                                         )}
 
-                                        <div className="min-w-0">
-                                            <p className="truncate font-bold">
+                                        <div className="min-w-0 flex-1">
+                                            <p
+                                                className={`truncate font-bold ${
+                                                    isCompactLayout
+                                                        ? "text-xs"
+                                                        : "text-base"
+                                                }`}
+                                            >
                                                 {pokemon.name}
                                             </p>
 
-                                            <p className="text-xs text-gray-600">
+                                            <p
+                                                className={`truncate text-gray-600 ${
+                                                    isCompactLayout
+                                                        ? "text-[10px]"
+                                                        : "text-xs"
+                                                }`}
+                                            >
                                                 {pokemon.kana}
                                             </p>
 
-                                            <p className="mt-1 text-xs">
+                                            <p
+                                                className={`mt-0.5 truncate ${
+                                                    isCompactLayout
+                                                        ? "text-[10px]"
+                                                        : "mt-1 text-xs"
+                                                }`}
+                                            >
                                                 {pokemon.types.join(" / ")}
                                             </p>
 
                                             {statusLabel && (
-                                                <p className="mt-1 text-xs text-gray-500">
+                                                <p
+                                                    className={`mt-0.5 text-gray-500 ${
+                                                        isCompactLayout
+                                                            ? "text-[10px]"
+                                                            : "mt-1 text-xs"
+                                                    }`}
+                                                >
                                                     {statusLabel}
                                                 </p>
                                             )}

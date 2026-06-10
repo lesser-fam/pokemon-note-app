@@ -1,6 +1,6 @@
 "use client";
 
-import { pokemonTypes } from "@/constants/pokemonTypes";
+import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { OpponentPartyColumn } from "@/features/battlePreview/components/OpponentPartyColumn";
 import { OwnPartyColumn } from "@/features/battlePreview/components/OwnPartyColumn";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
@@ -19,7 +19,7 @@ import { suggestMatchupSelections } from "@/features/selections/utils/suggestMat
 import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
-import { toHiragana } from "@/utils/kana";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -114,22 +114,6 @@ export default function BattlePreviewPage() {
 
         loadPokemonAbilityWarnings();
     }, [opponentPokemonList]);
-
-    const handleToggleType = (type: string) => {
-        setSelectedTypes((currentTypes) => {
-            if (currentTypes.includes(type)) {
-                return currentTypes.filter(
-                    (currentType) => currentType !== type,
-                );
-            }
-
-            if (currentTypes.length >= 2) {
-                return [currentTypes[1], type];
-            }
-
-            return [...currentTypes, type];
-        });
-    };
 
     const resetOtherOpponentMegaForms = (
         currentList: Pokemon[],
@@ -371,31 +355,6 @@ export default function BattlePreviewPage() {
                       "own_special_defense_vs_opponent_special_attack"
                     ? ["c" as const]
                     : [];
-
-    const normalizedKeyword = toHiragana(searchKeyword.trim());
-
-    const filteredPokemonList = pokemonList.filter((pokemon) => {
-        const normalizedName = toHiragana(pokemon.name);
-        const normalizedKana = toHiragana(pokemon.kana);
-
-        const matchesKeyword =
-            normalizedKeyword === "" ||
-            normalizedName.includes(normalizedKeyword) ||
-            normalizedKana.includes(normalizedKeyword);
-
-        const matchesTypes =
-            selectedTypes.length === 0 ||
-            selectedTypes.every((type) => pokemon.types.includes(type));
-
-        return matchesKeyword && matchesTypes;
-    });
-
-    const hasPokemonFilter =
-        normalizedKeyword !== "" || selectedTypes.length > 0;
-
-    const visiblePokemonList = hasPokemonFilter
-        ? filteredPokemonList
-        : filteredPokemonList.slice(0, 30);
 
     const opponentAnalysis = analyzeOpponentParty(opponentPokemonList);
     const opponentWeaknessAnalysis =
@@ -683,164 +642,57 @@ export default function BattlePreviewPage() {
                         </div>
                     </section>
 
-                    <section className="rounded border bg-white p-3">
+                    <section className="rounded border bg-white p-4">
                         <div className="flex items-center justify-between gap-3">
-                            <h2 className="text-base font-bold">
-                                相手ポケモンを探す
-                            </h2>
+                            <div>
+                                <h2 className="text-lg font-bold">
+                                    相手ポケモンを探す
+                                </h2>
 
-                            <p className="text-xs text-gray-500">
-                                相手：
+                                <p className="mt-1 text-xs text-gray-500">
+                                    相手パーティへ追加するポケモンを選択してください。
+                                </p>
+                            </div>
+
+                            <p className="text-sm font-medium text-gray-600">
                                 {opponentPokemonList.length} / 6
                             </p>
                         </div>
 
-                        <div className="mt-2 grid gap-3 md:grid-cols-[10rem_minmax(0,1fr)]">
-                            <div>
-                                <label className="block text-xs font-medium">
-                                    名前で検索
-                                </label>
-
-                                <input
-                                    className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
-                                    value={searchKeyword}
-                                    onChange={(event) =>
-                                        setSearchKeyword(event.target.value)
-                                    }
-                                    placeholder="例：ガブ、りざ"
-                                />
-                            </div>
-
-                            <div>
-                                <div className="flex items-center justify-between gap-2">
-                                    <p className="text-xs font-medium">
-                                        タイプで絞り込み
-                                    </p>
-
-                                    {selectedTypes.length > 0 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setSelectedTypes([])}
-                                            className="text-xs text-blue-600"
-                                        >
-                                            解除
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="mt-1 grid grid-cols-6 gap-1">
-                                    {pokemonTypes.map((type) => {
-                                        const isSelected =
-                                            selectedTypes.includes(type);
-
-                                        return (
-                                            <button
-                                                key={type}
-                                                type="button"
-                                                onClick={() =>
-                                                    handleToggleType(type)
-                                                }
-                                                className={`whitespace-nowrap rounded-full border px-0.5 py-1 text-[9px] leading-none ${
-                                                    isSelected
-                                                        ? "border-black bg-black text-white"
-                                                        : "hover:bg-gray-50"
-                                                }`}
-                                            >
-                                                {type}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-2 flex items-center justify-between gap-3">
-                            <p className="text-xs text-gray-500">
-                                候補：{filteredPokemonList.length}件
-                                {!hasPokemonFilter &&
-                                    filteredPokemonList.length >
-                                        visiblePokemonList.length &&
-                                    ` / 初期表示 ${visiblePokemonList.length}件`}
-                            </p>
-
-                            {!hasPokemonFilter &&
-                                filteredPokemonList.length >
-                                    visiblePokemonList.length && (
-                                    <p className="text-[10px] text-gray-400">
-                                        名前またはタイプで絞り込めます。
-                                    </p>
-                                )}
-                        </div>
-
-                        <div className="mt-2 max-h-44 overflow-y-auto rounded border bg-gray-50 p-2">
-                            <div className="grid gap-2 sm:grid-cols-2">
-                                {visiblePokemonList.map((pokemon) => {
-                                    const isSelected = opponentPokemonList.some(
+                        <div className="mt-4">
+                            <PokemonSearchSelector
+                                layout="compact"
+                                pokemonList={pokemonList}
+                                searchKeyword={searchKeyword}
+                                onChangeSearchKeyword={setSearchKeyword}
+                                selectedTypes={selectedTypes}
+                                onChangeSelectedTypes={setSelectedTypes}
+                                isPokemonSelected={(pokemon) =>
+                                    opponentPokemonList.some(
                                         (selectedPokemon) =>
                                             selectedPokemon.key === pokemon.key,
-                                    );
-
-                                    return (
-                                        <button
-                                            key={`${pokemon.key}-${pokemon.form_key}`}
-                                            type="button"
-                                            onClick={() =>
-                                                handleAddOpponentPokemon(
-                                                    pokemon,
-                                                )
-                                            }
-                                            disabled={
-                                                isSelected ||
-                                                opponentPokemonList.length >= 6
-                                            }
-                                            className={`rounded border bg-white p-2 text-left transition disabled:cursor-not-allowed ${
-                                                isSelected
-                                                    ? "border-black bg-gray-100"
-                                                    : "hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                {pokemon.image_url ? (
-                                                    <img
-                                                        src={pokemon.image_url}
-                                                        alt={pokemon.name}
-                                                        className="h-10 w-10 object-contain"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-100 text-xs">
-                                                        ?
-                                                    </div>
-                                                )}
-
-                                                <div className="min-w-0">
-                                                    <p className="truncate text-sm font-bold">
-                                                        {pokemon.name}
-                                                    </p>
-
-                                                    <p className="truncate text-[10px] text-gray-500">
-                                                        {pokemon.types.join(
-                                                            " / ",
-                                                        )}
-                                                    </p>
-
-                                                    {isSelected && (
-                                                        <p className="text-[10px] font-medium text-gray-600">
-                                                            選択済み
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                                    )
+                                }
+                                isPokemonDisabled={(pokemon) =>
+                                    opponentPokemonList.length >= 6 ||
+                                    opponentPokemonList.some(
+                                        (selectedPokemon) =>
+                                            selectedPokemon.key === pokemon.key,
+                                    )
+                                }
+                                getPokemonStatusLabel={(pokemon) =>
+                                    opponentPokemonList.some(
+                                        (selectedPokemon) =>
+                                            selectedPokemon.key === pokemon.key,
+                                    )
+                                        ? "選択済み"
+                                        : null
+                                }
+                                onSelectPokemon={(pokemon) =>
+                                    handleAddOpponentPokemon(pokemon)
+                                }
+                            />
                         </div>
-
-                        {filteredPokemonList.length === 0 && (
-                            <p className="mt-2 rounded bg-gray-50 p-2 text-xs text-gray-600">
-                                条件に合うポケモンが見つかりません。
-                            </p>
-                        )}
                     </section>
 
                     <section className="rounded border bg-white p-3">
@@ -1159,7 +1011,7 @@ export default function BattlePreviewPage() {
                         </div>
                     </section>
 
-                    <section className="sticky bottom-o z-10 rounded border bg-white/95 p-3 shadow-sm backdrop-blur">
+                    <section className="sticky bottom-0 z-10 rounded border bg-white/95 p-3 shadow-sm backdrop-blur">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
                                 <h2 className="font-bold">選出を決めたら</h2>
