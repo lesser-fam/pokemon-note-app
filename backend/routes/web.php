@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\SelectionTemplateController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/api/login', [AuthController::class, 'login']);
+Route::post('/api/register', [AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/api/logout', [AuthController::class, 'logout']);

@@ -1,6 +1,7 @@
 "use client";
 
 import { api, getCsrfCookie } from "@/lib/api";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
@@ -82,6 +83,13 @@ export default function LoginPage() {
                         {message}
                     </p>
                 )}
+
+                <p className="mt-6 text-center text-sm text-gray-600">
+                    アカウントを持っていない場合は
+                    <Link href="/register" className="ml-1 text-blue-600">
+                        ユーザー登録
+                    </Link>
+                </p>
             </div>
         </main>
     );
