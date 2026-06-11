@@ -303,19 +303,56 @@ export default function PartyDetailPage() {
             [battleLog.opponent_pokemon_6, battleLog.opponent_form_6],
         ].filter(([pokemonKey]) => pokemonKey);
 
+        const selectedOpponents = [
+            [
+                battleLog.selected_opponent_pokemon_1,
+                battleLog.selected_opponent_form_1,
+            ],
+            [
+                battleLog.selected_opponent_pokemon_2,
+                battleLog.selected_opponent_form_2,
+            ],
+            [
+                battleLog.selected_opponent_pokemon_3,
+                battleLog.selected_opponent_form_3,
+            ],
+        ].filter(([pokemonKey]) => pokemonKey);
+
         return (
             <div className="flex flex-wrap gap-1.5">
                 {opponents.map(([pokemonKey, formKey]) => {
+                    const normalizedFormKey = (formKey as string) || "default";
+
                     const pokemonMaster = findPokemonMaster(
                         pokemonKey as string,
-                        (formKey as string) || "default",
+                        normalizedFormKey,
                     );
+
+                    const selectedIndex = selectedOpponents.findIndex(
+                        ([selectedPokemonKey, selectedFormKey]) =>
+                            selectedPokemonKey === pokemonKey &&
+                            ((selectedFormKey as string) || "default") ===
+                                normalizedFormKey,
+                    );
+
+                    const selectionOrder =
+                        selectedIndex >= 0 ? selectedIndex + 1 : null;
 
                     return (
                         <div
                             key={`${pokemonKey}-${formKey}`}
-                            className="flex items-center gap-1 rounded bg-white px-2 py-1 text-xs"
+                            className={`flex items-center gap-1 rounded border px-2 py-1 text-xs ${
+                                selectionOrder
+                                    ? "border-black bg-blue-50"
+                                    : "border-transparent bg-white"
+                            }`}
                         >
+                            {selectionOrder && (
+                                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-black text-[10px] font-semibold text-white">
+                                    {selectionOrder}
+                                </span>
+                            )}
+
                             {pokemonMaster?.image_url && (
                                 <img
                                     src={pokemonMaster.image_url}

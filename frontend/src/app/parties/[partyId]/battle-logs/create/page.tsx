@@ -31,7 +31,7 @@ export default function CreateBattleLogPage() {
         .split(",")
         .map((id) => Number(id))
         .filter((id) => Number.isInteger(id) && id > 0)
-        .slice(0.3);
+        .slice(0, 3);
 
     const partyId = Number(params.partyId);
     const isInvalidPartyId = Number.isNaN(partyId);
@@ -345,6 +345,16 @@ export default function CreateBattleLogPage() {
                                         opponentPokemonKey,
                                     );
 
+                                const selectedIndex =
+                                    selectedOpponentPokemonKeys.indexOf(
+                                        opponentPokemonKey,
+                                    );
+
+                                const selectionOrder =
+                                    selectedIndex >= 0
+                                        ? selectedIndex + 1
+                                        : null;
+
                                 return (
                                     <button
                                         key={`${opponent.key}-${opponent.form_key}`}
@@ -380,9 +390,9 @@ export default function CreateBattleLogPage() {
                                             </p>
                                         )}
 
-                                        {isSelected && (
-                                            <span className="mt-2 inline-block rounded bg-black px-2 py-0.5 text-xs text-white">
-                                                選出
+                                        {selectionOrder && (
+                                            <span className="mt-2 inline-block rounded bg-black px-2 py-0.5 text-xs font-semibold text-white">
+                                                選出 {selectionOrder}
                                             </span>
                                         )}
                                     </button>

@@ -116,6 +116,13 @@ export type BattleLog = {
     selected_pokemon_2_id: number | null;
     selected_pokemon_3_id: number | null;
 
+    selected_opponent_pokemon_1: string | null;
+    selected_opponent_form_1: string | null;
+    selected_opponent_pokemon_2: string | null;
+    selected_opponent_form_2: string | null;
+    selected_opponent_pokemon_3: string | null;
+    selected_opponent_form_3: string | null;
+
     heavy_opponent_key: string | null;
     heavy_opponent_form: string | null;
 
