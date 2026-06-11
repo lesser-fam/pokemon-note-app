@@ -12,6 +12,7 @@ type BattleMasterOption = {
     id: number;
     key: string;
     name: string;
+    description?: string | null;
 };
 
 type BattleMasterTextSelectorProps = {
@@ -106,7 +107,7 @@ export function BattleMasterTextSelector({
             />
 
             {isOpen && (
-                <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded border bg-white shadow-lg">
+                <div className="absolute z-20 mt-1 max-h-64 w-full overflow-x-hidden overflow-y-auto rounded border bg-white shadow-lg">
                     {isLoading ? (
                         <p className="p-3 text-sm text-gray-600">検索中...</p>
                     ) : optionList.length > 0 ? (
@@ -115,9 +116,30 @@ export function BattleMasterTextSelector({
                                 key={option.id}
                                 type="button"
                                 onClick={() => handleSelect(option)}
-                                className="block w-full border-b px-3 py-2 text-left text-sm hover:bg-gray-50"
+                                className="group block w-full border-b px-3 py-2 text-left text-sm hover:bg-gray-50"
                             >
-                                {option.name}
+                                <span className="flex items-center justify-between gap-2">
+                                    <span>{option.name}</span>
+
+                                    {resource === "item" && (
+                                        <span className="ml-2 text-[10px] text-gray-400">
+                                            説明を見る
+                                        </span>
+                                    )}
+                                </span>
+
+                                {resource === "item" && (
+                                    <span className="mt-2 hidden rounded bg-gray-900 p-2 text-[11px] leading-relaxed text-white group-hover:block group-focus:block">
+                                        <span className="block font-semibold">
+                                            {option.name}
+                                        </span>
+
+                                        <span className="mt-1 block">
+                                            {option.description ||
+                                                "説明文は未登録です。"}
+                                        </span>
+                                    </span>
+                                )}
                             </button>
                         ))
                     ) : (
