@@ -123,6 +123,10 @@ export function OwnPartyColumn({
                                         {partyPokemon.item ? (
                                             <ItemTooltip
                                                 name={partyPokemon.item}
+                                                description={
+                                                    partyPokemon.item_master
+                                                        ?.description
+                                                }
                                                 effectRules={
                                                     partyPokemon.item_master
                                                         ?.effect_rules

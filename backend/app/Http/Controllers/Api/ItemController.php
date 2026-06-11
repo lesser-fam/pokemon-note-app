@@ -31,6 +31,7 @@ class ItemController extends Controller
                 'id',
                 'key',
                 'name',
+                'description',
             ]);
 
         return response()->json([

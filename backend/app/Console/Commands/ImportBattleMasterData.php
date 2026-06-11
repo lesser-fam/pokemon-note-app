@@ -171,6 +171,9 @@ class ImportBattleMasterData extends Command
                         $data['names'] ?? [],
                         $data['name'],
                     ),
+                    'description' => $this->getLocalizedItemDescription(
+                        $data['flavor_text_entries'] ?? [],
+                    ),
                 ],
             );
         });
@@ -270,6 +273,48 @@ class ImportBattleMasterData extends Command
         }
 
         return $fallback;
+    }
+
+    /**
+     * 持ち物の短い説明文を取得する。
+     *
+     * 日本語を優先し、見つからなければ英語を使う。
+     * 同じ言語の説明が複数ある場合は、
+     * APIレスポンス内で後ろにあるものを優先する。
+     */
+    private function getLocalizedItemDescription(
+        array $flavorTextEntries,
+    ): ?string {
+        foreach (['ja-Hrkt', 'ja', 'en'] as $languageName) {
+            foreach (array_reverse($flavorTextEntries) as $entry) {
+                if (
+                    ($entry['language']['name'] ?? null) !==
+                    $languageName
+                ) {
+                    continue;
+                }
+
+                $text = trim((string) ($entry['text'] ?? ''));
+
+                if ($text === '') {
+                    continue;
+                }
+
+                return $this->normalizeDescription($text);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * API由来の改行や連続する空白を整理する。
+     */
+    private function normalizeDescription(string $text): string
+    {
+        return trim(
+            preg_replace('/\s+/u', ' ', $text) ?? $text,
+        );
     }
 
     /**
