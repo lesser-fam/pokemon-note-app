@@ -10,7 +10,7 @@ import {
     deleteSelectionTemplate,
 } from "@/features/selectionTemplates/api/selectionTemplateApi";
 import { RegisteredPartyPokemonCard } from "@/features/parties/components/RegisteredPartyPokemonCard";
-import type { Party } from "@/types/party";
+import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -217,6 +217,50 @@ export default function PartyDetailPage() {
         }
     };
 
+    const renderSelectionPokemon = (
+        label: string,
+        partyPokemon?: PartyPokemon | null,
+    ) => {
+        const pokemonMaster = partyPokemon
+            ? findPokemonMaster(partyPokemon.pokemon_key, partyPokemon.form_key)
+            : undefined;
+
+        return (
+            <div className="rounded border bg-gray-50 p-3">
+                <p className="text-xs font-semibold text-gray-500">{label}</p>
+
+                <div className="mt-2 flex items-center gap-2">
+                    {pokemonMaster?.image_url ? (
+                        <img
+                            src={pokemonMaster.image_url}
+                            alt={pokemonMaster.name}
+                            className="h-10 w-10 shrink-0 object-contain"
+                        />
+                    ) : (
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-white text-xs text-gray-500">
+                            ?
+                        </div>
+                    )}
+
+                    <div className="min-w-0">
+                        <p className="truncate text-sm font-bold">
+                            {partyPokemon?.nickname ||
+                                pokemonMaster?.name ||
+                                partyPokemon?.pokemon_key ||
+                                "未設定"}
+                        </p>
+
+                        {pokemonMaster && (
+                            <p className="mt-0.5 truncate text-[11px] text-gray-600">
+                                {pokemonMaster.types.join(" / ")}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <>
             <AppHeader />
@@ -289,337 +333,6 @@ export default function PartyDetailPage() {
                 </div>
 
                 <section className="mt-8 rounded border p-6">
-                    <div className="flex items-start justify-between gap-4">
-                        <div>
-                            <h2 className="text-xl font-bold">
-                                おすすめ基本選出
-                            </h2>
-                            <p className="mt-1 text-sm text-gray-600">
-                                役割タグの点数から、初手・引き先・勝ち筋を仮提案します。
-                            </p>
-                        </div>
-
-                        {currentPokemonList.length >= 3 && (
-                            <button
-                                type="button"
-                                onClick={handleSaveSuggestedSelection}
-                                disabled={isSavingSelection}
-                                className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
-                            >
-                                {isSavingSelection
-                                    ? "保存中..."
-                                    : "この基本選出を保存"}
-                            </button>
-                        )}
-                    </div>
-
-                    {currentPokemonList.length < 3 ? (
-                        <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                            基本選出を提案するには、ポケモンを3匹以上登録してください。
-                        </p>
-                    ) : (
-                        <div className="mt-4 grid gap-4 md:grid-cols-3">
-                            {suggestedSelection.map((suggestion) => {
-                                const pokemonMaster = suggestion.pokemon
-                                    ? findPokemonMaster(
-                                          suggestion.pokemon.pokemon_key,
-                                          suggestion.pokemon.form_key,
-                                      )
-                                    : null;
-
-                                return (
-                                    <div
-                                        key={suggestion.role}
-                                        className="rounded border p-4"
-                                    >
-                                        <p className="text-sm font-semibold text-gray-500">
-                                            {suggestion.label}
-                                        </p>
-
-                                        {suggestion.pokemon ? (
-                                            <>
-                                                <div className="mt-3 flex items-center gap-3">
-                                                    {pokemonMaster?.image_url ? (
-                                                        <img
-                                                            src={
-                                                                pokemonMaster.image_url
-                                                            }
-                                                            alt={
-                                                                pokemonMaster.name
-                                                            }
-                                                            className="h-16 w-16 object-contain"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
-                                                            ?
-                                                        </div>
-                                                    )}
-
-                                                    <div>
-                                                        <p className="font-bold">
-                                                            {suggestion.pokemon
-                                                                .nickname ||
-                                                                pokemonMaster?.name ||
-                                                                suggestion
-                                                                    .pokemon
-                                                                    .pokemon_key}
-                                                        </p>
-
-                                                        {pokemonMaster && (
-                                                            <p className="mt-1 text-xs text-gray-600">
-                                                                {pokemonMaster.types.join(
-                                                                    " / ",
-                                                                )}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                <p className="mt-3 text-sm text-gray-700">
-                                                    {suggestion.reason}
-                                                </p>
-
-                                                <p className="mt-2 text-xs text-gray-500">
-                                                    点数：{suggestion.score}
-                                                </p>
-                                            </>
-                                        ) : (
-                                            <p className="mt-3 text-sm text-gray-600">
-                                                候補がありません。
-                                            </p>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </section>
-
-                <section className="mt-8 rounded border p-6">
-                    <h2 className="text-xl font-bold">保存済み基本選出</h2>
-                    <p className="mt-1 text-sm text-gray-600">
-                        保存した基本選出です。対戦前の選出候補として使います。
-                    </p>
-
-                    {party.current_version?.selection_templates &&
-                    party.current_version.selection_templates.length > 0 ? (
-                        <div className="mt-4 space-y-4">
-                            {party.current_version.selection_templates.map(
-                                (template) => {
-                                    const leadMaster = template.lead_pokemon
-                                        ? findPokemonMaster(
-                                              template.lead_pokemon.pokemon_key,
-                                              template.lead_pokemon.form_key,
-                                          )
-                                        : null;
-
-                                    const switchMaster = template.switch_pokemon
-                                        ? findPokemonMaster(
-                                              template.switch_pokemon
-                                                  .pokemon_key,
-                                              template.switch_pokemon.form_key,
-                                          )
-                                        : null;
-
-                                    const finisherMaster =
-                                        template.finisher_pokemon
-                                            ? findPokemonMaster(
-                                                  template.finisher_pokemon
-                                                      .pokemon_key,
-                                                  template.finisher_pokemon
-                                                      .form_key,
-                                              )
-                                            : null;
-
-                                    return (
-                                        <div
-                                            key={template.id}
-                                            className="rounded bg-gray-50 p-4"
-                                        >
-                                            <div className="flex flex-wrap items-start justify-between gap-3">
-                                                <div>
-                                                    <p className="font-bold">
-                                                        {template.name}
-                                                    </p>
-
-                                                    {template.memo && (
-                                                        <p className="mt-1 text-sm text-gray-600">
-                                                            {template.memo}
-                                                        </p>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex gap-2">
-                                                    <Link
-                                                        href={`/parties/${party.id}/selection-templates/${template.id}/edit`}
-                                                        className="rounded border px-3 py-1 text-sm hover:bg-white"
-                                                    >
-                                                        編集
-                                                    </Link>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            handleDeleteSelectionTemplate(
-                                                                template.id,
-                                                            )
-                                                        }
-                                                        className="rounded border border-red-300 px-3 py-1 text-sm text-red-600 hover:bg-red-50"
-                                                    >
-                                                        削除
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div className="mt-3 grid gap-3 md:grid-cols-3">
-                                                <div className="rounded bg-white p-3">
-                                                    <p className="text-xs text-gray-500">
-                                                        初手
-                                                    </p>
-
-                                                    <div className="mt-2 flex items-center gap-3">
-                                                        {leadMaster?.image_url ? (
-                                                            <img
-                                                                src={
-                                                                    leadMaster.image_url
-                                                                }
-                                                                alt={
-                                                                    leadMaster.name
-                                                                }
-                                                                className="h-14 w-14 object-contain"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
-                                                                ?
-                                                            </div>
-                                                        )}
-
-                                                        <div>
-                                                            <p className="font-semibold">
-                                                                {template
-                                                                    .lead_pokemon
-                                                                    ?.nickname ||
-                                                                    leadMaster?.name ||
-                                                                    template
-                                                                        .lead_pokemon
-                                                                        ?.pokemon_key ||
-                                                                    "未設定"}
-                                                            </p>
-
-                                                            {leadMaster && (
-                                                                <p className="mt-1 text-xs text-gray-600">
-                                                                    {leadMaster.types.join(
-                                                                        " / ",
-                                                                    )}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="rounded bg-white p-3">
-                                                    <p className="text-xs text-gray-500">
-                                                        引き先
-                                                    </p>
-
-                                                    <div className="mt-2 flex items-center gap-3">
-                                                        {switchMaster?.image_url ? (
-                                                            <img
-                                                                src={
-                                                                    switchMaster.image_url
-                                                                }
-                                                                alt={
-                                                                    switchMaster.name
-                                                                }
-                                                                className="h-14 w-14 object-contain"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
-                                                                ?
-                                                            </div>
-                                                        )}
-
-                                                        <div>
-                                                            <p className="font-semibold">
-                                                                {template
-                                                                    .switch_pokemon
-                                                                    ?.nickname ||
-                                                                    switchMaster?.name ||
-                                                                    template
-                                                                        .switch_pokemon
-                                                                        ?.pokemon_key ||
-                                                                    "未設定"}
-                                                            </p>
-
-                                                            {switchMaster && (
-                                                                <p className="mt-1 text-xs text-gray-600">
-                                                                    {switchMaster.types.join(
-                                                                        " / ",
-                                                                    )}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="rounded bg-white p-3">
-                                                    <p className="text-xs text-gray-500">
-                                                        勝ち筋
-                                                    </p>
-
-                                                    <div className="mt-2 flex items-center gap-3">
-                                                        {finisherMaster?.image_url ? (
-                                                            <img
-                                                                src={
-                                                                    finisherMaster.image_url
-                                                                }
-                                                                alt={
-                                                                    finisherMaster.name
-                                                                }
-                                                                className="h-14 w-14 object-contain"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-14 w-14 items-center justify-center rounded bg-gray-100 text-sm text-gray-500">
-                                                                ?
-                                                            </div>
-                                                        )}
-
-                                                        <div>
-                                                            <p className="font-semibold">
-                                                                {template
-                                                                    .finisher_pokemon
-                                                                    ?.nickname ||
-                                                                    finisherMaster?.name ||
-                                                                    template
-                                                                        .finisher_pokemon
-                                                                        ?.pokemon_key ||
-                                                                    "未設定"}
-                                                            </p>
-
-                                                            {finisherMaster && (
-                                                                <p className="mt-1 text-xs text-gray-600">
-                                                                    {finisherMaster.types.join(
-                                                                        " / ",
-                                                                    )}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                },
-                            )}
-                        </div>
-                    ) : (
-                        <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                            まだ基本選出は保存されていません。
-                        </p>
-                    )}
-                </section>
-
-                <section className="mt-8 rounded border p-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold">登録ポケモン</h2>
 
@@ -683,6 +396,139 @@ export default function PartyDetailPage() {
                         ) : (
                             <p className="text-gray-600">
                                 まだポケモンが登録されていません。
+                            </p>
+                        )}
+                    </div>
+                </section>
+
+                <section className="mt-8 grid gap-5 xl:grid-cols-2">
+                    <div className="rounded border bg-white p-5">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <h2 className="text-lg font-bold">
+                                    おすすめ基本選出
+                                </h2>
+
+                                <p className="mt-1 text-xs text-gray-600">
+                                    役割タグの点数から、初手・引き先・勝ち筋を仮提案します。
+                                </p>
+                            </div>
+
+                            {currentPokemonList.length >= 3 && (
+                                <button
+                                    type="button"
+                                    onClick={handleSaveSuggestedSelection}
+                                    disabled={isSavingSelection}
+                                    className="rounded bg-black px-3 py-2 text-xs text-white disabled:opacity-50"
+                                >
+                                    {isSavingSelection
+                                        ? "保存中..."
+                                        : "この選出を保存"}
+                                </button>
+                            )}
+                        </div>
+
+                        {currentPokemonList.length < 3 ? (
+                            <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                                基本選出を提案するには、ポケモンを3匹以上登録してください。
+                            </p>
+                        ) : (
+                            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                                {suggestedSelection.map((suggestion) => (
+                                    <div key={suggestion.role}>
+                                        {renderSelectionPokemon(
+                                            suggestion.label,
+                                            suggestion.pokemon,
+                                        )}
+
+                                        <p className="mt-2 text-xs text-gray-600">
+                                            {suggestion.reason}
+                                        </p>
+
+                                        <p className="mt-1 text-[11px] text-gray-400">
+                                            点数：
+                                            {suggestion.score}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="rounded border bg-white p-5">
+                        <h2 className="text-lg font-bold">保存済み基本選出</h2>
+
+                        <p className="mt-1 text-xs text-gray-600">
+                            対戦前の選出候補として使う基本選出です。
+                        </p>
+
+                        {party.current_version?.selection_templates &&
+                        party.current_version.selection_templates.length > 0 ? (
+                            <div className="mt-4 max-h-96 space-y-3 overflow-y-auto pr-1">
+                                {party.current_version.selection_templates.map(
+                                    (template) => (
+                                        <div
+                                            key={template.id}
+                                            className="rounded bg-gray-50 p-3"
+                                        >
+                                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <p className="truncate font-bold">
+                                                        {template.name}
+                                                    </p>
+
+                                                    {template.memo && (
+                                                        <p className="mt-1 line-clamp-2 text-xs text-gray-600">
+                                                            {template.memo}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex shrink-0 gap-2">
+                                                    <Link
+                                                        href={`/parties/${party.id}/selection-templates/${template.id}/edit`}
+                                                        className="rounded border bg-white px-2 py-1 text-xs hover:bg-gray-50"
+                                                    >
+                                                        編集
+                                                    </Link>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleDeleteSelectionTemplate(
+                                                                template.id,
+                                                            )
+                                                        }
+                                                        className="rounded border border-red-300 bg-white px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                                                    >
+                                                        削除
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                                                {renderSelectionPokemon(
+                                                    "初手",
+                                                    template.lead_pokemon,
+                                                )}
+
+                                                {renderSelectionPokemon(
+                                                    "引き先",
+                                                    template.switch_pokemon,
+                                                )}
+
+                                                {renderSelectionPokemon(
+                                                    "勝ち筋",
+                                                    template.finisher_pokemon,
+                                                )}
+                                            </div>
+                                        </div>
+                                    ),
+                                )}
+                            </div>
+                        ) : (
+                            <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                                まだ基本選出は保存されていません。
                             </p>
                         )}
                     </div>
