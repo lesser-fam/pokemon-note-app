@@ -1,5 +1,6 @@
 import { AbilityTooltip } from "@/features/battlePreview/components/AbilityTooltip";
 import { ItemTooltip } from "@/features/battlePreview/components/ItemTooltip";
+import { PokemonMemoTooltip } from "./PokemonMemoTooltip";
 import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 
@@ -181,6 +182,12 @@ export function RegisteredPartyPokemonCard({
                             </div>
                         ))}
                     </div>
+                </div>
+            )}
+
+            {partyPokemon.memo && (
+                <div className="mt-3">
+                    <PokemonMemoTooltip memo={partyPokemon.memo} />
                 </div>
             )}
 
