@@ -1,5 +1,6 @@
 import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
+import { ItemTooltip } from "@/features/battlePreview/components/ItemTooltip";
 
 type RegisteredPartyPokemonCardProps = {
     partyPokemon: PartyPokemon;
@@ -122,9 +123,15 @@ export function RegisteredPartyPokemonCard({
                 partyPokemon.nature) && (
                 <div className="mt-3 space-y-1 text-xs text-gray-700">
                     {partyPokemon.item && (
-                        <p>
-                            持ち物：
-                            {partyPokemon.item}
+                        <p className="flex flex-wrap items-center gap-1">
+                            <span>持ち物：</span>
+
+                            <ItemTooltip
+                                name={partyPokemon.item}
+                                effectRules={
+                                    partyPokemon.item_master?.effect_rules
+                                }
+                            />
                         </p>
                     )}
 

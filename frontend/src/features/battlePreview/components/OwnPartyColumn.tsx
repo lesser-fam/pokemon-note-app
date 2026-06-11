@@ -2,6 +2,7 @@ import { BattlePokemonCard } from "@/features/battlePreview/components/BattlePok
 import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import { AbilityTooltip } from "./AbilityTooltip";
+import { ItemTooltip } from "./ItemTooltip";
 import type { PokemonStatKey } from "./PokemonStatLabels";
 import { MegaFormToggle } from "./MegaFormToggle";
 
@@ -101,21 +102,38 @@ export function OwnPartyColumn({
                                     </button>
                                 }
                                 footer={
-                                    partyPokemon.ability_master ? (
-                                        <AbilityTooltip
-                                            name={
-                                                partyPokemon.ability_master.name
-                                            }
-                                            description={
-                                                partyPokemon.ability_master
-                                                    .description
-                                            }
-                                        />
-                                    ) : (
-                                        <span className="text-[10px] leading-none text-gray-400">
-                                            特性未登録
-                                        </span>
-                                    )
+                                    <div className="flex flex-wrap gap-1">
+                                        {partyPokemon.ability_master ? (
+                                            <AbilityTooltip
+                                                name={
+                                                    partyPokemon.ability_master
+                                                        .name
+                                                }
+                                                description={
+                                                    partyPokemon.ability_master
+                                                        .description
+                                                }
+                                            />
+                                        ) : (
+                                            <span className="text-[10px] leading-none text-gray-400">
+                                                特性未登録
+                                            </span>
+                                        )}
+
+                                        {partyPokemon.item ? (
+                                            <ItemTooltip
+                                                name={partyPokemon.item}
+                                                effectRules={
+                                                    partyPokemon.item_master
+                                                        ?.effect_rules
+                                                }
+                                            />
+                                        ) : (
+                                            <span className="text-[10px] leading-none text-gray-400">
+                                                持ち物未登録
+                                            </span>
+                                        )}
+                                    </div>
                                 }
                             />
                         );
