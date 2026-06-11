@@ -4,18 +4,18 @@ import { AppHeader } from "@/components/AppHeader";
 import { summarizeBattleLogs } from "@/features/battleLogs/utils/summarizeBattleLogs";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
+import { RegisteredPartyPokemonCard } from "@/features/parties/components/RegisteredPartyPokemonCard";
+import { deletePartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
 import {
     createSelectionTemplate,
     deleteSelectionTemplate,
 } from "@/features/selectionTemplates/api/selectionTemplateApi";
-import { RegisteredPartyPokemonCard } from "@/features/parties/components/RegisteredPartyPokemonCard";
 import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { deletePartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 
 export default function PartyDetailPage() {
     const params = useParams<{ partyId: string }>();
@@ -260,6 +260,87 @@ export default function PartyDetailPage() {
                         )}
                     </div>
                 </div>
+            </div>
+        );
+    };
+
+    const renderOpponentPokemonList = (
+        battleLog: (typeof battleLogs)[number],
+    ) => {
+        const opponents = [
+            [battleLog.opponent_pokemon_1, battleLog.opponent_form_1],
+            [battleLog.opponent_pokemon_2, battleLog.opponent_form_2],
+            [battleLog.opponent_pokemon_3, battleLog.opponent_form_3],
+            [battleLog.opponent_pokemon_4, battleLog.opponent_form_4],
+            [battleLog.opponent_pokemon_5, battleLog.opponent_form_5],
+            [battleLog.opponent_pokemon_6, battleLog.opponent_form_6],
+        ].filter(([pokemonKey]) => pokemonKey);
+
+        return (
+            <div className="flex flex-wrap gap-1.5">
+                {opponents.map(([pokemonKey, formKey]) => {
+                    const pokemonMaster = findPokemonMaster(
+                        pokemonKey as string,
+                        (formKey as string) || "default",
+                    );
+
+                    return (
+                        <div
+                            key={`${pokemonKey}-${formKey}`}
+                            className="flex items-center gap-1 rounded bg-white px-2 py-1 text-xs"
+                        >
+                            {pokemonMaster?.image_url && (
+                                <img
+                                    src={pokemonMaster.image_url}
+                                    alt={pokemonMaster.name}
+                                    className="h-7 w-7 object-contain"
+                                />
+                            )}
+
+                            <span>{pokemonMaster?.name || pokemonKey}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const renderSelectedPokemonList = (
+        battleLog: (typeof battleLogs)[number],
+    ) => {
+        const selectedPokemonList = [
+            battleLog.selected_pokemon1,
+            battleLog.selected_pokemon2,
+            battleLog.selected_pokemon3,
+        ].filter(Boolean);
+
+        return (
+            <div className="grid gap-2 sm:grid-cols-3">
+                {selectedPokemonList.map((partyPokemon) => {
+                    const pokemonMaster = findPokemonMaster(
+                        partyPokemon!.pokemon_key,
+                        partyPokemon!.form_key,
+                    );
+
+                    return (
+                        <div
+                            key={partyPokemon!.id}
+                            className="rounded bg-white p-2"
+                        >
+                            <p className="truncate text-sm font-semibold">
+                                {partyPokemon!.nickname ||
+                                    pokemonMaster?.name ||
+                                    partyPokemon!.pokemon_key}
+                            </p>
+
+                            {pokemonMaster && (
+                                <p className="mt-1 text-xs text-gray-600">
+                                    {pokemonMaster.types.join(" / ")}
+                                </p>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         );
     };
@@ -724,268 +805,183 @@ export default function PartyDetailPage() {
                     )}
                 </section>
 
-                <section className="mt-8 rounded border p-6">
-                    <h2 className="text-xl font-bold">対戦ログ</h2>
-                    <p className="mt-1 text-sm text-gray-600">
-                        保存した対戦結果と反省メモを確認できます。
-                    </p>
+                <section className="mt-8 rounded border bg-white p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h2 className="text-lg font-bold">対戦ログ</h2>
 
-                    {party.current_version?.battle_logs &&
-                    party.current_version.battle_logs.length > 0 ? (
-                        <div className="mt-4 max-h-180 space-y-4 overflow-y-auto pr-2">
-                            {[...party.current_version.battle_logs]
+                            <p className="mt-1 text-xs text-gray-600">
+                                保存した対戦結果と反省メモを確認できます。
+                            </p>
+                        </div>
+
+                        <p className="text-sm font-medium text-gray-600">
+                            {battleLogs.length}件
+                        </p>
+                    </div>
+
+                    {battleLogs.length > 0 ? (
+                        <div className="mt-4 max-h-180 space-y-2 overflow-y-auto pr-1">
+                            {[...battleLogs]
                                 .sort(
                                     (a, b) =>
                                         new Date(b.created_at).getTime() -
                                         new Date(a.created_at).getTime(),
                                 )
-                                .map((battleLog) => (
-                                    <div
-                                        key={battleLog.id}
-                                        className="rounded bg-gray-50 p-4"
-                                    >
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <p className="font-bold">
-                                                    {battleLog.result === "win"
-                                                        ? "勝ち"
-                                                        : "負け"}
-                                                </p>
-                                                <p className="mt-1 text-xs text-gray-500">
-                                                    {new Date(
-                                                        battleLog.created_at,
-                                                    ).toLocaleString()}
-                                                </p>
-                                            </div>
+                                .map((battleLog) => {
+                                    const heavyOpponentName =
+                                        battleLog.heavy_opponent_key
+                                            ? getPokemonMasterName(
+                                                  battleLog.heavy_opponent_key,
+                                                  battleLog.heavy_opponent_form ||
+                                                      "default",
+                                              )
+                                            : null;
 
-                                            <span
-                                                className={`rounded px-3 py-1 text-sm ${
-                                                    battleLog.result === "win"
-                                                        ? "bg-blue-100 text-blue-700"
-                                                        : "bg-red-100 text-red-700"
-                                                }`}
-                                            >
-                                                {battleLog.result === "win"
-                                                    ? "WIN"
-                                                    : "LOSE"}
-                                            </span>
-                                        </div>
+                                    return (
+                                        <details
+                                            key={battleLog.id}
+                                            className="rounded border bg-gray-50 p-3"
+                                        >
+                                            <summary className="cursor-pointer list-none">
+                                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                                    <div>
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <span
+                                                                className={`rounded px-2 py-1 text-xs font-semibold ${
+                                                                    battleLog.result ===
+                                                                    "win"
+                                                                        ? "bg-blue-100 text-blue-700"
+                                                                        : "bg-red-100 text-red-700"
+                                                                }`}
+                                                            >
+                                                                {battleLog.result ===
+                                                                "win"
+                                                                    ? "WIN"
+                                                                    : "LOSE"}
+                                                            </span>
 
-                                        <div className="mt-4">
-                                            <p className="text-sm font-semibold">
-                                                相手パーティ
-                                            </p>
+                                                            <span className="text-xs text-gray-500">
+                                                                {new Date(
+                                                                    battleLog.created_at,
+                                                                ).toLocaleString()}
+                                                            </span>
+                                                        </div>
 
-                                            <div className="mt-2 flex flex-wrap gap-2">
-                                                {[
-                                                    [
-                                                        battleLog.opponent_pokemon_1,
-                                                        battleLog.opponent_form_1,
-                                                    ],
-                                                    [
-                                                        battleLog.opponent_pokemon_2,
-                                                        battleLog.opponent_form_2,
-                                                    ],
-                                                    [
-                                                        battleLog.opponent_pokemon_3,
-                                                        battleLog.opponent_form_3,
-                                                    ],
-                                                    [
-                                                        battleLog.opponent_pokemon_4,
-                                                        battleLog.opponent_form_4,
-                                                    ],
-                                                    [
-                                                        battleLog.opponent_pokemon_5,
-                                                        battleLog.opponent_form_5,
-                                                    ],
-                                                    [
-                                                        battleLog.opponent_pokemon_6,
-                                                        battleLog.opponent_form_6,
-                                                    ],
-                                                ]
-                                                    .filter(
-                                                        ([pokemonKey]) =>
-                                                            pokemonKey,
-                                                    )
-                                                    .map(
-                                                        ([
-                                                            pokemonKey,
-                                                            formKey,
-                                                        ]) => {
+                                                        <div className="mt-3">
+                                                            {renderOpponentPokemonList(
+                                                                battleLog,
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <span className="shrink-0 text-xs text-blue-600">
+                                                        詳細を見る
+                                                    </span>
+                                                </div>
+
+                                                {(heavyOpponentName ||
+                                                    (battleLog.loss_tags &&
+                                                        battleLog.loss_tags
+                                                            .length > 0)) && (
+                                                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                        {heavyOpponentName && (
+                                                            <span className="rounded bg-white px-2 py-1 text-xs text-gray-700">
+                                                                重かった相手：
+                                                                {
+                                                                    heavyOpponentName
+                                                                }
+                                                            </span>
+                                                        )}
+
+                                                        {battleLog.loss_tags?.map(
+                                                            (tag) => (
+                                                                <span
+                                                                    key={tag}
+                                                                    className="rounded bg-white px-2 py-1 text-xs text-gray-600"
+                                                                >
+                                                                    {tag}
+                                                                </span>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </summary>
+
+                                            <div className="mt-4 border-t pt-4">
+                                                <div>
+                                                    <p className="text-sm font-semibold">
+                                                        自分の選出
+                                                    </p>
+
+                                                    <div className="mt-2">
+                                                        {renderSelectedPokemonList(
+                                                            battleLog,
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {battleLog.needed_pokemon && (
+                                                    <div className="mt-4 text-sm">
+                                                        <span className="font-semibold">
+                                                            必要だった味方：
+                                                        </span>
+
+                                                        {(() => {
                                                             const pokemonMaster =
                                                                 findPokemonMaster(
-                                                                    pokemonKey as string,
-                                                                    (formKey as string) ||
-                                                                        "default",
+                                                                    battleLog
+                                                                        .needed_pokemon!
+                                                                        .pokemon_key,
+                                                                    battleLog
+                                                                        .needed_pokemon!
+                                                                        .form_key,
                                                                 );
 
                                                             return (
-                                                                <div
-                                                                    key={`${pokemonKey}-${formKey}`}
-                                                                    className="flex items-center gap-2 rounded bg-white px-3 py-2 text-sm"
-                                                                >
-                                                                    {pokemonMaster?.image_url && (
-                                                                        <img
-                                                                            src={
-                                                                                pokemonMaster.image_url
-                                                                            }
-                                                                            alt={
-                                                                                pokemonMaster.name
-                                                                            }
-                                                                            className="h-8 w-8 object-contain"
-                                                                        />
-                                                                    )}
-
-                                                                    <span>
-                                                                        {pokemonMaster?.name ||
-                                                                            pokemonKey}
-                                                                    </span>
-                                                                </div>
+                                                                battleLog
+                                                                    .needed_pokemon!
+                                                                    .nickname ||
+                                                                pokemonMaster?.name ||
+                                                                battleLog
+                                                                    .needed_pokemon!
+                                                                    .pokemon_key
                                                             );
-                                                        },
-                                                    )}
+                                                        })()}
+                                                    </div>
+                                                )}
+
+                                                {battleLog.reflection && (
+                                                    <div className="mt-4">
+                                                        <p className="text-sm font-semibold">
+                                                            反省メモ
+                                                        </p>
+
+                                                        <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
+                                                            {
+                                                                battleLog.reflection
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {battleLog.next_note && (
+                                                    <div className="mt-4">
+                                                        <p className="text-sm font-semibold">
+                                                            次回メモ
+                                                        </p>
+
+                                                        <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
+                                                            {
+                                                                battleLog.next_note
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
-                                        </div>
-
-                                        <div className="mt-4">
-                                            <p className="text-sm font-semibold">
-                                                自分の選出
-                                            </p>
-
-                                            <div className="mt-2 grid gap-2 md:grid-cols-3">
-                                                {[
-                                                    battleLog.selected_pokemon1,
-                                                    battleLog.selected_pokemon2,
-                                                    battleLog.selected_pokemon3,
-                                                ]
-                                                    .filter(Boolean)
-                                                    .map((partyPokemon) => {
-                                                        const pokemonMaster =
-                                                            findPokemonMaster(
-                                                                partyPokemon!
-                                                                    .pokemon_key,
-                                                                partyPokemon!
-                                                                    .form_key,
-                                                            );
-
-                                                        return (
-                                                            <div
-                                                                key={
-                                                                    partyPokemon!
-                                                                        .id
-                                                                }
-                                                                className="rounded bg-white p-3 text-sm"
-                                                            >
-                                                                <p className="font-semibold">
-                                                                    {partyPokemon!
-                                                                        .nickname ||
-                                                                        pokemonMaster?.name ||
-                                                                        partyPokemon!
-                                                                            .pokemon_key}
-                                                                </p>
-
-                                                                {pokemonMaster && (
-                                                                    <p className="mt-1 text-xs text-gray-600">
-                                                                        {pokemonMaster.types.join(
-                                                                            " / ",
-                                                                        )}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
-                                            </div>
-                                        </div>
-
-                                        {battleLog.heavy_opponent_key && (
-                                            <div className="mt-4 text-sm">
-                                                <span className="font-semibold">
-                                                    重かった相手：
-                                                </span>
-                                                {(() => {
-                                                    const pokemonMaster =
-                                                        findPokemonMaster(
-                                                            battleLog.heavy_opponent_key,
-                                                            battleLog.heavy_opponent_form ||
-                                                                "default",
-                                                        );
-
-                                                    return (
-                                                        pokemonMaster?.name ||
-                                                        battleLog.heavy_opponent_key
-                                                    );
-                                                })()}
-                                            </div>
-                                        )}
-
-                                        {battleLog.needed_pokemon && (
-                                            <div className="mt-2 text-sm">
-                                                <span className="font-semibold">
-                                                    必要だった味方：
-                                                </span>
-                                                {(() => {
-                                                    const pokemonMaster =
-                                                        findPokemonMaster(
-                                                            battleLog
-                                                                .needed_pokemon!
-                                                                .pokemon_key,
-                                                            battleLog
-                                                                .needed_pokemon!
-                                                                .form_key,
-                                                        );
-
-                                                    return (
-                                                        battleLog
-                                                            .needed_pokemon!
-                                                            .nickname ||
-                                                        pokemonMaster?.name ||
-                                                        battleLog
-                                                            .needed_pokemon!
-                                                            .pokemon_key
-                                                    );
-                                                })()}
-                                            </div>
-                                        )}
-
-                                        {battleLog.loss_tags &&
-                                            battleLog.loss_tags.length > 0 && (
-                                                <div className="mt-4 flex flex-wrap gap-2">
-                                                    {battleLog.loss_tags.map(
-                                                        (tag) => (
-                                                            <span
-                                                                key={tag}
-                                                                className="rounded bg-white px-2 py-1 text-xs"
-                                                            >
-                                                                {tag}
-                                                            </span>
-                                                        ),
-                                                    )}
-                                                </div>
-                                            )}
-
-                                        {battleLog.reflection && (
-                                            <div className="mt-4">
-                                                <p className="text-sm font-semibold">
-                                                    反省メモ
-                                                </p>
-                                                <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
-                                                    {battleLog.reflection}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {battleLog.next_note && (
-                                            <div className="mt-4">
-                                                <p className="text-sm font-semibold">
-                                                    次回メモ
-                                                </p>
-                                                <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
-                                                    {battleLog.next_note}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                        </details>
+                                    );
+                                })}
                         </div>
                     ) : (
                         <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
