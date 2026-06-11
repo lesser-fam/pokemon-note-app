@@ -117,6 +117,9 @@ export default function PartyDetailPage() {
     const suggestedSelection = suggestBasicSelection(currentPokemonList);
     const battleLogs = party.current_version?.battle_logs ?? [];
     const battleLogSummary = summarizeBattleLogs(battleLogs);
+    const sortedVersions = [...(party.versions ?? [])].sort(
+        (a, b) => b.version_number - a.version_number,
+    );
 
     const canRemoveInitialPokemon =
         party.current_version?.is_current === true &&
@@ -991,27 +994,66 @@ export default function PartyDetailPage() {
                     )}
                 </section>
 
-                <section className="mt-8 rounded border p-6">
-                    <h2 className="text-xl font-bold">バージョン履歴</h2>
+                <section className="mt-8 rounded border bg-white p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h2 className="text-lg font-bold">
+                                バージョン履歴
+                            </h2>
 
-                    <div className="mt-4 space-y-3">
-                        {party.versions?.map((version) => (
-                            <div
-                                key={version.id}
-                                className="rounded bg-gray-50 p-4"
-                            >
-                                <p className="font-semibold">
-                                    v{version.version_number}
-                                    {version.is_current && "（現在）"}
-                                </p>
-                                {version.change_note && (
-                                    <p className="mt-1 text-sm text-gray-600">
-                                        {version.change_note}
-                                    </p>
-                                )}
-                            </div>
-                        ))}
+                            <p className="mt-1 text-xs text-gray-600">
+                                構築を変更した履歴です。新しい順に表示します。
+                            </p>
+                        </div>
+
+                        <p className="text-sm font-medium text-gray-600">
+                            {sortedVersions.length}件
+                        </p>
                     </div>
+
+                    {sortedVersions.length > 0 ? (
+                        <div className="mt-4 max-h-80 space-y-2 overflow-y-auto pr-1">
+                            {sortedVersions.map((version) => (
+                                <details
+                                    key={version.id}
+                                    className={`rounded border px-3 py-2 ${
+                                        version.is_current
+                                            ? "border-black bg-gray-50"
+                                            : "bg-white"
+                                    }`}
+                                >
+                                    <summary className="cursor-pointer list-none">
+                                        <div className="flex flex-wrap items-center justify-between gap-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-semibold">
+                                                    v{version.version_number}
+                                                </span>
+
+                                                {version.is_current && (
+                                                    <span className="rounded-full bg-black px-2 py-0.5 text-[10px] text-white">
+                                                        現在
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <span className="text-xs text-blue-600">
+                                                メモを見る
+                                            </span>
+                                        </div>
+                                    </summary>
+
+                                    <p className="mt-3 border-t pt-3 text-sm text-gray-600">
+                                        {version.change_note ||
+                                            "変更メモはありません。"}
+                                    </p>
+                                </details>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                            バージョン履歴がありません。
+                        </p>
+                    )}
                 </section>
             </main>
         </>
