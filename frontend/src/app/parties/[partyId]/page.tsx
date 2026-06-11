@@ -345,6 +345,88 @@ export default function PartyDetailPage() {
         );
     };
 
+    type BattleLogSummaryCountItem = {
+        key: string;
+        label?: string;
+        count: number;
+    };
+
+    const renderBattleLogSummaryCountList = (
+        items: BattleLogSummaryCountItem[],
+        getLabel: (item: BattleLogSummaryCountItem) => string,
+        initialLimit: number,
+    ) => {
+        if (items.length === 0) {
+            return (
+                <p className="mt-3 text-sm text-gray-600">
+                    まだ記録がありません。
+                </p>
+            );
+        }
+
+        const initialItems = items.slice(0, initialLimit);
+
+        const remainingItems = items.slice(initialLimit);
+
+        const renderRows = (rowItems: BattleLogSummaryCountItem[]) => {
+            return (
+                <div className="space-y-1.5">
+                    {rowItems.map((item) => (
+                        <div
+                            key={item.key}
+                            className="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-sm"
+                        >
+                            <span className="truncate">{getLabel(item)}</span>
+
+                            <span className="shrink-0 text-xs text-gray-500">
+                                {item.count}回
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        return (
+            <div className="mt-3">
+                {renderRows(initialItems)}
+
+                {remainingItems.length > 0 && (
+                    <details className="mt-2">
+                        <summary className="cursor-pointer text-xs text-blue-600">
+                            すべて見る（
+                            {items.length}
+                            件）
+                        </summary>
+
+                        <div className="mt-2">{renderRows(remainingItems)}</div>
+                    </details>
+                )}
+            </div>
+        );
+    };
+
+    const getNeededPokemonSummaryLabel = (item: BattleLogSummaryCountItem) => {
+        const battleLog = battleLogs.find(
+            (log) => String(log.needed_pokemon?.id) === item.key,
+        );
+
+        if (!battleLog?.needed_pokemon) {
+            return item.label || item.key;
+        }
+
+        const pokemonMaster = findPokemonMaster(
+            battleLog.needed_pokemon.pokemon_key,
+            battleLog.needed_pokemon.form_key,
+        );
+
+        return (
+            battleLog.needed_pokemon.nickname ||
+            pokemonMaster?.name ||
+            battleLog.needed_pokemon.pokemon_key
+        );
+    };
+
     return (
         <>
             <AppHeader />
@@ -618,9 +700,9 @@ export default function PartyDetailPage() {
                     </div>
                 </section>
 
-                <section className="mt-8 rounded border p-6">
-                    <h2 className="text-xl font-bold">対戦ログ集計</h2>
-                    <p className="mt-1 text-sm text-gray-600">
+                <section className="mt-8 rounded border bg-white p-5">
+                    <h2 className="text-lg font-bold">対戦ログ集計</h2>
+                    <p className="mt-1 text-xs text-gray-600">
                         保存した対戦ログから、勝率やよく出る反省ポイントを確認できます。
                     </p>
 
@@ -631,173 +713,77 @@ export default function PartyDetailPage() {
                     ) : (
                         <div className="mt-4 space-y-6">
                             <div className="grid gap-4 md:grid-cols-3">
-                                <div className="rounded bg-gray-50 p-4">
+                                <div className="rounded bg-gray-50 p-3">
                                     <p className="text-sm text-gray-500">
                                         対戦数
                                     </p>
-                                    <p className="mt-1 text-2xl font-bold">
+                                    <p className="mt-1 text-xl font-bold">
                                         {battleLogSummary.totalBattles}
                                     </p>
                                 </div>
 
-                                <div className="rounded bg-gray-50 p-4">
+                                <div className="rounded bg-gray-50 p-3">
                                     <p className="text-sm text-gray-500">
                                         勝敗
                                     </p>
-                                    <p className="mt-1 text-2xl font-bold">
+                                    <p className="mt-1 text-xl font-bold">
                                         {battleLogSummary.winCount}勝 /{" "}
                                         {battleLogSummary.loseCount}敗
                                     </p>
                                 </div>
 
-                                <div className="rounded bg-gray-50 p-4">
+                                <div className="rounded bg-gray-50 p-3">
                                     <p className="text-sm text-gray-500">
                                         勝率
                                     </p>
-                                    <p className="mt-1 text-2xl font-bold">
+                                    <p className="mt-1 text-xl font-bold">
                                         {battleLogSummary.winRate}%
                                     </p>
                                 </div>
                             </div>
 
                             <div className="grid gap-4 md:grid-cols-3">
-                                <div className="rounded bg-gray-50 p-4">
-                                    <h3 className="font-bold">
+                                <div className="rounded bg-gray-50 p-3">
+                                    <h3 className="text-sm font-bold">
                                         よく重かった相手
                                     </h3>
 
-                                    {battleLogSummary.heavyOpponentCounts
-                                        .length > 0 ? (
-                                        <div className="mt-3 space-y-2">
-                                            {battleLogSummary.heavyOpponentCounts
-                                                .slice(0, 3)
-                                                .map((item) => {
-                                                    const [
-                                                        pokemonKey,
-                                                        formKey,
-                                                    ] = item.key.split(":");
+                                    {renderBattleLogSummaryCountList(
+                                        battleLogSummary.heavyOpponentCounts,
+                                        (item) => {
+                                            const [pokemonKey, formKey] =
+                                                item.key.split(":");
 
-                                                    return (
-                                                        <div
-                                                            key={item.key}
-                                                            className="flex justify-between rounded bg-white px-3 py-2 text-sm"
-                                                        >
-                                                            <span>
-                                                                {getPokemonMasterName(
-                                                                    pokemonKey,
-                                                                    formKey,
-                                                                )}
-                                                            </span>
-                                                            <span>
-                                                                {item.count}回
-                                                            </span>
-                                                        </div>
-                                                    );
-                                                })}
-                                        </div>
-                                    ) : (
-                                        <p className="mt-3 text-sm text-gray-600">
-                                            まだ記録がありません。
-                                        </p>
+                                            return getPokemonMasterName(
+                                                pokemonKey,
+                                                formKey,
+                                            );
+                                        },
+                                        3,
                                     )}
                                 </div>
 
-                                <div className="rounded bg-gray-50 p-4">
-                                    <h3 className="font-bold">
+                                <div className="rounded bg-gray-50 p-3">
+                                    <h3 className="text-sm font-bold">
                                         よく必要だった味方
                                     </h3>
 
-                                    {battleLogSummary.neededPokemonCounts
-                                        .length > 0 ? (
-                                        <div className="mt-3 space-y-2">
-                                            {battleLogSummary.neededPokemonCounts
-                                                .slice(0, 3)
-                                                .map((item) => (
-                                                    <div
-                                                        key={item.key}
-                                                        className="flex justify-between rounded bg-white px-3 py-2 text-sm"
-                                                    >
-                                                        <span>
-                                                            {(() => {
-                                                                const battleLog =
-                                                                    battleLogs.find(
-                                                                        (log) =>
-                                                                            String(
-                                                                                log
-                                                                                    .needed_pokemon
-                                                                                    ?.id,
-                                                                            ) ===
-                                                                            item.key,
-                                                                    );
-
-                                                                if (
-                                                                    !battleLog?.needed_pokemon
-                                                                ) {
-                                                                    return item.label;
-                                                                }
-
-                                                                const pokemonMaster =
-                                                                    findPokemonMaster(
-                                                                        battleLog
-                                                                            .needed_pokemon
-                                                                            .pokemon_key,
-                                                                        battleLog
-                                                                            .needed_pokemon
-                                                                            .form_key,
-                                                                    );
-
-                                                                return (
-                                                                    battleLog
-                                                                        .needed_pokemon
-                                                                        .nickname ||
-                                                                    pokemonMaster?.name ||
-                                                                    battleLog
-                                                                        .needed_pokemon
-                                                                        .pokemon_key
-                                                                );
-                                                            })()}
-                                                        </span>
-                                                        <span>
-                                                            {item.count}回
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    ) : (
-                                        <p className="mt-3 text-sm text-gray-600">
-                                            まだ記録がありません。
-                                        </p>
+                                    {renderBattleLogSummaryCountList(
+                                        battleLogSummary.neededPokemonCounts,
+                                        getNeededPokemonSummaryLabel,
+                                        3,
                                     )}
                                 </div>
 
-                                <div className="rounded bg-gray-50 p-4">
-                                    <h3 className="font-bold">
+                                <div className="rounded bg-gray-50 p-3">
+                                    <h3 className="text-sm font-bold">
                                         よく出る敗因タグ
                                     </h3>
 
-                                    {battleLogSummary.lossTagCounts.length >
-                                    0 ? (
-                                        <div className="mt-3 space-y-2">
-                                            {battleLogSummary.lossTagCounts
-                                                .slice(0, 5)
-                                                .map((item) => (
-                                                    <div
-                                                        key={item.key}
-                                                        className="flex justify-between rounded bg-white px-3 py-2 text-sm"
-                                                    >
-                                                        <span>
-                                                            {item.label}
-                                                        </span>
-                                                        <span>
-                                                            {item.count}回
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    ) : (
-                                        <p className="mt-3 text-sm text-gray-600">
-                                            まだ記録がありません。
-                                        </p>
+                                    {renderBattleLogSummaryCountList(
+                                        battleLogSummary.lossTagCounts,
+                                        (item) => item.label || item.key,
+                                        5,
                                     )}
                                 </div>
                             </div>
