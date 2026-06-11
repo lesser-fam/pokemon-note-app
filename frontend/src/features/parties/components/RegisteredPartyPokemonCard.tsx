@@ -1,6 +1,7 @@
+import { AbilityTooltip } from "@/features/battlePreview/components/AbilityTooltip";
+import { ItemTooltip } from "@/features/battlePreview/components/ItemTooltip";
 import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
-import { ItemTooltip } from "@/features/battlePreview/components/ItemTooltip";
 
 type RegisteredPartyPokemonCardProps = {
     partyPokemon: PartyPokemon;
@@ -136,9 +137,15 @@ export function RegisteredPartyPokemonCard({
                     )}
 
                     {partyPokemon.ability && (
-                        <p>
-                            特性：
-                            {partyPokemon.ability}
+                        <p className="flex flex-wrap items-center gap-1">
+                            <span>特性：</span>
+
+                            <AbilityTooltip
+                                name={partyPokemon.ability}
+                                description={
+                                    partyPokemon.ability_master?.description
+                                }
+                            />
                         </p>
                     )}
 
