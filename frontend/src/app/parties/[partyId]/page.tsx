@@ -3,7 +3,7 @@
 import { AppHeader } from "@/components/AppHeader";
 import { summarizeBattleLogs } from "@/features/battleLogs/utils/summarizeBattleLogs";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
-import { fetchParty } from "@/features/parties/api/partyApi";
+import { deleteParty, fetchParty } from "@/features/parties/api/partyApi";
 import { RegisteredPartyPokemonCard } from "@/features/parties/components/RegisteredPartyPokemonCard";
 import { deletePartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
@@ -14,10 +14,11 @@ import {
 import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function PartyDetailPage() {
+    const router = useRouter();
     const params = useParams<{ partyId: string }>();
     const partyId = Number(params.partyId);
     const isInvalidPartyId = Number.isNaN(partyId);
@@ -26,6 +27,7 @@ export default function PartyDetailPage() {
     const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSavingSelection, setIsSavingSelection] = useState(false);
+    const [isDeletingParty, setIsDeletingParty] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [deletingPartyPokemonId, setDeletingPartyPokemonId] = useState<
         number | null
@@ -127,6 +129,31 @@ export default function PartyDetailPage() {
         currentPokemonList.length < 6 &&
         (party.current_version.selection_templates?.length ?? 0) === 0 &&
         (party.current_version.battle_logs?.length ?? 0) === 0;
+
+    const handleDeleteParty = async () => {
+        const confirmed = window.confirm(
+            "このパーティを削除します。登録ポケモン、基本選出、対戦ログ、バージョン履歴も確認できなくなります。よろしいですか？",
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setIsDeletingParty(true);
+        setErrorMessage("");
+
+        try {
+            await deleteParty(party.id);
+
+            router.replace("/parties");
+        } catch (error) {
+            console.error(error);
+
+            setErrorMessage("パーティの削除に失敗しました。");
+
+            setIsDeletingParty(false);
+        }
+    };
 
     const handleRemoveInitialPokemon = async (partyPokemonId: number) => {
         const confirmed = window.confirm(
@@ -474,10 +501,21 @@ export default function PartyDetailPage() {
 
                             <Link
                                 href={`/parties/${party.id}/battle-preview`}
-                                className="rounded bg-blue-600 px-4 py-2 text-sm text-white"
+                                className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
                             >
                                 対戦前選出へ
                             </Link>
+
+                            <button
+                                type="button"
+                                onClick={handleDeleteParty}
+                                disabled={isDeletingParty}
+                                className="rounded border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {isDeletingParty
+                                    ? "削除中..."
+                                    : "パーティを削除"}
+                            </button>
                         </div>
                     </div>
 
