@@ -1009,7 +1009,7 @@ export default function PartyDetailPage() {
                                             </summary>
 
                                             <div className="mt-4 border-t pt-4">
-                                                <div className="flex flex-wrap items-start gap-4 lg:gap-10">
+                                                <div className="flex flex-wrap items-start gap-4 lg:gap-14">
                                                     <div className="min-w-0">
                                                         <p className="text-sm font-semibold">
                                                             自分の選出

@@ -609,6 +609,42 @@ export default function BattlePreviewPage() {
         );
     };
 
+    const renderSuggestedSelectionPokemon = (
+        label: string,
+        partyPokemon: PartyPokemon,
+    ) => {
+        const pokemonMaster = findPokemonMaster(
+            partyPokemon.pokemon_key,
+            partyPokemon.form_key,
+        );
+
+        return (
+            <div className="rounded bg-white px-2 py-1.5">
+                <p className="text-[10px] font-semibold text-gray-500">
+                    {label}
+                </p>
+
+                <div className="mt-1 flex min-w-0 items-center gap-1.5">
+                    {pokemonMaster?.image_url ? (
+                        <img
+                            src={pokemonMaster.image_url}
+                            alt={pokemonMaster.name}
+                            className="h-8 w-8 shrink-0 object-contain"
+                        />
+                    ) : (
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-[10px] text-gray-400">
+                            ?
+                        </div>
+                    )}
+
+                    <p className="min-w-0 truncate text-xs font-bold">
+                        {getPartyPokemonDisplayName(partyPokemon)}
+                    </p>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <main className="mx-auto max-w-450 p-6">
             <div className="grid items-start gap-4 xl:grid-cols-[minmax(19rem,1fr)_minmax(0,1.35fr)_minmax(19rem,1fr)]">
@@ -762,41 +798,20 @@ export default function BattlePreviewPage() {
                                             </div>
 
                                             <div className="mt-2 grid grid-cols-3 gap-1.5">
-                                                <div className="rounded bg-white px-2 py-1.5">
-                                                    <p className="text-[10px] font-semibold text-gray-500">
-                                                        初手
-                                                    </p>
+                                                {renderSuggestedSelectionPokemon(
+                                                    "初手",
+                                                    suggestion.leadPokemon,
+                                                )}
 
-                                                    <p className="truncate text-sm font-bold">
-                                                        {getPartyPokemonDisplayName(
-                                                            suggestion.leadPokemon,
-                                                        )}
-                                                    </p>
-                                                </div>
+                                                {renderSuggestedSelectionPokemon(
+                                                    "引き先",
+                                                    suggestion.switchPokemon,
+                                                )}
 
-                                                <div className="rounded bg-white px-2 py-1.5">
-                                                    <p className="text-[10px] font-semibold text-gray-500">
-                                                        引き先
-                                                    </p>
-
-                                                    <p className="truncate text-sm font-bold">
-                                                        {getPartyPokemonDisplayName(
-                                                            suggestion.switchPokemon,
-                                                        )}
-                                                    </p>
-                                                </div>
-
-                                                <div className="rounded bg-white px-2 py-1.5">
-                                                    <p className="text-[10px] font-semibold text-gray-500">
-                                                        勝ち筋
-                                                    </p>
-
-                                                    <p className="truncate text-sm font-bold">
-                                                        {getPartyPokemonDisplayName(
-                                                            suggestion.finisherPokemon,
-                                                        )}
-                                                    </p>
-                                                </div>
+                                                {renderSuggestedSelectionPokemon(
+                                                    "勝ち筋",
+                                                    suggestion.finisherPokemon,
+                                                )}
                                             </div>
 
                                             <details className="mt-1.5">
