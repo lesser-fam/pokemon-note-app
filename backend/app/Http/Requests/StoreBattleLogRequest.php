@@ -43,9 +43,9 @@ class StoreBattleLogRequest extends FormRequest
             'opponent_pokemon_6'            => 'nullable|string|max:255',
             'opponent_form_6'               => 'nullable|string|max:255',
 
-            'selected_pokemon_1_id'         => 'nullable|integer|exists:party_pokemon,id',
-            'selected_pokemon_2_id'         => 'nullable|integer|exists:party_pokemon,id',
-            'selected_pokemon_3_id'         => 'nullable|integer|exists:party_pokemon,id',
+            'selected_pokemon_1_id'         => 'nullable|integer|distinct|exists:party_pokemon,id',
+            'selected_pokemon_2_id'         => 'nullable|integer|distinct|exists:party_pokemon,id',
+            'selected_pokemon_3_id'         => 'nullable|integer|distinct|exists:party_pokemon,id',
 
             'selected_opponent_pokemon_1'   => 'nullable|string|max:255',
             'selected_opponent_form_1'      => 'nullable|string|max:255',
