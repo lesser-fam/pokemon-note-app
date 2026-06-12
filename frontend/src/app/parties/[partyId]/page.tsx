@@ -636,7 +636,7 @@ export default function PartyDetailPage() {
                         </p>
                     )}
 
-                    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                         {party.current_version?.pokemon &&
                         party.current_version.pokemon.length > 0 ? (
                             party.current_version.pokemon.map((pokemon) => {
@@ -671,7 +671,7 @@ export default function PartyDetailPage() {
                     </div>
                 </section>
 
-                <section className="mt-8 grid gap-5 xl:grid-cols-2">
+                <section className="mt-8 grid gap-5 lg:grid-cols-2">
                     <div className="rounded border bg-white p-5">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>

@@ -31,7 +31,7 @@ export function AppHeader() {
 
     return (
         <header className="border-b bg-white">
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
                 <Link href="/parties" className="text-lg font-bold">
                     自分育成ノート
                 </Link>
