@@ -1071,7 +1071,14 @@ export default function PartyDetailPage() {
                                                     </div>
                                                 )}
 
-                                                <div className="mt-4 flex justify-end border-t pt-3">
+                                                <div className="mt-4 flex justify-end gap-2 border-t pt-3">
+                                                    <Link
+                                                        href={`/parties/${party.id}/battle-logs/${battleLog.id}/edit`}
+                                                        className="rounded border px-3 py-1 text-xs hover:bg-white"
+                                                    >
+                                                        このログを編集
+                                                    </Link>
+
                                                     <button
                                                         type="button"
                                                         onClick={() =>
