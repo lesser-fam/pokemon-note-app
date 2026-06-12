@@ -244,21 +244,21 @@ export function BattleLogForm({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="mt-8 space-y-8">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
             {errorMessage && (
                 <p className="rounded bg-red-100 p-3 text-red-700">
                     {errorMessage}
                 </p>
             )}
 
-            <section className="rounded border p-6">
+            <section className="rounded border p-5">
                 <h2 className="text-lg font-bold">相手パーティ</h2>
 
                 <p className="mt-1 text-sm text-gray-600">
                     実際に選出された相手を、順番に3匹まで選べます。
                 </p>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                <div className="mt-4 grid gap-2 sm:grid-cols-3 md:grid-cols-6">
                     {opponentPokemonPairs.map((opponent) => {
                         const pokemonMaster = findPokemonMaster(
                             opponent.key,
@@ -288,34 +288,39 @@ export function BattleLogForm({
                                         opponent.form_key,
                                     )
                                 }
-                                className={`rounded border p-3 text-left ${
+                                title={pokemonMaster?.name || opponent.key}
+                                className={`relative min-w-0 rounded border p-2 text-center ${
                                     selectionOrder
-                                        ? "border-black bg-gray-100"
+                                        ? "border-black bg-gray-100 ring-1 ring-black"
                                         : "hover:bg-gray-50"
                                 }`}
                             >
-                                {pokemonMaster?.image_url && (
+                                {selectionOrder && (
+                                    <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black text-[10px] font-semibold text-white">
+                                        {selectionOrder}
+                                    </span>
+                                )}
+
+                                {pokemonMaster?.image_url ? (
                                     <img
                                         src={pokemonMaster.image_url}
                                         alt={pokemonMaster.name}
-                                        className="h-14 w-14 object-contain"
+                                        className="mx-auto h-12 w-12 object-contain"
                                     />
+                                ) : (
+                                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">
+                                        ?
+                                    </div>
                                 )}
 
-                                <p className="mt-2 font-bold">
+                                <p className="mt-1 truncate text-xs font-bold">
                                     {pokemonMaster?.name || opponent.key}
                                 </p>
 
                                 {pokemonMaster && (
-                                    <p className="text-xs text-gray-600">
+                                    <p className="mt-0.5 truncate text-[10px] text-gray-500">
                                         {pokemonMaster.types.join(" / ")}
                                     </p>
-                                )}
-
-                                {selectionOrder && (
-                                    <span className="mt-2 inline-block rounded bg-black px-2 py-0.5 text-xs font-semibold text-white">
-                                        選出 {selectionOrder}
-                                    </span>
                                 )}
                             </button>
                         );
@@ -328,14 +333,14 @@ export function BattleLogForm({
                 </p>
             </section>
 
-            <section className="rounded border p-6">
+            <section className="rounded border p-5">
                 <h2 className="text-lg font-bold">勝敗</h2>
 
-                <div className="mt-4 flex gap-3">
+                <div className="mt-3 flex gap-2">
                     <button
                         type="button"
                         onClick={() => handleChangeResult("win")}
-                        className={`rounded border px-4 py-2 ${
+                        className={`w-24 rounded border px-4 py-2 text-center ${
                             result === "win"
                                 ? "bg-black text-white"
                                 : "hover:bg-gray-50"
@@ -347,7 +352,7 @@ export function BattleLogForm({
                     <button
                         type="button"
                         onClick={() => handleChangeResult("lose")}
-                        className={`rounded border px-4 py-2 ${
+                        className={`w-24 rounded border px-4 py-2 text-center ${
                             result === "lose"
                                 ? "bg-black text-white"
                                 : "hover:bg-gray-50"
@@ -358,14 +363,14 @@ export function BattleLogForm({
                 </div>
             </section>
 
-            <section className="rounded border p-6">
+            <section className="rounded border p-5">
                 <h2 className="text-lg font-bold">自分の選出3匹</h2>
 
                 <p className="mt-1 text-sm text-gray-600">
                     実際に選出した順番で選びます。
                 </p>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                <div className="mt-4 grid gap-2 sm:grid-cols-3 md:grid-cols-6">
                     {currentPokemonList.map((partyPokemon) => {
                         const pokemonMaster = findPokemonMaster(
                             partyPokemon.pokemon_key,
@@ -386,28 +391,43 @@ export function BattleLogForm({
                                 onClick={() =>
                                     handleToggleSelectedPokemon(partyPokemon)
                                 }
-                                className={`rounded border p-3 text-left ${
+                                title={
+                                    partyPokemon.nickname ||
+                                    pokemonMaster?.name ||
+                                    partyPokemon.pokemon_key
+                                }
+                                className={`relative min-w-0 rounded border p-2 text-center ${
                                     selectionOrder
-                                        ? "border-black bg-gray-100"
+                                        ? "border-black bg-gray-100 ring-1 ring-black"
                                         : "hover:bg-gray-50"
                                 }`}
                             >
-                                <div className="flex items-center justify-between gap-2">
-                                    <p className="font-bold">
-                                        {partyPokemon.nickname ||
-                                            pokemonMaster?.name ||
-                                            partyPokemon.pokemon_key}
-                                    </p>
+                                {selectionOrder && (
+                                    <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black text-[10px] font-semibold text-white">
+                                        {selectionOrder}
+                                    </span>
+                                )}
 
-                                    {selectionOrder && (
-                                        <span className="rounded bg-black px-2 py-0.5 text-xs font-semibold text-white">
-                                            {selectionOrder}
-                                        </span>
-                                    )}
-                                </div>
+                                {pokemonMaster?.image_url ? (
+                                    <img
+                                        src={pokemonMaster.image_url}
+                                        alt={pokemonMaster.name}
+                                        className="mx-auto h-12 w-12 object-contain"
+                                    />
+                                ) : (
+                                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">
+                                        ?
+                                    </div>
+                                )}
+
+                                <p className="mt-1 truncate text-xs font-bold">
+                                    {partyPokemon.nickname ||
+                                        pokemonMaster?.name ||
+                                        partyPokemon.pokemon_key}
+                                </p>
 
                                 {pokemonMaster && (
-                                    <p className="text-xs text-gray-600">
+                                    <p className="mt-0.5 truncate text-[10px] text-gray-500">
                                         {pokemonMaster.types.join(" / ")}
                                     </p>
                                 )}
@@ -422,7 +442,7 @@ export function BattleLogForm({
                 </p>
             </section>
 
-            <section className="rounded border p-6">
+            <section className="rounded border p-5">
                 <h2 className="text-lg font-bold">振り返り</h2>
 
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -527,7 +547,7 @@ export function BattleLogForm({
 
                     <textarea
                         className="mt-1 w-full rounded border p-3"
-                        rows={4}
+                        rows={3}
                         value={reflection}
                         onChange={(event) => setReflection(event.target.value)}
                     />
@@ -540,7 +560,7 @@ export function BattleLogForm({
 
                     <textarea
                         className="mt-1 w-full rounded border p-3"
-                        rows={4}
+                        rows={3}
                         value={nextNote}
                         onChange={(event) => setNextNote(event.target.value)}
                     />
