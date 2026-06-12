@@ -408,8 +408,8 @@ export default function PartyDetailPage() {
         ].filter(Boolean);
 
         return (
-            <div className="grid gap-2 sm:grid-cols-3">
-                {selectedPokemonList.map((partyPokemon) => {
+            <div className="flex flex-wrap gap-2">
+                {selectedPokemonList.map((partyPokemon, index) => {
                     const pokemonMaster = findPokemonMaster(
                         partyPokemon!.pokemon_key,
                         partyPokemon!.form_key,
@@ -418,19 +418,29 @@ export default function PartyDetailPage() {
                     return (
                         <div
                             key={partyPokemon!.id}
-                            className="rounded bg-white p-2"
+                            className="flex items-center gap-2 rounded bg-white px-2 py-1.5"
                         >
-                            <p className="truncate text-sm font-semibold">
+                            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-black text-[10px] font-semibold text-white">
+                                {index + 1}
+                            </span>
+
+                            {pokemonMaster?.image_url ? (
+                                <img
+                                    src={pokemonMaster.image_url}
+                                    alt={pokemonMaster.name}
+                                    className="h-8 w-8 shrink-0 object-contain"
+                                />
+                            ) : (
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">
+                                    ?
+                                </div>
+                            )}
+
+                            <span className="max-w-28 truncate text-xs font-semibold">
                                 {partyPokemon!.nickname ||
                                     pokemonMaster?.name ||
                                     partyPokemon!.pokemon_key}
-                            </p>
-
-                            {pokemonMaster && (
-                                <p className="mt-1 text-xs text-gray-600">
-                                    {pokemonMaster.types.join(" / ")}
-                                </p>
-                            )}
+                            </span>
                         </div>
                     );
                 })}
@@ -999,47 +1009,69 @@ export default function PartyDetailPage() {
                                             </summary>
 
                                             <div className="mt-4 border-t pt-4">
-                                                <div>
-                                                    <p className="text-sm font-semibold">
-                                                        自分の選出
-                                                    </p>
+                                                <div className="flex flex-wrap items-start gap-4 lg:gap-10">
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-semibold">
+                                                            自分の選出
+                                                        </p>
 
-                                                    <div className="mt-2">
-                                                        {renderSelectedPokemonList(
-                                                            battleLog,
-                                                        )}
+                                                        <div className="mt-2">
+                                                            {renderSelectedPokemonList(
+                                                                battleLog,
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
 
-                                                {battleLog.needed_pokemon && (
-                                                    <div className="mt-4 text-sm">
-                                                        <span className="font-semibold">
-                                                            必要だった味方：
-                                                        </span>
+                                                    {battleLog.needed_pokemon && (
+                                                        <div className="shrink-0">
+                                                            <p className="text-sm font-semibold">
+                                                                必要だった味方
+                                                            </p>
 
-                                                        {(() => {
-                                                            const pokemonMaster =
-                                                                findPokemonMaster(
-                                                                    battleLog
-                                                                        .needed_pokemon!
-                                                                        .pokemon_key,
-                                                                    battleLog
-                                                                        .needed_pokemon!
-                                                                        .form_key,
+                                                            {(() => {
+                                                                const pokemonMaster =
+                                                                    findPokemonMaster(
+                                                                        battleLog
+                                                                            .needed_pokemon!
+                                                                            .pokemon_key,
+                                                                        battleLog
+                                                                            .needed_pokemon!
+                                                                            .form_key,
+                                                                    );
+
+                                                                return (
+                                                                    <div className="mt-2 flex items-center gap-2 rounded bg-white px-2 py-1.5">
+                                                                        {pokemonMaster?.image_url ? (
+                                                                            <img
+                                                                                src={
+                                                                                    pokemonMaster.image_url
+                                                                                }
+                                                                                alt={
+                                                                                    pokemonMaster.name
+                                                                                }
+                                                                                className="h-8 w-8 shrink-0 object-contain"
+                                                                            />
+                                                                        ) : (
+                                                                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">
+                                                                                ?
+                                                                            </div>
+                                                                        )}
+
+                                                                        <span className="max-w-28 truncate text-xs font-semibold">
+                                                                            {battleLog
+                                                                                .needed_pokemon!
+                                                                                .nickname ||
+                                                                                pokemonMaster?.name ||
+                                                                                battleLog
+                                                                                    .needed_pokemon!
+                                                                                    .pokemon_key}
+                                                                        </span>
+                                                                    </div>
                                                                 );
-
-                                                            return (
-                                                                battleLog
-                                                                    .needed_pokemon!
-                                                                    .nickname ||
-                                                                pokemonMaster?.name ||
-                                                                battleLog
-                                                                    .needed_pokemon!
-                                                                    .pokemon_key
-                                                            );
-                                                        })()}
-                                                    </div>
-                                                )}
+                                                            })()}
+                                                        </div>
+                                                    )}
+                                                </div>
 
                                                 {battleLog.reflection && (
                                                     <div className="mt-4">

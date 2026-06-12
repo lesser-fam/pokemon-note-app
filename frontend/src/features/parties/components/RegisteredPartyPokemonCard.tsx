@@ -1,8 +1,9 @@
 import { AbilityTooltip } from "@/features/battlePreview/components/AbilityTooltip";
 import { ItemTooltip } from "@/features/battlePreview/components/ItemTooltip";
-import { PokemonMemoTooltip } from "./PokemonMemoTooltip";
 import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
+import { getPokemonTypeClassName } from "@/utils/pokemonTypeStyle";
+import { PokemonMemoTooltip } from "./PokemonMemoTooltip";
 
 type RegisteredPartyPokemonCardProps = {
     partyPokemon: PartyPokemon;
@@ -175,7 +176,11 @@ export function RegisteredPartyPokemonCard({
                                 <span className="truncate">{move.name}</span>
 
                                 {move.type && (
-                                    <span className="shrink-0 rounded bg-white px-1.5 py-0.5 text-[10px] text-gray-600">
+                                    <span
+                                        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${getPokemonTypeClassName(
+                                            move.type,
+                                        )}`}
+                                    >
                                         {move.type}
                                     </span>
                                 )}

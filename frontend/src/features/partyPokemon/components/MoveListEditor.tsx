@@ -1,4 +1,5 @@
 import { MoveSelector } from "@/features/master/components/MoveSelector";
+import { getPokemonTypeClassName } from "@/utils/pokemonTypeStyle";
 
 export type EditableMove = {
     name: string;
@@ -28,7 +29,11 @@ export function MoveListEditor({ moves, onChange }: MoveListEditorProps) {
                             </label>
 
                             {move.type && (
-                                <span className="rounded-full border bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-700">
+                                <span
+                                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${getPokemonTypeClassName(
+                                        move.type,
+                                    )}`}
+                                >
                                     {move.type}
                                 </span>
                             )}

@@ -1,11 +1,7 @@
 "use client";
 
 import { AppHeader } from "@/components/AppHeader";
-import {
-    deleteParty,
-    fetchParty,
-    updateParty,
-} from "@/features/parties/api/partyApi";
+import { fetchParty, updateParty } from "@/features/parties/api/partyApi";
 import type { Party } from "@/types/party";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -25,7 +21,6 @@ export default function EditPartyPage() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
@@ -83,33 +78,6 @@ export default function EditPartyPage() {
             setErrorMessage("パーティの更新に失敗しました。");
         } finally {
             setIsSubmitting(false);
-        }
-    };
-
-    const handleDeleteParty = async () => {
-        if (!party) {
-            return;
-        }
-
-        const confirmed = window.confirm(
-            "このパーティを削除します。登録ポケモン、基本選出、対戦ログ、バージョン履歴も削除されます。よろしいですか？",
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
-        setIsDeleting(true);
-        setErrorMessage("");
-
-        try {
-            await deleteParty(party.id);
-            router.push("/parties");
-        } catch (error) {
-            console.error(error);
-            setErrorMessage("パーティの削除に失敗しました。");
-        } finally {
-            setIsDeleting(false);
         }
     };
 
@@ -245,7 +213,7 @@ export default function EditPartyPage() {
                         <div className="flex flex-wrap gap-3">
                             <button
                                 type="submit"
-                                disabled={isSubmitting || isDeleting}
+                                disabled={isSubmitting}
                                 className="rounded bg-black px-5 py-3 text-white disabled:opacity-50"
                             >
                                 {isSubmitting ? "保存中..." : "保存する"}
@@ -260,25 +228,6 @@ export default function EditPartyPage() {
                         </div>
                     </form>
                 </div>
-
-                <section className="mt-8 rounded border border-red-200 bg-red-50 p-6">
-                    <h2 className="text-lg font-bold text-red-700">
-                        危険な操作
-                    </h2>
-
-                    <p className="mt-2 text-sm text-red-700">
-                        このパーティを削除すると、登録ポケモン、基本選出、対戦ログ、バージョン履歴も削除されます。
-                    </p>
-
-                    <button
-                        type="button"
-                        onClick={handleDeleteParty}
-                        disabled={isSubmitting || isDeleting}
-                        className="mt-4 rounded bg-red-600 px-5 py-3 text-white disabled:opacity-50"
-                    >
-                        {isDeleting ? "削除中..." : "このパーティを削除"}
-                    </button>
-                </section>
             </main>
         </>
     );
