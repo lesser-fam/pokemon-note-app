@@ -454,10 +454,16 @@ export default function PartyDetailPage() {
         count: number;
     };
 
-    const renderBattleLogSummaryCountList = (
+    const findPartyPokemonBySummaryKey = (item: BattleLogSummaryCountItem) => {
+        return currentPokemonList.find(
+            (partyPokemon) => String(partyPokemon.id) === item.key,
+        );
+    };
+
+    const renderPartyPokemonSummaryItems = (
         items: BattleLogSummaryCountItem[],
-        getLabel: (item: BattleLogSummaryCountItem) => string,
-        initialLimit: number,
+        limit: number,
+        layout: "row" | "column" = "column",
     ) => {
         if (items.length === 0) {
             return (
@@ -467,66 +473,113 @@ export default function PartyDetailPage() {
             );
         }
 
-        const initialItems = items.slice(0, initialLimit);
+        return (
+            <div
+                className={
+                    layout === "row"
+                        ? "mt-3 flex flex-wrap gap-2"
+                        : "mt-3 space-y-1.5"
+                }
+            >
+                {items.slice(0, limit).map((item) => {
+                    const partyPokemon = findPartyPokemonBySummaryKey(item);
 
-        const remainingItems = items.slice(initialLimit);
+                    const pokemonMaster = partyPokemon
+                        ? findPokemonMaster(
+                              partyPokemon.pokemon_key,
+                              partyPokemon.form_key,
+                          )
+                        : undefined;
 
-        const renderRows = (rowItems: BattleLogSummaryCountItem[]) => {
-            return (
-                <div className="space-y-1.5">
-                    {rowItems.map((item) => (
+                    return (
                         <div
                             key={item.key}
-                            className="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-sm"
+                            className="flex min-w-0 items-center gap-2 rounded bg-white px-2 py-1.5"
                         >
-                            <span className="truncate">{getLabel(item)}</span>
+                            {pokemonMaster?.image_url ? (
+                                <img
+                                    src={pokemonMaster.image_url}
+                                    alt={pokemonMaster.name}
+                                    className="h-8 w-8 shrink-0 object-contain"
+                                />
+                            ) : (
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">
+                                    ?
+                                </div>
+                            )}
+
+                            <div className="min-w-0">
+                                <p className="max-w-28 truncate text-xs font-semibold">
+                                    {partyPokemon?.nickname ||
+                                        pokemonMaster?.name ||
+                                        item.label ||
+                                        item.key}
+                                </p>
+
+                                <p className="text-[10px] text-gray-500">
+                                    {item.count}回
+                                </p>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const renderHeavyOpponentSummaryItems = (
+        items: BattleLogSummaryCountItem[],
+    ) => {
+        if (items.length === 0) {
+            return (
+                <p className="mt-3 text-sm text-gray-600">
+                    まだ記録がありません。
+                </p>
+            );
+        }
+
+        return (
+            <div className="mt-3 max-h-40 space-y-1.5 overflow-y-auto pr-1">
+                {items.map((item) => {
+                    const [pokemonKey, formKey] = item.key.split(":");
+
+                    const pokemonMaster = findPokemonMaster(
+                        pokemonKey,
+                        formKey || "default",
+                    );
+
+                    return (
+                        <div
+                            key={item.key}
+                            className="flex items-center justify-between gap-3 rounded bg-white px-2 py-1.5"
+                        >
+                            <div className="flex min-w-0 items-center gap-2">
+                                {pokemonMaster?.image_url ? (
+                                    <img
+                                        src={pokemonMaster.image_url}
+                                        alt={pokemonMaster.name}
+                                        className="h-8 w-8 shrink-0 object-contain"
+                                    />
+                                ) : (
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">
+                                        ?
+                                    </div>
+                                )}
+
+                                <p className="truncate text-xs font-semibold">
+                                    {pokemonMaster?.name ||
+                                        item.label ||
+                                        pokemonKey}
+                                </p>
+                            </div>
 
                             <span className="shrink-0 text-xs text-gray-500">
                                 {item.count}回
                             </span>
                         </div>
-                    ))}
-                </div>
-            );
-        };
-
-        return (
-            <div className="mt-3">
-                {renderRows(initialItems)}
-
-                {remainingItems.length > 0 && (
-                    <details className="mt-2">
-                        <summary className="cursor-pointer text-xs text-blue-600">
-                            すべて見る（
-                            {items.length}
-                            件）
-                        </summary>
-
-                        <div className="mt-2">{renderRows(remainingItems)}</div>
-                    </details>
-                )}
+                    );
+                })}
             </div>
-        );
-    };
-
-    const getNeededPokemonSummaryLabel = (item: BattleLogSummaryCountItem) => {
-        const battleLog = battleLogs.find(
-            (log) => String(log.needed_pokemon?.id) === item.key,
-        );
-
-        if (!battleLog?.needed_pokemon) {
-            return item.label || item.key;
-        }
-
-        const pokemonMaster = findPokemonMaster(
-            battleLog.needed_pokemon.pokemon_key,
-            battleLog.needed_pokemon.form_key,
-        );
-
-        return (
-            battleLog.needed_pokemon.nickname ||
-            pokemonMaster?.name ||
-            battleLog.needed_pokemon.pokemon_key
         );
     };
 
@@ -826,54 +879,61 @@ export default function PartyDetailPage() {
                         </p>
                     ) : (
                         <div className="mt-4 space-y-6">
-                            <div className="grid gap-4 md:grid-cols-3">
-                                <div className="rounded bg-gray-50 p-3">
-                                    <p className="text-sm text-gray-500">
-                                        対戦数
-                                    </p>
-                                    <p className="mt-1 text-xl font-bold">
-                                        {battleLogSummary.totalBattles}
-                                    </p>
+                            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,1.2fr)]">
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div className="rounded bg-gray-50 p-3">
+                                        <p className="text-xs text-gray-500">
+                                            対戦数
+                                        </p>
+
+                                        <p className="mt-1 text-3xl font-bold">
+                                            {battleLogSummary.totalBattles}
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded bg-gray-50 p-3">
+                                        <p className="text-xs text-gray-500">
+                                            勝敗
+                                        </p>
+
+                                        <p className="mt-1 whitespace-nowrap text-2xl font-bold">
+                                            {battleLogSummary.winCount}勝 /{" "}
+                                            {battleLogSummary.loseCount}敗
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded bg-gray-50 p-3">
+                                        <p className="text-xs text-gray-500">
+                                            勝率
+                                        </p>
+
+                                        <p className="mt-1 text-3xl font-bold">
+                                            {battleLogSummary.winRate}%
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div className="rounded bg-gray-50 p-3">
-                                    <p className="text-sm text-gray-500">
-                                        勝敗
-                                    </p>
-                                    <p className="mt-1 text-xl font-bold">
-                                        {battleLogSummary.winCount}勝 /{" "}
-                                        {battleLogSummary.loseCount}敗
-                                    </p>
-                                </div>
+                                    <h3 className="text-sm font-bold">
+                                        よく選出する味方
+                                    </h3>
 
-                                <div className="rounded bg-gray-50 p-3">
-                                    <p className="text-sm text-gray-500">
-                                        勝率
-                                    </p>
-                                    <p className="mt-1 text-xl font-bold">
-                                        {battleLogSummary.winRate}%
-                                    </p>
+                                    {renderPartyPokemonSummaryItems(
+                                        battleLogSummary.selectedPokemonCounts,
+                                        3,
+                                        "row",
+                                    )}
                                 </div>
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-3">
+                            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]">
                                 <div className="rounded bg-gray-50 p-3">
                                     <h3 className="text-sm font-bold">
                                         よく重かった相手
                                     </h3>
 
-                                    {renderBattleLogSummaryCountList(
+                                    {renderHeavyOpponentSummaryItems(
                                         battleLogSummary.heavyOpponentCounts,
-                                        (item) => {
-                                            const [pokemonKey, formKey] =
-                                                item.key.split(":");
-
-                                            return getPokemonMasterName(
-                                                pokemonKey,
-                                                formKey,
-                                            );
-                                        },
-                                        3,
                                     )}
                                 </div>
 
@@ -882,9 +942,8 @@ export default function PartyDetailPage() {
                                         よく必要だった味方
                                     </h3>
 
-                                    {renderBattleLogSummaryCountList(
+                                    {renderPartyPokemonSummaryItems(
                                         battleLogSummary.neededPokemonCounts,
-                                        getNeededPokemonSummaryLabel,
                                         3,
                                     )}
                                 </div>
@@ -894,10 +953,30 @@ export default function PartyDetailPage() {
                                         よく出る敗因タグ
                                     </h3>
 
-                                    {renderBattleLogSummaryCountList(
-                                        battleLogSummary.lossTagCounts,
-                                        (item) => item.label || item.key,
-                                        5,
+                                    {battleLogSummary.lossTagCounts.length >
+                                    0 ? (
+                                        <div className="mt-3 space-y-1.5">
+                                            {battleLogSummary.lossTagCounts
+                                                .slice(0, 5)
+                                                .map((item) => (
+                                                    <div
+                                                        key={item.key}
+                                                        className="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-sm"
+                                                    >
+                                                        <span className="truncate">
+                                                            {item.label}
+                                                        </span>
+
+                                                        <span className="shrink-0 text-xs text-gray-500">
+                                                            {item.count}回
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    ) : (
+                                        <p className="mt-3 text-sm text-gray-600">
+                                            まだ記録がありません。
+                                        </p>
                                     )}
                                 </div>
                             </div>

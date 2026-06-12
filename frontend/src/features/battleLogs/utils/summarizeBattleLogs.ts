@@ -11,13 +11,17 @@ export type BattleLogSummary = {
     winCount: number;
     loseCount: number;
     winRate: number;
+    selectedPokemonCounts: CountSummary[];
     heavyOpponentCounts: CountSummary[];
     neededPokemonCounts: CountSummary[];
     lossTagCounts: CountSummary[];
 };
 
 const countByKey = (
-    items: { key: string; label: string }[],
+    items: {
+        key: string;
+        label: string;
+    }[],
 ): CountSummary[] => {
     const map = new Map<string, CountSummary>();
 
@@ -47,11 +51,28 @@ export const summarizeBattleLogs = (
     battleLogs: BattleLog[],
 ): BattleLogSummary => {
     const totalBattles = battleLogs.length;
+
     const winCount = battleLogs.filter((log) => log.result === "win").length;
+
     const loseCount = battleLogs.filter((log) => log.result === "lose").length;
 
     const winRate =
         totalBattles > 0 ? Math.round((winCount / totalBattles) * 100) : 0;
+
+    const selectedPokemonCounts = countByKey(
+        battleLogs.flatMap((log) =>
+            [
+                log.selected_pokemon1,
+                log.selected_pokemon2,
+                log.selected_pokemon3,
+            ]
+                .filter(Boolean)
+                .map((pokemon) => ({
+                    key: String(pokemon!.id),
+                    label: pokemon!.nickname || pokemon!.pokemon_key,
+                })),
+        ),
+    );
 
     const heavyOpponentCounts = countByKey(
         battleLogs
@@ -87,6 +108,7 @@ export const summarizeBattleLogs = (
         winCount,
         loseCount,
         winRate,
+        selectedPokemonCounts,
         heavyOpponentCounts,
         neededPokemonCounts,
         lossTagCounts,
