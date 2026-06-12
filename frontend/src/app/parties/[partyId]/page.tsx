@@ -2,6 +2,7 @@
 
 import { AppHeader } from "@/components/AppHeader";
 import { summarizeBattleLogs } from "@/features/battleLogs/utils/summarizeBattleLogs";
+import { deleteBattleLog } from "@/features/battleLogs/api/battleLogApi";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { deleteParty, fetchParty } from "@/features/parties/api/partyApi";
 import { RegisteredPartyPokemonCard } from "@/features/parties/components/RegisteredPartyPokemonCard";
@@ -30,6 +31,9 @@ export default function PartyDetailPage() {
     const [isDeletingParty, setIsDeletingParty] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [deletingPartyPokemonId, setDeletingPartyPokemonId] = useState<
+        number | null
+    >(null);
+    const [deletingBattleLogId, setDeletingBattleLogId] = useState<
         number | null
     >(null);
 
@@ -244,6 +248,33 @@ export default function PartyDetailPage() {
         } catch (error) {
             console.error(error);
             setErrorMessage("基本選出の削除に失敗しました。");
+        }
+    };
+
+    const handleDeleteBattleLog = async (battleLogId: number) => {
+        const confirmed = window.confirm(
+            "この対戦ログを削除します。よろしいですか？",
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setDeletingBattleLogId(battleLogId);
+        setErrorMessage("");
+
+        try {
+            await deleteBattleLog(battleLogId);
+
+            const refreshedParty = await fetchParty(party.id);
+
+            setParty(refreshedParty);
+        } catch (error) {
+            console.error(error);
+
+            setErrorMessage("対戦ログの削除に失敗しました。");
+        } finally {
+            setDeletingBattleLogId(null);
         }
     };
 
@@ -1039,6 +1070,27 @@ export default function PartyDetailPage() {
                                                         </p>
                                                     </div>
                                                 )}
+
+                                                <div className="mt-4 flex justify-end border-t pt-3">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleDeleteBattleLog(
+                                                                battleLog.id,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            deletingBattleLogId ===
+                                                            battleLog.id
+                                                        }
+                                                        className="rounded border border-red-300 px-3 py-1 text-xs text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    >
+                                                        {deletingBattleLogId ===
+                                                        battleLog.id
+                                                            ? "削除中..."
+                                                            : "このログを削除"}
+                                                    </button>
+                                                </div>
                                             </div>
                                         </details>
                                     );

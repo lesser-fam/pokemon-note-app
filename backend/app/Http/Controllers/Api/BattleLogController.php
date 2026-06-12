@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBattleLogRequest;
+use App\Models\BattleLog;
 use App\Models\PartyVersion;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class BattleLogController extends Controller
 {
@@ -54,5 +56,21 @@ class BattleLogController extends Controller
             'message' => '対戦ログを保存しました。',
             'data' => $battleLog,
         ], 201);
+    }
+
+    public function destroy(Request $request, BattleLog $battleLog): JsonResponse
+    {
+        $partyVersion = $battleLog->partyVersion;
+        $party = $partyVersion->party;
+
+        if ($party->user_id !== $request->user()->id) {
+            abort(404);
+        }
+
+        $battleLog->delete();
+
+        return response()->json([
+            'message' => '対戦ログを削除しました。'
+        ]);
     }
 }

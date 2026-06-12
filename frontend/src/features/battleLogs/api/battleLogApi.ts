@@ -50,3 +50,7 @@ export const createBattleLog = async (
 
     return response.data.data;
 };
+
+export const deleteBattleLog = async (battleLogId: number): Promise<void> => {
+    await api.delete(`/api/battle-logs/${battleLogId}`);
+};

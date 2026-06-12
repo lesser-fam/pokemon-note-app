@@ -31,4 +31,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/api/selection-templates/{selectionTemplate}', [SelectionTemplateController::class, 'destroy']);
 
     Route::post('/api/party-versions/{partyVersion}/battle-logs', [BattleLogController::class, 'store']);
+    Route::delete('/api/battle-logs/{battleLog}', [BattleLogController::class, 'destroy']);
 });
