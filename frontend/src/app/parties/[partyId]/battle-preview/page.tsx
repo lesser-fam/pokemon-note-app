@@ -25,6 +25,8 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 
+import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
+
 type ComparisonMode =
     | "speed"
     | "own_attack_vs_opponent_defense"
@@ -91,6 +93,22 @@ export default function BattlePreviewPage() {
 
         loadData();
     }, [partyId, isInvalidPartyId]);
+
+    //確認用
+    useEffect(() => {
+        if (pokemonList.length === 0) {
+            return;
+        }
+
+        const result = convertChampionsDexNumbersToIdentifiers(pokemonList);
+
+        console.log("sourceCount", result.sourceCount);
+        console.log("matchedCount", result.matchedCount);
+        console.log("missingCount", result.missingCount);
+        console.log("missingDexNumbers", result.missingDexNumbers);
+        console.log("matchedPokemon", result.matchedPokemon);
+        console.log("matched", result.matched);
+    }, [pokemonList]);
 
     useEffect(() => {
         const loadPokemonAbilityWarnings = async () => {
