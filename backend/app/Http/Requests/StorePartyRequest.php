@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Override;
 
 class StorePartyRequest extends FormRequest
 {
@@ -27,6 +28,15 @@ class StorePartyRequest extends FormRequest
             'rule'      => 'nullable|string|in:main_series,champions',
             'concept'   => 'nullable|string',
             'memo'      => 'nullable|string',
+        ];
+    }
+
+    #[Override]
+    public function messages()
+    {
+        return [
+            'name.required' => 'パーティ名を入力してください。',
+            'name.max'      => 'パーティ名は255字以内で入力してください。'
         ];
     }
 }

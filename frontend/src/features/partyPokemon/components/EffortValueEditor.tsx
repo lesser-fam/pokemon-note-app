@@ -152,6 +152,7 @@ export function EffortValueEditor({
                                 inputMode="numeric"
                                 className="w-16 rounded border px-2 py-1.5 text-right text-sm"
                                 value={values[statKey]}
+                                onFocus={(event) => event.target.select()}
                                 onChange={(event) => {
                                     const nextValue = event.target.value;
 

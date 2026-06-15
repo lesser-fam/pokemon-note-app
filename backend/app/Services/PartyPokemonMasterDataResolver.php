@@ -24,7 +24,7 @@ class PartyPokemonMasterDataResolver
             ...$pokemon,
 
             'item_id' => $item?->id,
-            'item' => $item?->name,
+            'item' => $item?->name ?? $this->normalizeText($pokemon['item'] ?? null),
 
             'ability_id' => $ability?->id,
             'ability' => $ability?->name,
@@ -77,5 +77,12 @@ class PartyPokemonMasterDataResolver
         }
 
         return $move->type;
+    }
+
+    private function normalizeText(?string $value): ?string
+    {
+        $normalizedValue = trim($value ?? '');
+
+        return $normalizedValue !== '' ? $normalizedValue : null;
     }
 }

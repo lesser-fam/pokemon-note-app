@@ -4,7 +4,7 @@ import {
     fetchAbilityList,
     fetchItemList,
 } from "@/features/master/api/masterApi";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type BattleMasterResource = "ability" | "item";
 
@@ -33,6 +33,8 @@ export function BattleMasterTextSelector({
     const [optionList, setOptionList] = useState<BattleMasterOption[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const keyword = value.trim();
@@ -74,6 +76,23 @@ export function BattleMasterTextSelector({
         };
     }, [resource, value, isOpen]);
 
+    useEffect(() => {
+        const handleClickOutSide = (event: MouseEvent) => {
+            if (
+                containerRef.current &&
+                !containerRef.current.contains(event.target as Node)
+            ) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutSide);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutSide);
+        };
+    }, []);
+
     const handleChange = (nextValue: string) => {
         onChangeText(nextValue);
 
@@ -93,7 +112,7 @@ export function BattleMasterTextSelector({
     };
 
     return (
-        <div className="relative">
+        <div ref={containerRef} className="relative">
             <input
                 className="w-full rounded border p-3"
                 value={value}
@@ -115,7 +134,10 @@ export function BattleMasterTextSelector({
                             <button
                                 key={option.id}
                                 type="button"
-                                onClick={() => handleSelect(option)}
+                                onMouseDown={(event) => {
+                                    event.preventDefault();
+                                    handleSelect(option);
+                                }}
                                 className="group block w-full border-b px-3 py-2 text-left text-sm hover:bg-gray-50"
                             >
                                 <span className="flex items-center justify-between gap-2">

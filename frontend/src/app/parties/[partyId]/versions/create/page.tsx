@@ -447,9 +447,15 @@ export default function CreatePartyVersionPage() {
     };
 
     const handleSelectPokemonCard = (index: number) => {
-        setSelectedPokemonIndex((currentIndex) =>
-            currentIndex === index ? null : index,
-        );
+        setSelectedPokemonIndex(index);
+
+        setEditingPokemonIndex((currentEditingIndex) => {
+            if (currentEditingIndex === null) {
+                return currentEditingIndex;
+            }
+
+            return index;
+        });
     };
 
     const handleStartEditingSelectedPokemon = () => {
@@ -485,9 +491,9 @@ export default function CreatePartyVersionPage() {
         }
 
         const hasUnselectedMasterData = editablePokemonList.some((pokemon) => {
-            if (pokemon.item.trim() !== "" && pokemon.item_id === null) {
-                return true;
-            }
+            // if (pokemon.item.trim() !== "" && pokemon.item_id === null) {
+            //     return true;
+            // }
 
             if (pokemon.ability.trim() !== "" && pokemon.ability_id === null) {
                 return true;
@@ -510,9 +516,7 @@ export default function CreatePartyVersionPage() {
         });
 
         if (hasUnselectedMasterData) {
-            setErrorMessage(
-                "持ち物、特性、性格、技は検索候補から選択してください。",
-            );
+            setErrorMessage("特性、性格、技は検索候補から選択してください。");
             return;
         }
 
@@ -1050,6 +1054,7 @@ export default function CreatePartyVersionPage() {
                                         pokemonList={pokemonList}
                                         searchKeyword={searchKeyword}
                                         onChangeSearchKeyword={setSearchKeyword}
+                                        clearSearchKeywordOnSelect
                                         selectedTypes={selectedTypes}
                                         onChangeSelectedTypes={setSelectedTypes}
                                         filterPokemon={(pokemon) =>

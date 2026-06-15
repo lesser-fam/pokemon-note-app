@@ -701,6 +701,7 @@ export default function BattlePreviewPage() {
                                 pokemonList={pokemonList}
                                 searchKeyword={searchKeyword}
                                 onChangeSearchKeyword={setSearchKeyword}
+                                clearSearchKeywordOnSelect
                                 selectedTypes={selectedTypes}
                                 onChangeSelectedTypes={setSelectedTypes}
                                 isPokemonSelected={(pokemon) =>

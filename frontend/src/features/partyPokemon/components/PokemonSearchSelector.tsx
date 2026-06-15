@@ -23,6 +23,8 @@ type PokemonSearchSelectorProps = {
 
     getPokemonStatusLabel?: (pokemon: Pokemon) => string | null;
 
+    clearSearchKeywordOnSelect?: boolean;
+
     initialLimit?: number;
 
     layout?: "wide" | "compact";
@@ -39,6 +41,7 @@ export function PokemonSearchSelector({
     isPokemonSelected = () => false,
     isPokemonDisabled = () => false,
     getPokemonStatusLabel = () => null,
+    clearSearchKeywordOnSelect = false,
     initialLimit = 30,
     layout = "wide",
 }: PokemonSearchSelectorProps) {
@@ -184,8 +187,8 @@ export function PokemonSearchSelector({
                     <div
                         className={
                             isCompactLayout
-                                ? "grid min-w-0 grid-cols-2 gap-2"
-                                : "grid min-w-0 gap-3 sm:grid-cols-2"
+                                ? "grid min-w-0 grid-cols-3 gap-2"
+                                : "grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-3"
                         }
                     >
                         {visiblePokemonList.map((pokemon) => {
@@ -200,9 +203,14 @@ export function PokemonSearchSelector({
                                     key={`${pokemon.key}-${pokemon.form_key}`}
                                     type="button"
                                     disabled={disabled}
-                                    onClick={() => onSelectPokemon(pokemon)}
+                                    onClick={() => {
+                                        onSelectPokemon(pokemon);
+                                        if (clearSearchKeywordOnSelect) {
+                                            onChangeSearchKeyword("");
+                                        }
+                                    }}
                                     className={`w-full min-w-0 overflow-hidden rounded border bg-white text-left transition disabled:cursor-not-allowed ${
-                                        isCompactLayout ? "p-2" : "p-3"
+                                        isCompactLayout ? "p-2" : "p-2.5"
                                     } ${
                                         disabled
                                             ? "opacity-50"
@@ -223,7 +231,7 @@ export function PokemonSearchSelector({
                                                 className={`shrink-0 object-contain ${
                                                     isCompactLayout
                                                         ? "h-10 w-10"
-                                                        : "h-14 w-14"
+                                                        : "h-12 w-12"
                                                 }`}
                                             />
                                         ) : (
@@ -231,7 +239,7 @@ export function PokemonSearchSelector({
                                                 className={`flex shrink-0 items-center justify-center rounded bg-gray-100 ${
                                                     isCompactLayout
                                                         ? "h-10 w-10 text-xs"
-                                                        : "h-10 w-10 text-sm"
+                                                        : "h-12 w-12 text-sm"
                                                 }`}
                                             >
                                                 ?
@@ -243,7 +251,7 @@ export function PokemonSearchSelector({
                                                 className={`truncate font-bold ${
                                                     isCompactLayout
                                                         ? "text-xs"
-                                                        : "text-base"
+                                                        : "text-sm"
                                                 }`}
                                             >
                                                 {pokemon.name}
@@ -253,7 +261,7 @@ export function PokemonSearchSelector({
                                                 className={`truncate text-gray-600 ${
                                                     isCompactLayout
                                                         ? "text-[10px]"
-                                                        : "text-xs"
+                                                        : "text-[11px]"
                                                 }`}
                                             >
                                                 {pokemon.kana}
@@ -263,7 +271,7 @@ export function PokemonSearchSelector({
                                                 className={`mt-0.5 truncate ${
                                                     isCompactLayout
                                                         ? "text-[10px]"
-                                                        : "mt-1 text-xs"
+                                                        : "text-[11px]"
                                                 }`}
                                             >
                                                 {pokemon.types.join(" / ")}
@@ -274,7 +282,7 @@ export function PokemonSearchSelector({
                                                     className={`mt-0.5 text-gray-500 ${
                                                         isCompactLayout
                                                             ? "text-[10px]"
-                                                            : "mt-1 text-xs"
+                                                            : "text-[11px]"
                                                     }`}
                                                 >
                                                     {statusLabel}
