@@ -23,6 +23,7 @@ import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 
 type ComparisonMode =
     | "speed"
@@ -727,6 +728,12 @@ export default function BattlePreviewPage() {
                                 }
                                 onSelectPokemon={(pokemon) =>
                                     handleAddOpponentPokemon(pokemon)
+                                }
+                                filterPokemon={(pokemon) =>
+                                    isPokemonAvailableForRule(
+                                        pokemon,
+                                        party?.rule,
+                                    )
                                 }
                             />
                         </div>
