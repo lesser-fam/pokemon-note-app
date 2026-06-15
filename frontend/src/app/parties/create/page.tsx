@@ -55,13 +55,11 @@ export default function CreatePartyPage() {
                     </p>
                 </div>
 
-                {errorMessage && (
-                    <p className="mt-6 rounded bg-red-100 p-3 text-red-700">
-                        {errorMessage}
-                    </p>
-                )}
-
-                <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+                <form
+                    onSubmit={handleSubmit}
+                    className="mt-8 space-y-6"
+                    noValidate
+                >
                     <div>
                         <label className="block text-sm font-medium">
                             パーティ名
@@ -71,7 +69,6 @@ export default function CreatePartyPage() {
                             value={name}
                             onChange={(event) => setName(event.target.value)}
                             placeholder="例：メガゲンガー軸"
-                            required
                         />
                     </div>
 
@@ -119,6 +116,12 @@ export default function CreatePartyPage() {
                             rows={4}
                         />
                     </div>
+
+                    {errorMessage && (
+                        <p className="mt-6 rounded bg-red-100 p-3 text-red-700">
+                            {errorMessage}
+                        </p>
+                    )}
 
                     <button
                         type="submit"

@@ -31,8 +31,7 @@ class StorePartyRequest extends FormRequest
         ];
     }
 
-    #[Override]
-    public function messages()
+    public function messages(): array
     {
         return [
             'name.required' => 'パーティ名を入力してください。',
