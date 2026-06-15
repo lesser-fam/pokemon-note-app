@@ -25,7 +25,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 
-import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
+// import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
 
 type ComparisonMode =
     | "speed"
@@ -95,20 +95,20 @@ export default function BattlePreviewPage() {
     }, [partyId, isInvalidPartyId]);
 
     //確認用
-    useEffect(() => {
-        if (pokemonList.length === 0) {
-            return;
-        }
+    // useEffect(() => {
+    //     if (pokemonList.length === 0) {
+    //         return;
+    //     }
 
-        const result = convertChampionsDexNumbersToIdentifiers(pokemonList);
+    //     const result = convertChampionsDexNumbersToIdentifiers(pokemonList);
 
-        console.log("sourceCount", result.sourceCount);
-        console.log("matchedCount", result.matchedCount);
-        console.log("missingCount", result.missingCount);
-        console.log("missingDexNumbers", result.missingDexNumbers);
-        console.log("matchedPokemon", result.matchedPokemon);
-        console.log("matched", result.matched);
-    }, [pokemonList]);
+    //     console.log("sourceCount", result.sourceCount);
+    //     console.log("matchedCount", result.matchedCount);
+    //     console.log("missingCount", result.missingCount);
+    //     console.log("missingDexNumbers", result.missingDexNumbers);
+    //     console.log("matchedPokemon", result.matchedPokemon);
+    //     console.log("matched", result.matched);
+    // }, [pokemonList]);
 
     useEffect(() => {
         const loadPokemonAbilityWarnings = async () => {
