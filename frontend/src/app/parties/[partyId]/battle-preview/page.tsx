@@ -1,6 +1,6 @@
 "use client";
 
-import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
+import { NextBattleActionSuggestions } from "@/features/battlePreview/components/NextBattleActionSuggestions";
 import { OpponentPartyColumn } from "@/features/battlePreview/components/OpponentPartyColumn";
 import { OwnPartyColumn } from "@/features/battlePreview/components/OwnPartyColumn";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
@@ -12,19 +12,19 @@ import {
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
+import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
 import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
-import { NextBattleActionSuggestions } from "@/features/battlePreview/components/NextBattleActionSuggestions";
 import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 
+import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 
 //確認用
 // import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
@@ -1104,6 +1104,9 @@ export default function BattlePreviewPage() {
                         ownPartyPokemon={actionOwnPartyPokemon}
                         ownPokemonMaster={actionOwnPokemonMaster}
                         opponentPokemon={actionOpponentPokemon}
+                        partyPokemonList={effectiveCurrentPokemonList}
+                        pokemonMasterList={pokemonList}
+                        selectedPartyPokemonIds={selectedPartyPokemonIds}
                     />
 
                     <section className="sticky bottom-0 z-10 rounded border bg-white/95 p-3 shadow-sm backdrop-blur">

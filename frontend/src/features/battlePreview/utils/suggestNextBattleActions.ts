@@ -11,6 +11,7 @@ export type SuggestedBattleAction = {
     label: string;
     score: number;
     reasonList: string[];
+    targetPartyPokemonId?: number;
 };
 
 type BattleMoveCandidate = {
@@ -24,6 +25,9 @@ type SuggestNextBattleActionsInput = {
     ownPartyPokemon: PartyPokemon;
     ownPokemonMaster: Pokemon;
     opponentPokemon: Pokemon;
+    partyPokemonList: PartyPokemon[];
+    pokemonMasterList: Pokemon[];
+    selectedPartyPokemonIds: number[];
 };
 
 const typeEffectivenessChart: Record<string, Record<string, number>> = {
@@ -198,6 +202,21 @@ const getTypeEffectiveness = (
             multiplier * (typeEffectivenessChart[moveType]?.[defenderType] ?? 1)
         );
     }, 1);
+};
+
+const getDefensiveMultiplier = (
+    defenderTypes: string[],
+    attackTypes: string[],
+): number => {
+    if (attackTypes.length === 0) {
+        return 1;
+    }
+
+    return Math.max(
+        ...attackTypes.map((attackType) =>
+            getTypeEffectiveness(attackType, defenderTypes),
+        ),
+    );
 };
 
 const getNatureMultiplier = (
@@ -511,10 +530,104 @@ const evaluateSwitch = ({
     };
 };
 
+const getPartyPokemonDisplayName = (
+    partyPokemon: PartyPokemon,
+    pokemonMaster: Pokemon,
+): string => {
+    return (
+        partyPokemon.nickname || pokemonMaster.name || partyPokemon.pokemon_key
+    );
+};
+
+const evaluateSwitchTarget = ({
+    switchTarget,
+    switchTargetMaster,
+    opponentPokemon,
+}: {
+    switchTarget: PartyPokemon;
+    switchTargetMaster: Pokemon;
+    opponentPokemon: Pokemon;
+}): SuggestedBattleAction => {
+    const reasonList: string[] = [];
+
+    const defensiveMultiplier = getDefensiveMultiplier(
+        switchTargetMaster.types,
+        opponentPokemon.types,
+    );
+
+    const switchTargetBulk =
+        getOwnApproxStat(switchTarget, switchTargetMaster, "h") +
+        getOwnApproxStat(switchTarget, switchTargetMaster, "b") +
+        getOwnApproxStat(switchTarget, switchTargetMaster, "d");
+
+    const switchTargetSpeed = getOwnApproxStat(
+        switchTarget,
+        switchTargetMaster,
+        "s",
+    );
+
+    const opponentSpeed = getApproxStat(opponentPokemon, "s");
+
+    let score = 34;
+
+    if (defensiveMultiplier === 0) {
+        score += 45;
+        reasonList.push("相手のタイプ一致技を無効にできる可能性があります。");
+    } else if (defensiveMultiplier <= 0.25) {
+        score += 36;
+        reasonList.push("相手のタイプ一致技をかなり受けやすいです。");
+    } else if (defensiveMultiplier <= 0.5) {
+        score += 26;
+        reasonList.push("相手のタイプ一致技を半減で受けやすいです。");
+    } else if (defensiveMultiplier === 1) {
+        score += 8;
+        reasonList.push("相手のタイプ一致技を等倍で受ける想定です。");
+    } else if (defensiveMultiplier >= 4) {
+        score -= 50;
+        reasonList.push(
+            "相手のタイプ一致技で4倍弱点を突かれる可能性があります。",
+        );
+    } else if (defensiveMultiplier >= 2) {
+        score -= 28;
+        reasonList.push("相手のタイプ一致技で弱点を突かれる可能性があります。");
+    }
+
+    if (switchTargetBulk >= 430) {
+        score += 16;
+        reasonList.push("耐久が高めなので、受け出し候補になります。");
+    } else if (switchTargetBulk < 330) {
+        score -= 10;
+        reasonList.push("耐久は低めなので、受け出しは少し不安です。");
+    }
+
+    if (switchTargetSpeed > opponentSpeed) {
+        score += 8;
+        reasonList.push("交代後に相手より先に動ける可能性があります。");
+    }
+
+    if (reasonList.length === 0) {
+        reasonList.push("現在の対面を避けるための交代候補です。");
+    }
+
+    return {
+        kind: "switch",
+        label: `${getPartyPokemonDisplayName(
+            switchTarget,
+            switchTargetMaster,
+        )}へ交代`,
+        targetPartyPokemonId: switchTarget.id,
+        score: Math.round(score),
+        reasonList,
+    };
+};
+
 export const suggestNextBattleActions = ({
     ownPartyPokemon,
     ownPokemonMaster,
     opponentPokemon,
+    partyPokemonList,
+    pokemonMasterList,
+    selectedPartyPokemonIds,
 }: SuggestNextBattleActionsInput): SuggestedBattleAction[] => {
     const moveSuggestions = getMoveCandidates(ownPartyPokemon).map((move) =>
         evaluateMove({
@@ -525,13 +638,57 @@ export const suggestNextBattleActions = ({
         }),
     );
 
-    const switchSuggestion = evaluateSwitch({
+    const genericSwitchSuggestion = evaluateSwitch({
         ownPartyPokemon,
         ownPokemonMaster,
         opponentPokemon,
     });
 
-    return [...moveSuggestions, switchSuggestion]
+    const selectedPartyPokemonIdSet = new Set(selectedPartyPokemonIds);
+
+    const switchTargetSuggestions = partyPokemonList
+        .filter((partyPokemon) =>
+            selectedPartyPokemonIdSet.has(partyPokemon.id),
+        )
+        .filter((partyPokemon) => partyPokemon.id !== ownPartyPokemon.id)
+        .map((partyPokemon) => {
+            const pokemonMaster =
+                pokemonMasterList.find(
+                    (pokemon) =>
+                        pokemon.key === partyPokemon.pokemon_key &&
+                        pokemon.form_key === partyPokemon.form_key,
+                ) ??
+                pokemonMasterList.find(
+                    (pokemon) =>
+                        pokemon.key === partyPokemon.pokemon_key &&
+                        pokemon.form_key === "default",
+                );
+
+            if (!pokemonMaster) {
+                return null;
+            }
+
+            return evaluateSwitchTarget({
+                switchTarget: partyPokemon,
+                switchTargetMaster: pokemonMaster,
+                opponentPokemon,
+            });
+        })
+        .filter(
+            (suggestion): suggestion is SuggestedBattleAction =>
+                suggestion !== null,
+        );
+
+    const battleActionSuggestions = [
+        ...moveSuggestions,
+        ...switchTargetSuggestions,
+    ];
+
+    if (switchTargetSuggestions.length === 0) {
+        battleActionSuggestions.push(genericSwitchSuggestion);
+    }
+
+    return battleActionSuggestions
         .sort((a, b) => b.score - a.score)
         .slice(0, 2);
 };

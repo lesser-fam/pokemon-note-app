@@ -1,21 +1,20 @@
-import type { PartyPokemon } from "@/types/party";
-import type { Pokemon } from "@/types/pokemon";
 import {
     suggestNextBattleActions,
     type SuggestedBattleAction,
 } from "@/features/battlePreview/utils/suggestNextBattleActions";
+import type { PartyPokemon } from "@/types/party";
+import type { Pokemon } from "@/types/pokemon";
 
 type NextBattleActionSuggestionsProps = {
     ownPartyPokemon: PartyPokemon | null;
     ownPokemonMaster: Pokemon | null;
     opponentPokemon: Pokemon | null;
+    partyPokemonList: PartyPokemon[];
+    pokemonMasterList: Pokemon[];
+    selectedPartyPokemonIds: number[];
 };
 
 const getActionLabel = (action: SuggestedBattleAction) => {
-    if (action.kind === "switch") {
-        return "交代";
-    }
-
     return action.label;
 };
 
@@ -23,6 +22,9 @@ export function NextBattleActionSuggestions({
     ownPartyPokemon,
     ownPokemonMaster,
     opponentPokemon,
+    partyPokemonList,
+    pokemonMasterList,
+    selectedPartyPokemonIds,
 }: NextBattleActionSuggestionsProps) {
     if (!ownPartyPokemon || !ownPokemonMaster || !opponentPokemon) {
         return (
@@ -38,7 +40,7 @@ export function NextBattleActionSuggestions({
                 </div>
 
                 <p className="mt-3 text-sm text-gray-600">
-                    自分のポケモン1匹と相手のポケモン1匹を選ぶと、技4つ＋交代からおすすめ行動を2つ表示します。
+                    自分のポケモン1匹と相手のポケモン1匹を選ぶと、技4つ＋選出中の控えへの交代からおすすめ行動を2つ表示します。
                 </p>
             </section>
         );
@@ -48,6 +50,9 @@ export function NextBattleActionSuggestions({
         ownPartyPokemon,
         ownPokemonMaster,
         opponentPokemon,
+        partyPokemonList,
+        pokemonMasterList,
+        selectedPartyPokemonIds,
     });
 
     return (
