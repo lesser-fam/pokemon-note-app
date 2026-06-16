@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\MoveController;
 use App\Http\Controllers\Api\NatureController;
 use App\Http\Controllers\Api\PokemonAbilityWarningController;
+use App\Http\Controllers\Api\PokemonCommonMoveController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -14,6 +15,10 @@ Route::get('/pokemon', [PokemonController::class, 'index']);
 Route::get('/role-tags', [RoleTagController::class, 'index']);
 
 Route::get('/moves', [MoveController::class, 'index']);
+Route::get('/pokemon-common-moves', [PokemonCommonMoveController::class, 'index']);
+Route::post('/pokemon-common-moves', [PokemonCommonMoveController::class, 'store']);
+Route::delete('/pokemon-common-moves/{pokemonCommonMove}', [PokemonCommonMoveController::class, 'destroy']);
+
 Route::get('/abilities', [AbilityController::class, 'index']);
 Route::get('/items', [ItemController::class, 'index']);
 Route::get('/natures', [NatureController::class, 'index']);

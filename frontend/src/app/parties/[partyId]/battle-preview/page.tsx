@@ -11,6 +11,7 @@ import {
 } from "@/features/battlePreview/utils/megaEvolution";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
+import { fetchPokemonCommonMoves } from "@/features/pokemonCommonMoves/api/pokemonCommonMoveApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
@@ -20,13 +21,14 @@ import { suggestMatchupSelections } from "@/features/selections/utils/suggestMat
 import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
 
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-//確認用
+//ルール別ポケモン確認用
 // import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
 
 type ComparisonMode =
@@ -74,6 +76,10 @@ export default function BattlePreviewPage() {
     const [actionOpponentPokemonKey, setActionOpponentPokemonKey] = useState<
         string | null
     >(null);
+
+    const [pokemonCommonMoves, setPokemonCommonMoves] = useState<
+        PokemonCommonMove[]
+    >([]);
 
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
@@ -141,6 +147,33 @@ export default function BattlePreviewPage() {
         };
 
         loadPokemonAbilityWarnings();
+    }, [opponentPokemonList]);
+
+    useEffect(() => {
+        const loadPokemonCommonMoves = async () => {
+            if (opponentPokemonList.length === 0) {
+                setPokemonCommonMoves([]);
+                return;
+            }
+
+            try {
+                const commonMovesList = await Promise.all(
+                    opponentPokemonList.map((pokemon) =>
+                        fetchPokemonCommonMoves({
+                            pokemonKey: pokemon.key,
+                            formKey: pokemon.form_key,
+                        }),
+                    ),
+                );
+
+                setPokemonCommonMoves(commonMovesList.flat());
+            } catch (error) {
+                console.error(error);
+                setPokemonCommonMoves([]);
+            }
+        };
+
+        loadPokemonCommonMoves();
     }, [opponentPokemonList]);
 
     const resetOtherOpponentMegaForms = (
@@ -1107,6 +1140,7 @@ export default function BattlePreviewPage() {
                         partyPokemonList={effectiveCurrentPokemonList}
                         pokemonMasterList={pokemonList}
                         selectedPartyPokemonIds={selectedPartyPokemonIds}
+                        pokemonCommonMoves={pokemonCommonMoves}
                     />
 
                     <section className="sticky bottom-0 z-10 rounded border bg-white/95 p-3 shadow-sm backdrop-blur">

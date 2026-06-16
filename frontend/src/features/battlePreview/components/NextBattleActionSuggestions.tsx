@@ -4,6 +4,7 @@ import {
 } from "@/features/battlePreview/utils/suggestNextBattleActions";
 import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
+import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
 
 type NextBattleActionSuggestionsProps = {
     ownPartyPokemon: PartyPokemon | null;
@@ -12,6 +13,7 @@ type NextBattleActionSuggestionsProps = {
     partyPokemonList: PartyPokemon[];
     pokemonMasterList: Pokemon[];
     selectedPartyPokemonIds: number[];
+    pokemonCommonMoves: PokemonCommonMove[];
 };
 
 const getActionLabel = (action: SuggestedBattleAction) => {
@@ -25,6 +27,7 @@ export function NextBattleActionSuggestions({
     partyPokemonList,
     pokemonMasterList,
     selectedPartyPokemonIds,
+    pokemonCommonMoves,
 }: NextBattleActionSuggestionsProps) {
     if (!ownPartyPokemon || !ownPokemonMaster || !opponentPokemon) {
         return (
@@ -53,6 +56,7 @@ export function NextBattleActionSuggestions({
         partyPokemonList,
         pokemonMasterList,
         selectedPartyPokemonIds,
+        pokemonCommonMoves,
     });
 
     return (

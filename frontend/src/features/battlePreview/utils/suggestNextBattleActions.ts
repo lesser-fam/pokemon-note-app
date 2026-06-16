@@ -1,6 +1,7 @@
 import type { MoveMaster } from "@/types/battleMaster";
 import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
+import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
 
 type StatKey = "h" | "a" | "b" | "c" | "d" | "s";
 
@@ -28,6 +29,7 @@ type SuggestNextBattleActionsInput = {
     partyPokemonList: PartyPokemon[];
     pokemonMasterList: Pokemon[];
     selectedPartyPokemonIds: number[];
+    pokemonCommonMoves: PokemonCommonMove[];
 };
 
 const typeEffectivenessChart: Record<string, Record<string, number>> = {
@@ -217,6 +219,25 @@ const getDefensiveMultiplier = (
             getTypeEffectiveness(attackType, defenderTypes),
         ),
     );
+};
+
+const getCommonAttackTypes = ({
+    opponentPokemon,
+    pokemonCommonMoves,
+}: {
+    opponentPokemon: Pokemon;
+    pokemonCommonMoves: PokemonCommonMove[];
+}): string[] => {
+    return pokemonCommonMoves
+        .filter(
+            (commonMove) =>
+                commonMove.pokemon_key === opponentPokemon.key &&
+                commonMove.form_key === opponentPokemon.form_key,
+        )
+        .filter(
+            (commonMove) => commonMove.move_master.damage_class !== "status",
+        )
+        .map((commonMove) => commonMove.move_master.type);
 };
 
 const getNatureMultiplier = (
@@ -543,16 +564,27 @@ const evaluateSwitchTarget = ({
     switchTarget,
     switchTargetMaster,
     opponentPokemon,
+    pokemonCommonMoves,
 }: {
     switchTarget: PartyPokemon;
     switchTargetMaster: Pokemon;
     opponentPokemon: Pokemon;
+    pokemonCommonMoves: PokemonCommonMove[];
 }): SuggestedBattleAction => {
     const reasonList: string[] = [];
 
+    const commonAttackTypes = getCommonAttackTypes({
+        opponentPokemon,
+        pokemonCommonMoves,
+    });
+
+    const assumedAttackTypes = [
+        ...new Set([...opponentPokemon.types, ...commonAttackTypes]),
+    ];
+
     const defensiveMultiplier = getDefensiveMultiplier(
         switchTargetMaster.types,
-        opponentPokemon.types,
+        assumedAttackTypes,
     );
 
     const switchTargetBulk =
@@ -569,6 +601,14 @@ const evaluateSwitchTarget = ({
     const opponentSpeed = getApproxStat(opponentPokemon, "s");
 
     let score = 34;
+
+    if (commonAttackTypes.length > 0) {
+        reasonList.push(
+            `相手のタイプ一致技に加えて、登録済みのよく使う攻撃技タイプ（${[
+                ...new Set(commonAttackTypes),
+            ].join("・")}）も考慮しています。`,
+        );
+    }
 
     if (defensiveMultiplier === 0) {
         score += 45;
@@ -628,6 +668,7 @@ export const suggestNextBattleActions = ({
     partyPokemonList,
     pokemonMasterList,
     selectedPartyPokemonIds,
+    pokemonCommonMoves,
 }: SuggestNextBattleActionsInput): SuggestedBattleAction[] => {
     const moveSuggestions = getMoveCandidates(ownPartyPokemon).map((move) =>
         evaluateMove({
@@ -672,6 +713,7 @@ export const suggestNextBattleActions = ({
                 switchTarget: partyPokemon,
                 switchTargetMaster: pokemonMaster,
                 opponentPokemon,
+                pokemonCommonMoves,
             });
         })
         .filter(
