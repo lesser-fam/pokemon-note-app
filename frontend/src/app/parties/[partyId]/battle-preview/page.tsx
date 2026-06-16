@@ -16,6 +16,7 @@ import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calc
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
 import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
+import { NextBattleActionSuggestions } from "@/features/battlePreview/components/NextBattleActionSuggestions";
 import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
@@ -25,6 +26,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 
+//確認用
 // import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
 
 type ComparisonMode =
@@ -65,6 +67,13 @@ export default function BattlePreviewPage() {
     const [ownPokemonAbilityOverrides, setOwnPokemonAbilityOverrides] =
         useState<Record<number, PokemonAbilityCandidate | null>>({});
     const [comparisonMode, setComparisonMode] = useState<ComparisonMode>(null);
+
+    const [actionOwnPokemonId, setActionOwnPokemonId] = useState<number | null>(
+        null,
+    );
+    const [actionOpponentPokemonKey, setActionOpponentPokemonKey] = useState<
+        string | null
+    >(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
@@ -183,6 +192,14 @@ export default function BattlePreviewPage() {
                     ),
             ),
         );
+
+        setActionOpponentPokemonKey((currentKey) => {
+            if (currentKey === pokemon.key) {
+                return null;
+            }
+
+            return currentKey;
+        });
     };
 
     const handleTogglePartyPokemonSelection = (partyPokemonId: number) => {
@@ -197,6 +214,18 @@ export default function BattlePreviewPage() {
 
             return [...currentIds, partyPokemonId];
         });
+    };
+
+    const handleToggleActionOwnPokemon = (partyPokemonId: number) => {
+        setActionOwnPokemonId((currentId) =>
+            currentId === partyPokemonId ? null : partyPokemonId,
+        );
+    };
+
+    const handleToggleActionOpponentPokemon = (pokemon: Pokemon) => {
+        setActionOpponentPokemonKey((currentKey) =>
+            currentKey === pokemon.key ? null : pokemon.key,
+        );
     };
 
     const handleToggleComparisonMode = (
@@ -664,6 +693,23 @@ export default function BattlePreviewPage() {
         );
     };
 
+    const actionOwnPartyPokemon =
+        effectiveCurrentPokemonList.find(
+            (partyPokemon) => partyPokemon.id === actionOwnPokemonId,
+        ) ?? null;
+
+    const actionOwnPokemonMaster = actionOwnPartyPokemon
+        ? (findPokemonMaster(
+              actionOwnPartyPokemon.pokemon_key,
+              actionOwnPartyPokemon.form_key,
+          ) ?? null)
+        : null;
+
+    const actionOpponentPokemon =
+        opponentPokemonList.find(
+            (pokemon) => pokemon.key === actionOpponentPokemonKey,
+        ) ?? null;
+
     return (
         <main className="mx-auto max-w-450 p-6">
             <div className="grid items-start gap-4 xl:grid-cols-[minmax(19rem,1fr)_minmax(0,1.35fr)_minmax(19rem,1fr)]">
@@ -676,6 +722,8 @@ export default function BattlePreviewPage() {
                         findPokemonMaster={findPokemonMaster}
                         onToggleSelection={handleTogglePartyPokemonSelection}
                         onChangeForm={handleChangeOwnPokemonForm}
+                        actionTargetPartyPokemonId={actionOwnPokemonId}
+                        onSelectActionTarget={handleToggleActionOwnPokemon}
                     />
                 </div>
 
@@ -1051,6 +1099,12 @@ export default function BattlePreviewPage() {
                             })}
                         </div>
                     </section>
+
+                    <NextBattleActionSuggestions
+                        ownPartyPokemon={actionOwnPartyPokemon}
+                        ownPokemonMaster={actionOwnPokemonMaster}
+                        opponentPokemon={actionOpponentPokemon}
+                    />
 
                     <section className="sticky bottom-0 z-10 rounded border bg-white/95 p-3 shadow-sm backdrop-blur">
                         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1803,6 +1857,8 @@ export default function BattlePreviewPage() {
                         getPokemonAbilities={getPokemonAbilities}
                         onRemove={handleRemoveOpponentPokemon}
                         onChangeForm={handleChangeOpponentPokemonForm}
+                        actionTargetPokemonKey={actionOpponentPokemonKey}
+                        onSelectActionTarget={handleToggleActionOpponentPokemon}
                     />
                 </div>
             </div>

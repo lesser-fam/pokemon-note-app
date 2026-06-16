@@ -17,6 +17,8 @@ type OwnPartyColumnProps = {
     ) => Pokemon | undefined;
     onToggleSelection: (partyPokemonId: number) => void;
     onChangeForm: (partyPokemonId: number, pokemon: Pokemon) => void;
+    actionTargetPartyPokemonId?: number | null;
+    onSelectActionTarget?: (partyPokemonId: number) => void;
 };
 
 export function OwnPartyColumn({
@@ -27,6 +29,8 @@ export function OwnPartyColumn({
     findPokemonMaster,
     onToggleSelection,
     onChangeForm,
+    actionTargetPartyPokemonId = null,
+    onSelectActionTarget,
 }: OwnPartyColumnProps) {
     return (
         <aside className="rounded border bg-white p-3">
@@ -102,40 +106,67 @@ export function OwnPartyColumn({
                                     </button>
                                 }
                                 footer={
-                                    <div className="flex flex-wrap gap-1">
-                                        {partyPokemon.ability_master ? (
-                                            <AbilityTooltip
-                                                name={
-                                                    partyPokemon.ability_master
-                                                        .name
-                                                }
-                                                description={
-                                                    partyPokemon.ability_master
-                                                        .description
-                                                }
-                                            />
-                                        ) : (
-                                            <span className="text-[10px] leading-none text-gray-400">
-                                                特性未登録
-                                            </span>
-                                        )}
+                                    <div className="flex w-full items-center gap-1">
+                                        <div className="flex min-w-0 flex-1 flex-wrap gap-1">
+                                            {partyPokemon.ability_master ? (
+                                                <AbilityTooltip
+                                                    name={
+                                                        partyPokemon
+                                                            .ability_master.name
+                                                    }
+                                                    description={
+                                                        partyPokemon
+                                                            .ability_master
+                                                            .description
+                                                    }
+                                                />
+                                            ) : (
+                                                <span className="text-[10px] leading-none text-gray-400">
+                                                    特性未登録
+                                                </span>
+                                            )}
 
-                                        {partyPokemon.item ? (
-                                            <ItemTooltip
-                                                name={partyPokemon.item}
-                                                description={
-                                                    partyPokemon.item_master
-                                                        ?.description
-                                                }
-                                                effectRules={
-                                                    partyPokemon.item_master
-                                                        ?.effect_rules
-                                                }
-                                            />
-                                        ) : (
-                                            <span className="text-[10px] leading-none text-gray-400">
-                                                持ち物未登録
-                                            </span>
+                                            {partyPokemon.item ? (
+                                                <ItemTooltip
+                                                    name={partyPokemon.item}
+                                                    description={
+                                                        partyPokemon.item_master
+                                                            ?.description
+                                                    }
+                                                    effectRules={
+                                                        partyPokemon.item_master
+                                                            ?.effect_rules
+                                                    }
+                                                />
+                                            ) : (
+                                                <span className="text-[10px] leading-none text-gray-400">
+                                                    持ち物未登録
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {onSelectActionTarget && (
+                                            <div className="ml-auto shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        onSelectActionTarget(
+                                                            partyPokemon.id,
+                                                        )
+                                                    }
+                                                    className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
+                                                        actionTargetPartyPokemonId ===
+                                                        partyPokemon.id
+                                                            ? "border-blue-600 bg-blue-50 text-blue-700"
+                                                            : "text-gray-600 hover:bg-gray-50"
+                                                    }`}
+                                                >
+                                                    {actionTargetPartyPokemonId ===
+                                                    partyPokemon.id
+                                                        ? "提案中"
+                                                        : "提案"}
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 }
