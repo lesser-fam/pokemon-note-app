@@ -23,6 +23,7 @@ class StoreOpponentPartyTemplateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'rule'                  => 'required|string|in:main_series,champions',
             'memo'                  => 'nullable|string|max:255',
             'pokemon'               => 'required|array|size:6',
             'pokemon.*.pokemon_key' => 'required|string|max:255|distinct',
@@ -34,6 +35,9 @@ class StoreOpponentPartyTemplateRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'rule.required'                     => 'ルールを選択してください。',
+            'rule.in'                           => '選択されたルールが正しくありません。',
+
             'memo.max'                          => 'メモは255文字以内で入力してください。',
 
             'pokemon.required'                  => 'ポケモンを6匹選択してください。',
@@ -50,6 +54,7 @@ class StoreOpponentPartyTemplateRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'rule'                  => 'ルール',
             'memo'                  => 'メモ',
             'pokemon'               => 'ポケモン',
             'pokemon.*.pokemon_key' => 'ポケモン',

@@ -29,6 +29,7 @@ class OpponentPartyTemplateController extends Controller
 
         $template = DB::transaction(function () use ($validated) {
             $template = OpponentPartyTemplate::create([
+                'rule' => $validated['rule'],
                 'memo' => $validated['memo'] ?? null,
             ]);
 

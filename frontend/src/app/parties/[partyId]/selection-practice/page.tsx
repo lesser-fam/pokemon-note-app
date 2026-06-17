@@ -800,6 +800,7 @@ export default function SelectionPracticePage() {
     };
 
     const availableOpponentPartyTemplates = opponentPartyTemplates
+        .filter((template) => template.rule === party?.rule)
         .map((template) => ({
             template,
             opponentPokemonList: restoreOpponentPokemonFromTemplate({
@@ -807,7 +808,7 @@ export default function SelectionPracticePage() {
                 pokemonList,
             }),
         }))
-        .filter(({ opponentPokemonList }) => opponentPokemonList.length > 0);
+        .filter(({ opponentPokemonList }) => opponentPokemonList.length === 6);
 
     const generateOpponentPartyFromTemplate = () => {
         setErrorMessage("");

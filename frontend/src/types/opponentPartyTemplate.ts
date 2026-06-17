@@ -1,3 +1,5 @@
+import type { PartyRule } from "./party";
+
 export type OpponentPartyTemplatePokemon = {
     id: number;
     pokemon_key: string;
@@ -7,6 +9,7 @@ export type OpponentPartyTemplatePokemon = {
 
 export type OpponentPartyTemplate = {
     id: number;
+    rule: PartyRule;
     memo: string | null;
     pokemon: OpponentPartyTemplatePokemon[];
     created_at: string;

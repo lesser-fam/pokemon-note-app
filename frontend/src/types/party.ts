@@ -142,11 +142,13 @@ export type BattleLog = {
     needed_pokemon?: PartyPokemon | null;
 };
 
+export type PartyRule = "main_series" | "champions";
+
 export type Party = {
     id: number;
     user_id: number;
     name: string;
-    rule: string | null;
+    rule: PartyRule;
     concept: string | null;
     memo: string | null;
     created_at: string;

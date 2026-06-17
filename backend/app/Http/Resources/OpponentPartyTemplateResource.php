@@ -10,8 +10,9 @@ class OpponentPartyTemplateResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'memo' => $this->memo,
+            'id'    => $this->id,
+            'rule'  => $this->rule,
+            'memo'  => $this->memo,
 
             'pokemon' => $this->whenLoaded('pokemon', function () {
                 return $this->pokemon

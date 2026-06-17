@@ -6,10 +6,12 @@ import {
     deleteOpponentPartyTemplate,
     fetchOpponentPartyTemplates,
 } from "@/features/opponentPartyTemplates/api/opponentPartyTemplateApi";
+import { fetchParty } from "@/features/parties/api/partyApi";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
+import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import type { OpponentPartyTemplate } from "@/types/opponentPartyTemplate";
+import type { Party, PartyRule } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
-
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -42,19 +44,32 @@ function OpponentPartyTemplatesContent() {
     const [deletingTemplateId, setDeletingTemplateId] = useState<number | null>(
         null,
     );
+    const [sourceParty, setSourceParty] = useState<Party | null>(null);
+    const [selectedRule, setSelectedRule] = useState<PartyRule>("main_series");
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
 
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [pokemonData, templateData] = await Promise.all([
-                    fetchPokemonList(),
-                    fetchOpponentPartyTemplates(),
-                ]);
+                const partyDataPromise = hasValidPartyId
+                    ? fetchParty(partyId)
+                    : Promise.resolve(null);
+
+                const [pokemonData, templateData, partyData] =
+                    await Promise.all([
+                        fetchPokemonList(),
+                        fetchOpponentPartyTemplates(),
+                        partyDataPromise,
+                    ]);
 
                 setPokemonList(pokemonData);
                 setTemplates(templateData);
+                setSourceParty(partyData);
+
+                if (partyData) {
+                    setSelectedRule(partyData.rule);
+                }
             } catch (error) {
                 console.error(error);
                 setErrorMessage("必要なデータの取得に失敗しました。");
@@ -64,7 +79,7 @@ function OpponentPartyTemplatesContent() {
         };
 
         loadData();
-    }, []);
+    }, [hasValidPartyId, partyId]);
 
     const handleAddPokemon = (pokemon: Pokemon) => {
         if (selectedPokemonList.length >= 6) {
@@ -155,6 +170,7 @@ function OpponentPartyTemplatesContent() {
 
         try {
             const createdTemplate = await createOpponentPartyTemplate({
+                rule: selectedRule,
                 memo: memo.trim() || null,
                 pokemon: selectedPokemonList.map((pokemon) => ({
                     pokemon_key: pokemon.key,
@@ -290,6 +306,52 @@ function OpponentPartyTemplatesContent() {
                             </p>
                         </div>
 
+                        <div className="mt-4">
+                            <p className="text-sm font-semibold">適用ルール</p>
+
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedRule("main_series");
+                                        setSelectedPokemonList([]);
+                                        setErrorMessage("");
+                                        setSuccessMessage("");
+                                    }}
+                                    className={`rounded border px-3 py-2 text-sm font-semibold ${
+                                        selectedRule === "main_series"
+                                            ? "border-black bg-gray-50"
+                                            : "bg-white hover:bg-gray-50"
+                                    }`}
+                                >
+                                    本編ルール
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedRule("champions");
+                                        setSelectedPokemonList([]);
+                                        setErrorMessage("");
+                                        setSuccessMessage("");
+                                    }}
+                                    className={`rounded border px-3 py-2 text-sm font-semibold ${
+                                        selectedRule === "champions"
+                                            ? "border-black bg-gray-50"
+                                            : "bg-white hover:bg-gray-50"
+                                    }`}
+                                >
+                                    チャンピオンズ
+                                </button>
+                            </div>
+
+                            {sourceParty && (
+                                <p className="mt-2 text-xs text-gray-500">
+                                    遷移元パーティのルールを初期選択しています。
+                                </p>
+                            )}
+                        </div>
+
                         <span className="rounded bg-gray-100 px-3 py-1 text-sm font-semibold">
                             {selectedPokemonList.length} / 6
                         </span>
@@ -326,6 +388,9 @@ function OpponentPartyTemplatesContent() {
                                     : null
                             }
                             onSelectPokemon={handleAddPokemon}
+                            filterPokemon={(pokemon) =>
+                                isPokemonAvailableForRule(pokemon, selectedRule)
+                            }
                         />
                     </div>
                 </section>
@@ -495,6 +560,12 @@ function OpponentPartyTemplatesContent() {
                                         <p className="text-sm font-bold">
                                             テンプレート {templateIndex + 1}
                                         </p>
+
+                                        <span className="mt-1 inline-flex rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
+                                            {template.rule === "champions"
+                                                ? "チャンピオンズ"
+                                                : "本編ルール"}
+                                        </span>
 
                                         <p className="mt-1 text-sm text-gray-600">
                                             {template.memo || "メモなし"}
