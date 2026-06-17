@@ -9,14 +9,24 @@ import {
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import type { OpponentPartyTemplate } from "@/types/opponentPartyTemplate";
 import type { Pokemon } from "@/types/pokemon";
+
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 const getPokemonIdentifier = (pokemon: Pokemon): string => {
     return `${pokemon.key}:${pokemon.form_key}`;
 };
 
-export default function OpponentPartyTemplatesPage() {
+function OpponentPartyTemplatesContent() {
+    const searchParams = useSearchParams();
+
+    const partyIdParam = searchParams.get("partyId");
+    const partyId = partyIdParam ? Number(partyIdParam) : null;
+
+    const hasValidPartyId =
+        partyId !== null && Number.isInteger(partyId) && partyId > 0;
+
     const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
     const [templates, setTemplates] = useState<OpponentPartyTemplate[]>([]);
     const [selectedPokemonList, setSelectedPokemonList] = useState<Pokemon[]>(
@@ -224,10 +234,24 @@ export default function OpponentPartyTemplatesPage() {
 
     return (
         <main className="mx-auto max-w-7xl p-6">
-            <div className="mb-4">
-                <Link href="/parties" className="text-sm text-blue-600">
-                    ← パーティ一覧へ戻る
+            <div className="mb-4 flex flex-wrap gap-3">
+                <Link
+                    href={hasValidPartyId ? `/parties/${partyId}` : "/parties"}
+                    className="text-sm text-blue-600"
+                >
+                    {hasValidPartyId
+                        ? "← パーティ詳細へ戻る"
+                        : "← パーティ一覧へ戻る"}
                 </Link>
+
+                {hasValidPartyId && (
+                    <Link
+                        href={`/parties/${partyId}/selection-practice`}
+                        className="text-sm text-blue-600"
+                    >
+                        選出練習モードへ戻る
+                    </Link>
+                )}
             </div>
 
             <div className="mb-6">
@@ -539,5 +563,19 @@ export default function OpponentPartyTemplatesPage() {
                 )}
             </section>
         </main>
+    );
+}
+
+export default function OpponentPartyTemplatesPage() {
+    return (
+        <Suspense
+            fallback={
+                <main className="mx-auto max-w-7xl p-6">
+                    <p>読み込み中...</p>
+                </main>
+            }
+        >
+            <OpponentPartyTemplatesContent />
+        </Suspense>
     );
 }

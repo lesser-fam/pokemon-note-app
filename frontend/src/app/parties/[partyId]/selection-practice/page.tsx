@@ -1,27 +1,29 @@
 "use client";
 
-import { fetchPokemonList } from "@/features/master/api/masterApi";
-import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
-import { fetchParty } from "@/features/parties/api/partyApi";
-import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
-import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
-import type { BattleLog, Party, PartyPokemon } from "@/types/party";
-import type { Pokemon } from "@/types/pokemon";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { BattlePokemonCard } from "@/features/battlePreview/components/BattlePokemonCard";
-import { OpponentPartyColumn } from "@/features/battlePreview/components/OpponentPartyColumn";
 import { AbilityTooltip } from "@/features/battlePreview/components/AbilityTooltip";
+import { BattlePokemonCard } from "@/features/battlePreview/components/BattlePokemonCard";
 import { ItemTooltip } from "@/features/battlePreview/components/ItemTooltip";
 import { MegaFormToggle } from "@/features/battlePreview/components/MegaFormToggle";
+import { OpponentPartyColumn } from "@/features/battlePreview/components/OpponentPartyColumn";
 import {
     findDefaultForm,
     isMegaForm,
 } from "@/features/battlePreview/utils/megaEvolution";
+import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
+import { fetchOpponentPartyTemplates } from "@/features/opponentPartyTemplates/api/opponentPartyTemplateApi";
+import { fetchParty } from "@/features/parties/api/partyApi";
+import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
+import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
+import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
+import type { OpponentPartyTemplate } from "@/types/opponentPartyTemplate";
+import type { BattleLog, Party, PartyPokemon } from "@/types/party";
+import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import { getPokemonTypeClassName } from "@/utils/pokemonTypeStyle";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type OpponentGenerationMode = "random" | "battle_log" | "template";
 type PokemonAbilityCandidate = PokemonAbilityWarning["abilities"][number];
@@ -260,6 +262,43 @@ const getAvailableBattleLogs = ({
         .filter(({ opponentPokemonList }) => opponentPokemonList.length > 0);
 };
 
+const restoreOpponentPokemonFromTemplate = ({
+    template,
+    pokemonList,
+}: {
+    template: OpponentPartyTemplate;
+    pokemonList: Pokemon[];
+}): Pokemon[] => {
+    const restoredPokemonList = [...template.pokemon]
+        .sort((a, b) => a.display_order - b.display_order)
+        .map((templatePokemon) => {
+            return (
+                pokemonList.find(
+                    (pokemon) =>
+                        pokemon.key === templatePokemon.pokemon_key &&
+                        pokemon.form_key === templatePokemon.form_key,
+                ) ??
+                pokemonList.find(
+                    (pokemon) =>
+                        pokemon.key === templatePokemon.pokemon_key &&
+                        pokemon.form_key === "default",
+                ) ??
+                null
+            );
+        })
+        .filter((pokemon): pokemon is Pokemon => pokemon !== null);
+
+    const pokemonByKey = new Map<string, Pokemon>();
+
+    restoredPokemonList.forEach((pokemon) => {
+        if (!pokemonByKey.has(pokemon.key)) {
+            pokemonByKey.set(pokemon.key, pokemon);
+        }
+    });
+
+    return [...pokemonByKey.values()];
+};
+
 const getRandomOpponentCandidates = ({
     pokemonList,
     partyRule,
@@ -324,6 +363,9 @@ export default function SelectionPracticePage() {
     const [opponentGenerationMode, setOpponentGenerationMode] =
         useState<OpponentGenerationMode>("random");
     const [isAnswerVisible, setIsAnswerVisible] = useState(false);
+    const [opponentPartyTemplates, setOpponentPartyTemplates] = useState<
+        OpponentPartyTemplate[]
+    >([]);
 
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -335,13 +377,16 @@ export default function SelectionPracticePage() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [partyData, pokemonData] = await Promise.all([
-                    fetchParty(partyId),
-                    fetchPokemonList(),
-                ]);
+                const [partyData, pokemonData, templateData] =
+                    await Promise.all([
+                        fetchParty(partyId),
+                        fetchPokemonList(),
+                        fetchOpponentPartyTemplates(),
+                    ]);
 
                 setParty(partyData);
                 setPokemonList(pokemonData);
+                setOpponentPartyTemplates(templateData);
             } catch (error) {
                 console.error(error);
                 setErrorMessage("必要なデータの取得に失敗しました。");
@@ -754,6 +799,40 @@ export default function SelectionPracticePage() {
         setIsAnswerVisible(false);
     };
 
+    const availableOpponentPartyTemplates = opponentPartyTemplates
+        .map((template) => ({
+            template,
+            opponentPokemonList: restoreOpponentPokemonFromTemplate({
+                template,
+                pokemonList,
+            }),
+        }))
+        .filter(({ opponentPokemonList }) => opponentPokemonList.length > 0);
+
+    const generateOpponentPartyFromTemplate = () => {
+        setErrorMessage("");
+
+        if (availableOpponentPartyTemplates.length === 0) {
+            setErrorMessage(
+                "相手パーティを生成できるテンプレートがありません。",
+            );
+            return;
+        }
+
+        const randomIndex = Math.floor(
+            Math.random() * availableOpponentPartyTemplates.length,
+        );
+
+        const selectedTemplate = availableOpponentPartyTemplates[randomIndex];
+
+        setOpponentPokemonList(selectedTemplate.opponentPokemonList);
+        setSelectedPartyPokemonIds([]);
+        setPracticeMemo("");
+        setSearchKeyword("");
+        setSelectedTypes([]);
+        setIsAnswerVisible(false);
+    };
+
     const handleGenerateOpponentParty = () => {
         if (opponentGenerationMode === "random") {
             generateRandomOpponentParty();
@@ -765,9 +844,9 @@ export default function SelectionPracticePage() {
             return;
         }
 
-        setErrorMessage(
-            "テンプレートから生成は、テンプレート登録機能の実装後に使えるようになります。",
-        );
+        if (opponentGenerationMode === "template") {
+            generateOpponentPartyFromTemplate();
+        }
     };
 
     if (isInvalidPartyId) {
@@ -1062,9 +1141,12 @@ export default function SelectionPracticePage() {
                     <section className="rounded border bg-white p-4">
                         <h2 className="text-lg font-bold">相手パーティ生成</h2>
 
-                        <p className="mt-1 text-sm text-gray-600">
-                            生成方法を選んで、相手パーティを作る予定です。今回はUIだけ先に置いています。
-                        </p>
+                        <Link
+                            href={`/opponent-party-templates?partyId=${party.id}`}
+                            className="text-xs text-blue-600"
+                        >
+                            テンプレートを登録・管理
+                        </Link>
 
                         <div className="mt-4 grid gap-2 sm:grid-cols-3">
                             {(
@@ -1092,6 +1174,16 @@ export default function SelectionPracticePage() {
                                     {mode === "battle_log" && (
                                         <span className="ml-1 text-xs text-gray-500">
                                             ({availableBattleLogs.length})
+                                        </span>
+                                    )}
+
+                                    {mode === "template" && (
+                                        <span className="ml-1 text-xs text-gray-500">
+                                            (
+                                            {
+                                                availableOpponentPartyTemplates.length
+                                            }
+                                            )
                                         </span>
                                     )}
                                 </button>
@@ -1125,7 +1217,7 @@ export default function SelectionPracticePage() {
                             {opponentGenerationMode === "battle_log" &&
                                 "。保存済みの対戦ログから相手パーティをランダムで1件生成します。"}
                             {opponentGenerationMode === "template" &&
-                                "。この生成方法はまだ準備中です。"}
+                                "。登録済みテンプレートから相手パーティをランダムで1件生成します。"}
                         </p>
                     </section>
 

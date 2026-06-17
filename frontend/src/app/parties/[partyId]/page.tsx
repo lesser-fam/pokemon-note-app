@@ -628,13 +628,6 @@ export default function PartyDetailPage() {
                                 新バージョン作成
                             </Link>
 
-                            <Link
-                                href={`/parties/${party.id}/battle-preview`}
-                                className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
-                            >
-                                対戦前選出へ
-                            </Link>
-
                             <button
                                 type="button"
                                 onClick={handleDeleteParty}
@@ -663,6 +656,29 @@ export default function PartyDetailPage() {
                             <p className="mt-1 text-gray-700">{party.memo}</p>
                         </div>
                     )}
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                    <Link
+                        href={`/parties/${party.id}/battle-preview`}
+                        className="rounded border px-3 py-2 text-sm font-semibold hover:bg-gray-50"
+                    >
+                        対戦前選出
+                    </Link>
+
+                    <Link
+                        href={`/parties/${party.id}/selection-practice`}
+                        className="rounded border px-3 py-2 text-sm font-semibold hover:bg-gray-50"
+                    >
+                        選出練習モード
+                    </Link>
+
+                    <Link
+                        href={`/opponent-party-templates?partyId=${party.id}`}
+                        className="rounded border px-3 py-2 text-sm font-semibold hover:bg-gray-50"
+                    >
+                        相手パーティテンプレート
+                    </Link>
                 </div>
 
                 <section className="mt-8 rounded border p-6">
