@@ -5,7 +5,7 @@ import { PokemonSearchSelector } from "@/features/partyPokemon/components/Pokemo
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
-import type { Party, PartyPokemon } from "@/types/party";
+import type { BattleLog, Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -155,6 +155,111 @@ const shuffleArray = <T,>(items: T[]): T[] => {
     return shuffledItems;
 };
 
+const getOpponentPokemonIdentifiersFromBattleLog = (
+    battleLog: BattleLog,
+): {
+    pokemonKey: string;
+    formKey: string;
+}[] => {
+    return [
+        {
+            pokemonKey: battleLog.opponent_pokemon_1,
+            formKey: battleLog.opponent_form_1,
+        },
+        {
+            pokemonKey: battleLog.opponent_pokemon_2,
+            formKey: battleLog.opponent_form_2,
+        },
+        {
+            pokemonKey: battleLog.opponent_pokemon_3,
+            formKey: battleLog.opponent_form_3,
+        },
+        {
+            pokemonKey: battleLog.opponent_pokemon_4,
+            formKey: battleLog.opponent_form_4,
+        },
+        {
+            pokemonKey: battleLog.opponent_pokemon_5,
+            formKey: battleLog.opponent_form_5,
+        },
+        {
+            pokemonKey: battleLog.opponent_pokemon_6,
+            formKey: battleLog.opponent_form_6,
+        },
+    ]
+        .filter(
+            (
+                item,
+            ): item is {
+                pokemonKey: string;
+                formKey: string | null;
+            } => Boolean(item.pokemonKey),
+        )
+        .map((item) => ({
+            pokemonKey: item.pokemonKey,
+            formKey: item.formKey || "default",
+        }));
+};
+
+const restoreOpponentPokemonFromBattleLog = ({
+    battleLog,
+    pokemonList,
+}: {
+    battleLog: BattleLog;
+    pokemonList: Pokemon[];
+}): Pokemon[] => {
+    const identifiers = getOpponentPokemonIdentifiersFromBattleLog(battleLog);
+
+    const restoredPokemonList = identifiers
+        .map(({ pokemonKey, formKey }) => {
+            return (
+                pokemonList.find(
+                    (pokemon) =>
+                        pokemon.key === pokemonKey &&
+                        pokemon.form_key === formKey,
+                ) ??
+                pokemonList.find(
+                    (pokemon) =>
+                        pokemon.key === pokemonKey &&
+                        pokemon.form_key === "default",
+                ) ??
+                null
+            );
+        })
+        .filter((pokemon): pokemon is Pokemon => pokemon !== null);
+
+    const pokemonByKey = new Map<string, Pokemon>();
+
+    restoredPokemonList.forEach((pokemon) => {
+        if (!pokemonByKey.has(pokemon.key)) {
+            pokemonByKey.set(pokemon.key, pokemon);
+        }
+    });
+
+    return [...pokemonByKey.values()];
+};
+
+const getAvailableBattleLogs = ({
+    battleLogs,
+    pokemonList,
+}: {
+    battleLogs: BattleLog[];
+    pokemonList: Pokemon[];
+}): {
+    battleLog: BattleLog;
+    opponentPokemonList: Pokemon[];
+}[] => {
+    return battleLogs
+        .map((battleLog) => ({
+            battleLog,
+            opponentPokemonList: restoreOpponentPokemonFromBattleLog({
+                battleLog,
+                pokemonList,
+            }),
+        }))
+        .filter(({ opponentPokemonList }) => opponentPokemonList.length > 0);
+};
+
 const getRandomOpponentCandidates = ({
     pokemonList,
     partyRule,
@@ -280,6 +385,10 @@ export default function SelectionPracticePage() {
     const savedSelectionTemplates =
         party?.current_version?.selection_templates ?? [];
     const battleLogs = party?.current_version?.battle_logs ?? [];
+    const availableBattleLogs = getAvailableBattleLogs({
+        battleLogs,
+        pokemonList,
+    });
 
     const effectiveCurrentPokemonList = currentPokemonList.map(
         (partyPokemon) => {
@@ -502,7 +611,12 @@ export default function SelectionPracticePage() {
 
     const handleClearOpponentPokemon = () => {
         setOpponentPokemonList([]);
-        resetAnswer();
+        setSelectedPartyPokemonIds([]);
+        setPracticeMemo("");
+        setSearchKeyword("");
+        setSelectedTypes([]);
+        setErrorMessage("");
+        setIsAnswerVisible(false);
     };
 
     const handleTogglePartyPokemonSelection = (partyPokemonId: number) => {
@@ -569,12 +683,11 @@ export default function SelectionPracticePage() {
 
     const selectedPartyPokemonList = selectedPartyPokemonIds
         .map((id) =>
-            currentPokemonList.find((partyPokemon) => partyPokemon.id === id),
+            effectiveCurrentPokemonList.find(
+                (partyPokemon) => partyPokemon.id === id,
+            ),
         )
-        .filter(
-            (partyPokemon): partyPokemon is PartyPokemon =>
-                partyPokemon !== undefined,
-        );
+        .filter((partyPokemon) => partyPokemon !== undefined);
 
     const canShowAnswer =
         opponentPokemonList.length > 0 &&
@@ -619,6 +732,28 @@ export default function SelectionPracticePage() {
         setIsAnswerVisible(false);
     };
 
+    const generateOpponentPartyFromBattleLog = () => {
+        setErrorMessage("");
+
+        if (availableBattleLogs.length === 0) {
+            setErrorMessage("相手パーティを生成できる対戦ログがありません。");
+            return;
+        }
+
+        const randomIndex = Math.floor(
+            Math.random() * availableBattleLogs.length,
+        );
+
+        const selectedLog = availableBattleLogs[randomIndex];
+
+        setOpponentPokemonList(selectedLog.opponentPokemonList);
+        setSelectedPartyPokemonIds([]);
+        setPracticeMemo("");
+        setSearchKeyword("");
+        setSelectedTypes([]);
+        setIsAnswerVisible(false);
+    };
+
     const handleGenerateOpponentParty = () => {
         if (opponentGenerationMode === "random") {
             generateRandomOpponentParty();
@@ -626,7 +761,7 @@ export default function SelectionPracticePage() {
         }
 
         if (opponentGenerationMode === "battle_log") {
-            setErrorMessage("ログから生成は次の段階で実装します。");
+            generateOpponentPartyFromBattleLog();
             return;
         }
 
@@ -653,7 +788,7 @@ export default function SelectionPracticePage() {
         );
     }
 
-    if (errorMessage || !party) {
+    if (!party) {
         return (
             <main className="mx-auto max-w-7xl p-6">
                 <p className="rounded bg-red-100 p-3 text-red-700">
@@ -918,6 +1053,12 @@ export default function SelectionPracticePage() {
                         </div>
                     </section>
 
+                    {errorMessage && (
+                        <p className="rounded bg-red-100 p-3 text-sm text-red-700">
+                            {errorMessage}
+                        </p>
+                    )}
+
                     <section className="rounded border bg-white p-4">
                         <h2 className="text-lg font-bold">相手パーティ生成</h2>
 
@@ -936,16 +1077,23 @@ export default function SelectionPracticePage() {
                                 <button
                                     key={mode}
                                     type="button"
-                                    onClick={() =>
-                                        setOpponentGenerationMode(mode)
-                                    }
+                                    onClick={() => {
+                                        setOpponentGenerationMode(mode);
+                                        setErrorMessage("");
+                                    }}
                                     className={`rounded border px-3 py-2 text-sm font-semibold ${
                                         opponentGenerationMode === mode
                                             ? "border-black bg-gray-50"
                                             : "bg-white hover:bg-gray-50"
                                     }`}
                                 >
-                                    {generationModeLabels[mode]}
+                                    <span>{generationModeLabels[mode]}</span>
+
+                                    {mode === "battle_log" && (
+                                        <span className="ml-1 text-xs text-gray-500">
+                                            ({availableBattleLogs.length})
+                                        </span>
+                                    )}
                                 </button>
                             ))}
                         </div>
@@ -972,9 +1120,12 @@ export default function SelectionPracticePage() {
                         <p className="mt-3 text-xs text-gray-500">
                             選択中：
                             {generationModeLabels[opponentGenerationMode]}
-                            {opponentGenerationMode === "random"
-                                ? "。使用可能ポケモンから6匹をランダムで生成します。"
-                                : "。この生成方法はまだ準備中です。"}
+                            {opponentGenerationMode === "random" &&
+                                "。使用可能ポケモンから6匹をランダムで生成します。"}
+                            {opponentGenerationMode === "battle_log" &&
+                                "。保存済みの対戦ログから相手パーティをランダムで1件生成します。"}
+                            {opponentGenerationMode === "template" &&
+                                "。この生成方法はまだ準備中です。"}
                         </p>
                     </section>
 
