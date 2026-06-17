@@ -140,6 +140,57 @@ const generationModeLabels: Record<OpponentGenerationMode, string> = {
     template: "テンプレートから",
 };
 
+const shuffleArray = <T,>(items: T[]): T[] => {
+    const shuffledItems = [...items];
+
+    for (let index = shuffledItems.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+
+        [shuffledItems[index], shuffledItems[randomIndex]] = [
+            shuffledItems[randomIndex],
+            shuffledItems[index],
+        ];
+    }
+
+    return shuffledItems;
+};
+
+const getRandomOpponentCandidates = ({
+    pokemonList,
+    partyRule,
+}: {
+    pokemonList: Pokemon[];
+    partyRule: Party["rule"];
+}): Pokemon[] => {
+    const availablePokemonList = pokemonList.filter((pokemon) =>
+        isPokemonAvailableForRule(pokemon, partyRule),
+    );
+
+    const pokemonByKey = new Map<string, Pokemon>();
+
+    availablePokemonList.forEach((pokemon) => {
+        if (isMegaForm(pokemon)) {
+            return;
+        }
+
+        const currentPokemon = pokemonByKey.get(pokemon.key);
+
+        if (!currentPokemon) {
+            pokemonByKey.set(pokemon.key, pokemon);
+            return;
+        }
+
+        if (
+            currentPokemon.form_key !== "default" &&
+            pokemon.form_key === "default"
+        ) {
+            pokemonByKey.set(pokemon.key, pokemon);
+        }
+    });
+
+    return [...pokemonByKey.values()];
+};
+
 export default function SelectionPracticePage() {
     const params = useParams<{ partyId: string }>();
     const partyId = Number(params.partyId);
@@ -539,10 +590,49 @@ export default function SelectionPracticePage() {
         setIsAnswerVisible(true);
     };
 
+    const generateRandomOpponentParty = () => {
+        if (!party) {
+            return;
+        }
+
+        setErrorMessage("");
+
+        const candidates = getRandomOpponentCandidates({
+            pokemonList,
+            partyRule: party.rule,
+        });
+
+        if (candidates.length < 6) {
+            setErrorMessage(
+                "ランダム生成に使えるポケモンが6匹未満のため、相手パーティを生成できませんでした。",
+            );
+            return;
+        }
+
+        const generatedOpponentParty = shuffleArray(candidates).slice(0, 6);
+
+        setOpponentPokemonList(generatedOpponentParty);
+        setSelectedPartyPokemonIds([]);
+        setPracticeMemo("");
+        setSearchKeyword("");
+        setSelectedTypes([]);
+        setIsAnswerVisible(false);
+    };
+
     const handleGenerateOpponentParty = () => {
-        // ここは次の段階で実装する。
-        // 今回はUIだけ先に置いて、ランダム/ログ/テンプレートの導線を作っておく。
-        resetAnswer();
+        if (opponentGenerationMode === "random") {
+            generateRandomOpponentParty();
+            return;
+        }
+
+        if (opponentGenerationMode === "battle_log") {
+            setErrorMessage("ログから生成は次の段階で実装します。");
+            return;
+        }
+
+        setErrorMessage(
+            "テンプレートから生成は、テンプレート登録機能の実装後に使えるようになります。",
+        );
     };
 
     if (isInvalidPartyId) {
@@ -866,7 +956,8 @@ export default function SelectionPracticePage() {
                                 onClick={handleGenerateOpponentParty}
                                 className="rounded bg-black px-3 py-2 text-sm text-white hover:bg-gray-800"
                             >
-                                生成する
+                                {generationModeLabels[opponentGenerationMode]}
+                                で生成
                             </button>
 
                             <button
@@ -881,7 +972,9 @@ export default function SelectionPracticePage() {
                         <p className="mt-3 text-xs text-gray-500">
                             選択中：
                             {generationModeLabels[opponentGenerationMode]}
-                            。実際の生成処理は次の段階で追加します。
+                            {opponentGenerationMode === "random"
+                                ? "。使用可能ポケモンから6匹をランダムで生成します。"
+                                : "。この生成方法はまだ準備中です。"}
                         </p>
                     </section>
 
