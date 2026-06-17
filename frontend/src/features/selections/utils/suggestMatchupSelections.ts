@@ -32,6 +32,7 @@ type SuggestMatchupSelectionsParams = {
     opponentPokemonList: Pokemon[];
     savedSelectionTemplates: SelectionTemplate[];
     battleLogs: BattleLog[];
+    limit?: number | null;
 };
 
 const getRoleTagScore = (
@@ -239,6 +240,7 @@ export const suggestMatchupSelections = ({
     opponentPokemonList,
     savedSelectionTemplates,
     battleLogs,
+    limit = 3,
 }: SuggestMatchupSelectionsParams): MatchupSelectionSuggestion[] => {
     if (partyPokemonList.length < 3 || opponentPokemonList.length === 0) {
         return [];
@@ -356,5 +358,13 @@ export const suggestMatchupSelections = ({
         });
     });
 
-    return suggestions.sort((a, b) => b.totalScore - a.totalScore).slice(0, 3);
+    const sortedSuggestions = suggestions.sort(
+        (a, b) => b.totalScore - a.totalScore,
+    );
+
+    if (limit === null) {
+        return sortedSuggestions;
+    }
+
+    return sortedSuggestions.slice(0, limit);
 };
