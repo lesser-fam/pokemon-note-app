@@ -17,11 +17,11 @@ import {
     getEffortValueLimits,
     getPartyRuleConfig,
 } from "@/features/pokemonRules/partyRuleConfig";
+import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import type { NatureMaster } from "@/types/battleMaster";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { RoleTag } from "@/types/roleTag";
-
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { FormEvent, RefObject } from "react";
@@ -670,7 +670,14 @@ export default function CreatePartyVersionPage() {
                     ← パーティ詳細へ戻る
                 </Link>
 
-                <h1 className="mt-4 text-2xl font-bold">新バージョン作成</h1>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <h1 className="mt-4 text-2xl font-bold">
+                        新バージョン作成
+                    </h1>
+
+                    <PartyRuleBadge rule={party.rule} />
+                </div>
+
                 <p className="mt-1 text-sm text-gray-600">
                     現在のパーティを元に、{ruleConfig.partyPokemonLimit}
                     匹を調整して新しいバージョンとして保存します。

@@ -18,6 +18,8 @@ import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
+import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 
 export default function PartyDetailPage() {
     const router = useRouter();
@@ -27,6 +29,7 @@ export default function PartyDetailPage() {
 
     const [party, setParty] = useState<Party | null>(null);
     const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
+
     const [isLoading, setIsLoading] = useState(true);
     const [isSavingSelection, setIsSavingSelection] = useState(false);
     const [isDeletingParty, setIsDeletingParty] = useState(false);
@@ -112,13 +115,7 @@ export default function PartyDetailPage() {
         );
     }
 
-    const getBattleRuleLabel = (rule: string | null) => {
-        if (rule === "champions") {
-            return "チャンピオンズ";
-        }
-
-        return "本編ルール";
-    };
+    const ruleConfig = getPartyRuleConfig(party.rule);
 
     const currentPokemonList = party.current_version?.pokemon ?? [];
     const suggestedSelection = suggestBasicSelection(currentPokemonList);
@@ -128,7 +125,7 @@ export default function PartyDetailPage() {
     const canRemoveInitialPokemon =
         party.current_version?.is_current === true &&
         party.current_version.version_number === 1 &&
-        currentPokemonList.length < 6 &&
+        currentPokemonList.length < ruleConfig.partyPokemonLimit &&
         (party.current_version.selection_templates?.length ?? 0) === 0 &&
         (party.current_version.battle_logs?.length ?? 0) === 0;
 
@@ -596,9 +593,7 @@ export default function PartyDetailPage() {
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                                <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
-                                    {getBattleRuleLabel(party.rule)}
-                                </span>
+                                <PartyRuleBadge rule={party.rule} />
 
                                 {party.current_version && (
                                     <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
@@ -685,7 +680,8 @@ export default function PartyDetailPage() {
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold">登録ポケモン</h2>
 
-                        {currentPokemonList.length < 6 ? (
+                        {currentPokemonList.length <
+                        ruleConfig.partyPokemonLimit ? (
                             <Link
                                 href={`/parties/${party.id}/pokemon/create`}
                                 className="rounded bg-black px-4 py-2 text-white"
@@ -698,14 +694,16 @@ export default function PartyDetailPage() {
                                 disabled
                                 className="cursor-not-allowed rounded bg-gray-300 px-4 py-2 text-white"
                             >
-                                6匹登録済み
+                                {ruleConfig.partyPokemonLimit}匹登録済み
                             </button>
                         )}
                     </div>
 
-                    {currentPokemonList.length >= 6 && (
+                    {currentPokemonList.length >=
+                        ruleConfig.partyPokemonLimit && (
                         <p className="mt-3 rounded bg-gray-50 p-3 text-sm text-gray-600">
-                            6匹そろっているため、この画面からは追加できません。変更する場合は「新バージョン作成」から入れ替えてください。
+                            {ruleConfig.partyPokemonLimit}
+                            匹そろっているため、この画面からは追加できません。変更する場合は「新バージョン作成」から入れ替えてください。
                         </p>
                     )}
 
@@ -763,7 +761,8 @@ export default function PartyDetailPage() {
                                 </p>
                             </div>
 
-                            {currentPokemonList.length >= 3 && (
+                            {currentPokemonList.length >=
+                                ruleConfig.selectionPokemonLimit && (
                                 <button
                                     type="button"
                                     onClick={handleSaveSuggestedSelection}
@@ -777,9 +776,12 @@ export default function PartyDetailPage() {
                             )}
                         </div>
 
-                        {currentPokemonList.length < 3 ? (
+                        {currentPokemonList.length <
+                        ruleConfig.selectionPokemonLimit ? (
                             <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                                基本選出を提案するには、ポケモンを3匹以上登録してください。
+                                基本選出を提案するには、ポケモンを
+                                {ruleConfig.selectionPokemonLimit}
+                                匹以上登録してください。
                             </p>
                         ) : (
                             <div className="mt-4 grid gap-2 sm:grid-cols-3">

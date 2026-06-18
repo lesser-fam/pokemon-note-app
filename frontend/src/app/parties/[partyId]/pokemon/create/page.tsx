@@ -15,6 +15,7 @@ import {
     getEffortValueLimits,
     getPartyRuleConfig,
 } from "@/features/pokemonRules/partyRuleConfig";
+import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import type { NatureMaster } from "@/types/battleMaster";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
@@ -371,7 +372,11 @@ export default function CreatePartyPokemonPage() {
                     ← パーティ詳細へ戻る
                 </Link>
 
-                <h1 className="mt-4 text-2xl font-bold">ポケモン追加</h1>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <h1 className="mt-4 text-2xl font-bold">ポケモン追加</h1>
+
+                    <PartyRuleBadge rule={party.rule} />
+                </div>
                 <p className="mt-1 text-sm text-gray-600">
                     {party.name} に登録するポケモンを追加します。
                 </p>

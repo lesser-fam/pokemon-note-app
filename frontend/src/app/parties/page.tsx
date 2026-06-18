@@ -5,6 +5,7 @@ import { fetchParties } from "@/features/parties/api/partyApi";
 import type { Party } from "@/types/party";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 
 export default function PartiesPage() {
     const [parties, setParties] = useState<Party[]>([]);
@@ -26,14 +27,6 @@ export default function PartiesPage() {
 
         loadParties();
     }, []);
-
-    const getBattleRuleLabel = (rule: string | null) => {
-        if (rule === "champions") {
-            return "チャンピオンズ";
-        }
-
-        return "本編ルール";
-    };
 
     return (
         <>
@@ -81,9 +74,7 @@ export default function PartiesPage() {
                             className="flex min-h-64 flex-col rounded border bg-white p-5 transition hover:bg-gray-50"
                         >
                             <div className="flex flex-wrap items-center gap-2">
-                                <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
-                                    {getBattleRuleLabel(party.rule)}
-                                </span>
+                                <PartyRuleBadge rule={party.rule} />
 
                                 {party.current_version && (
                                     <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
