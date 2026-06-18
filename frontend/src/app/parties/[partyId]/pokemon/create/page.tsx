@@ -10,9 +10,8 @@ import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
-import { hasDuplicatedValues } from "@/features/partyPokemon/utils/hasDuplicatedValues";
 import { toggleRoleTagId } from "@/features/partyPokemon/utils/toggleRoleTagId";
-import { validateEffortValues } from "@/features/partyPokemon/utils/validateEffortValues";
+import { validatePartyPokemonInput } from "@/features/partyPokemon/utils/validatePartyPokemonInput";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import {
@@ -215,30 +214,6 @@ export default function CreatePartyPokemonPage() {
             return;
         }
 
-        const hasDuplicatedItem = hasDuplicatedValues([
-            ...currentPokemonList.map((partyPokemon) => partyPokemon.item),
-            item,
-        ]);
-
-        if (hasDuplicatedItem) {
-            setErrorMessage("同じ持ち物は同じパーティに登録できません。");
-            return;
-        }
-
-        const hasDuplicatedMove = hasDuplicatedValues([
-            move1,
-            move2,
-            move3,
-            move4,
-        ]);
-
-        if (hasDuplicatedMove) {
-            setErrorMessage(
-                "同じポケモンに同じ技を複数登録することはできません。",
-            );
-            return;
-        }
-
         const effortValueLimits = getEffortValueLimits(party.rule);
 
         const effortValues = [
@@ -250,14 +225,31 @@ export default function CreatePartyPokemonPage() {
             toNumber(evS),
         ];
 
-        const effortValueValidation = validateEffortValues(
+        const validationResult = validatePartyPokemonInput({
             effortValues,
+            moves: [move1, move2, move3, move4],
+            item,
+            existingItems: currentPokemonList.map(
+                (partyPokemon) => partyPokemon.item,
+            ),
             effortValueLimits,
-        );
+        });
 
-        if (!effortValueValidation.isValid) {
+        if (!validationResult.isValid) {
+            if (validationResult.error === "invalid_effort_values") {
+                setErrorMessage(
+                    `${effortValueLimits.label}では、努力値は1項目${effortValueLimits.singleLimit}まで、合計${effortValueLimits.totalLimit}までです。`,
+                );
+                return;
+            }
+
+            if (validationResult.error === "duplicated_item") {
+                setErrorMessage("同じ持ち物は同じパーティに登録できません。");
+                return;
+            }
+
             setErrorMessage(
-                `${effortValueLimits.label}では、努力値は1項目${effortValueLimits.singleLimit}まで、合計${effortValueLimits.totalLimit}までです。`,
+                "同じポケモンに同じ技を複数登録することはできません。",
             );
             return;
         }
