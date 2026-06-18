@@ -1,4 +1,5 @@
 import type { RoleTag } from "@/types/roleTag";
+import { MAX_ROLE_TAG_COUNT } from "../constants/partyPokemonLimits";
 
 type RoleTagSelectorProps = {
     roleTags: RoleTag[];
@@ -11,7 +12,7 @@ export function RoleTagSelector({
     roleTags,
     selectedRoleTagIds,
     onToggle,
-    maxSelected = 3,
+    maxSelected = MAX_ROLE_TAG_COUNT,
 }: RoleTagSelectorProps) {
     return (
         <div>

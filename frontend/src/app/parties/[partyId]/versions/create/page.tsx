@@ -36,6 +36,7 @@ import { useParams, useRouter } from "next/navigation";
 import type { FormEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
 import { validateEffortValues } from "@/features/partyPokemon/utils/validateEffortValues";
+import { MAX_ROLE_TAG_COUNT } from "@/features/partyPokemon/constants/partyPokemonLimits";
 
 export default function CreatePartyVersionPage() {
     const router = useRouter();
@@ -149,7 +150,10 @@ export default function CreatePartyVersionPage() {
 
                 const hasTag = pokemon.role_tag_ids.includes(roleTagId);
 
-                if (!hasTag && pokemon.role_tag_ids.length >= 3) {
+                if (
+                    !hasTag &&
+                    pokemon.role_tag_ids.length >= MAX_ROLE_TAG_COUNT
+                ) {
                     return pokemon;
                 }
 

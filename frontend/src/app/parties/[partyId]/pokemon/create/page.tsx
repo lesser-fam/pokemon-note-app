@@ -24,6 +24,7 @@ import type { RoleTag } from "@/types/roleTag";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { MAX_ROLE_TAG_COUNT } from "@/features/partyPokemon/constants/partyPokemonLimits";
 
 export default function CreatePartyPokemonPage() {
     const router = useRouter();
@@ -135,7 +136,7 @@ export default function CreatePartyPokemonPage() {
                 return currentIds.filter((id) => id !== roleTagId);
             }
 
-            if (currentIds.length >= 3) {
+            if (currentIds.length >= MAX_ROLE_TAG_COUNT) {
                 return currentIds;
             }
 
