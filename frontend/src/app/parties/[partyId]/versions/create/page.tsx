@@ -9,10 +9,13 @@ import {
 } from "@/features/master/api/masterApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { fetchParty } from "@/features/parties/api/partyApi";
-import type { EffortValueStatKey } from "@/features/partyPokemon/components/EffortValueEditor";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
+import {
+    effortValueFieldMap,
+    moveFieldMap,
+} from "@/features/partyVersions/constants/editablePokemonFields";
 import type { EditablePokemon } from "@/features/partyVersions/types/editablePokemon";
 import {
     convertPartyPokemonToEditablePokemon,
@@ -32,38 +35,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { FormEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
-
-const effortValueFieldMap: Record<EffortValueStatKey, keyof EditablePokemon> = {
-    h: "ev_h",
-    a: "ev_a",
-    b: "ev_b",
-    c: "ev_c",
-    d: "ev_d",
-    s: "ev_s",
-};
-
-const moveFieldMap = [
-    {
-        name: "move_1",
-        id: "move_1_id",
-        type: "move_1_type",
-    },
-    {
-        name: "move_2",
-        id: "move_2_id",
-        type: "move_2_type",
-    },
-    {
-        name: "move_3",
-        id: "move_3_id",
-        type: "move_3_type",
-    },
-    {
-        name: "move_4",
-        id: "move_4_id",
-        type: "move_4_type",
-    },
-] as const;
 
 export default function CreatePartyVersionPage() {
     const router = useRouter();
