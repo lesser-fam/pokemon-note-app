@@ -11,19 +11,14 @@ import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
-
-import { toggleRoleTagId } from "@/features/partyPokemon/utils/toggleRoleTagId";
-
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
 import {
     effortValueFieldMap,
     moveFieldMap,
 } from "@/features/partyVersions/constants/editablePokemonFields";
-import type { EditablePokemon } from "@/features/partyVersions/types/editablePokemon";
-import {
-    convertPartyPokemonToEditablePokemon,
-    createEditablePokemon,
-} from "@/features/partyVersions/utils/editablePokemon";
+import { useEditablePokemonList } from "@/features/partyVersions/hooks/useEditablePokemonList";
+import { convertPartyPokemonToEditablePokemon } from "@/features/partyVersions/utils/editablePokemon";
+import { validateEditablePokemonList } from "@/features/partyVersions/utils/validateEditablePokemonList";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import {
@@ -38,7 +33,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { FormEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
-import { validateEditablePokemonList } from "@/features/partyVersions/utils/validateEditablePokemonList";
 
 export default function CreatePartyVersionPage() {
     const router = useRouter();
@@ -54,9 +48,15 @@ export default function CreatePartyVersionPage() {
     );
     const [roleTags, setRoleTags] = useState<RoleTag[]>([]);
     const [natureList, setNatureList] = useState<NatureMaster[]>([]);
-    const [editablePokemonList, setEditablePokemonList] = useState<
-        EditablePokemon[]
-    >([]);
+    const {
+        editablePokemonList,
+        initializePokemonList,
+        updatePokemon,
+        toggleRoleTag,
+        addPokemon,
+        replacePokemon,
+        removePokemon,
+    } = useEditablePokemonList();
     const [changeNote, setChangeNote] = useState("");
     const [replaceTargetIndex, setReplaceTargetIndex] = useState<number | null>(
         null,
@@ -100,7 +100,7 @@ export default function CreatePartyVersionPage() {
                     convertPartyPokemonToEditablePokemon,
                 );
 
-                setEditablePokemonList(initialEditablePokemon);
+                initializePokemonList(initialEditablePokemon);
             } catch (error) {
                 console.error(error);
                 setErrorMessage("必要なデータの取得に失敗しました。");
@@ -114,7 +114,7 @@ export default function CreatePartyVersionPage() {
         }
 
         loadData();
-    }, [partyId, isInvalidPartyId]);
+    }, [partyId, isInvalidPartyId, initializePokemonList]);
 
     const findNatureMaster = (
         natureId: number | null,
@@ -124,41 +124,6 @@ export default function CreatePartyVersionPage() {
         }
 
         return natureList.find((nature) => nature.id === natureId);
-    };
-
-    const updatePokemon = (
-        index: number,
-        field: keyof EditablePokemon,
-        value: string | number | number[] | null,
-    ) => {
-        setEditablePokemonList((currentList) =>
-            currentList.map((pokemon, currentIndex) =>
-                currentIndex === index
-                    ? {
-                          ...pokemon,
-                          [field]: value,
-                      }
-                    : pokemon,
-            ),
-        );
-    };
-
-    const toggleRoleTag = (index: number, roleTagId: number) => {
-        setEditablePokemonList((currentList) =>
-            currentList.map((pokemon, currentIndex) => {
-                if (currentIndex !== index) {
-                    return pokemon;
-                }
-
-                return {
-                    ...pokemon,
-                    role_tag_ids: toggleRoleTagId(
-                        pokemon.role_tag_ids,
-                        roleTagId,
-                    ),
-                };
-            }),
-        );
     };
 
     const scrollToSection = (sectionRef: RefObject<HTMLDivElement | null>) => {
@@ -210,11 +175,7 @@ export default function CreatePartyVersionPage() {
 
         const removedIndex = selectedPokemonIndex;
 
-        setEditablePokemonList((currentList) =>
-            currentList.filter(
-                (_, currentIndex) => currentIndex !== removedIndex,
-            ),
-        );
+        removePokemon(removedIndex);
 
         setSelectedPokemonIndex(null);
 
@@ -234,10 +195,7 @@ export default function CreatePartyVersionPage() {
 
         const addedIndex = editablePokemonList.length;
 
-        setEditablePokemonList((currentList) => [
-            ...currentList,
-            createEditablePokemon(pokemon),
-        ]);
+        addPokemon(pokemon);
 
         setSelectedPokemonIndex(addedIndex);
         setEditingPokemonIndex(null);
@@ -250,13 +208,7 @@ export default function CreatePartyVersionPage() {
 
         const replacedIndex = replaceTargetIndex;
 
-        setEditablePokemonList((currentList) =>
-            currentList.map((currentPokemon, currentIndex) =>
-                currentIndex === replacedIndex
-                    ? createEditablePokemon(pokemon)
-                    : currentPokemon,
-            ),
-        );
+        replacePokemon(replacedIndex, pokemon);
 
         setReplaceTargetIndex(null);
         setSelectedPokemonIndex(replacedIndex);
