@@ -13,7 +13,10 @@ import type { EffortValueStatKey } from "@/features/partyPokemon/components/Effo
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
-import { getEffortValueLimits } from "@/features/pokemonRules/partyRuleConfig";
+import {
+    getEffortValueLimits,
+    getPartyRuleConfig,
+} from "@/features/pokemonRules/partyRuleConfig";
 import type { NatureMaster } from "@/types/battleMaster";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
@@ -105,6 +108,10 @@ export default function CreatePartyVersionPage() {
 
     const [party, setParty] = useState<Party | null>(null);
     const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
+    const ruleConfig = getPartyRuleConfig(party?.rule ?? "main_series");
+    const effortValueLimits = getEffortValueLimits(
+        party?.rule ?? "main_series",
+    );
     const [roleTags, setRoleTags] = useState<RoleTag[]>([]);
     const [natureList, setNatureList] = useState<NatureMaster[]>([]);
     const [editablePokemonList, setEditablePokemonList] = useState<
@@ -376,7 +383,7 @@ export default function CreatePartyVersionPage() {
     };
 
     const handleAddPokemon = (pokemon: Pokemon) => {
-        if (editablePokemonList.length >= 6) {
+        if (editablePokemonList.length >= ruleConfig.partyPokemonLimit) {
             return;
         }
 
@@ -460,8 +467,10 @@ export default function CreatePartyVersionPage() {
             return;
         }
 
-        if (editablePokemonList.length !== 6) {
-            setErrorMessage("新しいバージョンは6匹そろえて保存してください。");
+        if (editablePokemonList.length !== ruleConfig.partyPokemonLimit) {
+            setErrorMessage(
+                `新しいバージョンは${ruleConfig.partyPokemonLimit}匹そろえて保存してください。`,
+            );
             return;
         }
 
@@ -636,8 +645,6 @@ export default function CreatePartyVersionPage() {
         );
     }
 
-    const effortValueLimits = getEffortValueLimits(party.rule);
-
     const editingPokemon =
         editingPokemonIndex !== null
             ? editablePokemonList[editingPokemonIndex]
@@ -665,7 +672,8 @@ export default function CreatePartyVersionPage() {
 
                 <h1 className="mt-4 text-2xl font-bold">新バージョン作成</h1>
                 <p className="mt-1 text-sm text-gray-600">
-                    現在のパーティを元に、6匹を調整して新しいバージョンとして保存します。
+                    現在のパーティを元に、{ruleConfig.partyPokemonLimit}
+                    匹を調整して新しいバージョンとして保存します。
                 </p>
 
                 <form onSubmit={handleSubmit} className="mt-8 w-full space-y-8">
@@ -687,11 +695,12 @@ export default function CreatePartyVersionPage() {
                             <div>
                                 <div className="flex flex-wrap items-center gap-3">
                                     <h2 className="text-lg font-bold">
-                                        新しい6匹
+                                        新しい{ruleConfig.partyPokemonLimit}匹
                                     </h2>
 
                                     <p className="text-sm font-medium text-gray-600">
-                                        {editablePokemonList.length} / 6
+                                        {editablePokemonList.length} /{" "}
+                                        {ruleConfig.partyPokemonLimit}
                                     </p>
                                 </div>
 
@@ -1008,7 +1017,7 @@ export default function CreatePartyVersionPage() {
                                     </h3>
                                     <p className="mt-1 text-sm text-gray-600">
                                         {replaceTargetIndex === null
-                                            ? "6匹未満の場合、ここからポケモンを追加できます。"
+                                            ? `${ruleConfig.partyPokemonLimit}匹未満の場合、ここからポケモンを追加できます。`
                                             : "選んだポケモンでこの枠を入れ替えます。"}
                                     </p>
                                 </div>
@@ -1027,9 +1036,11 @@ export default function CreatePartyVersionPage() {
                             </div>
 
                             {replaceTargetIndex === null &&
-                            editablePokemonList.length >= 6 ? (
+                            editablePokemonList.length >=
+                                ruleConfig.partyPokemonLimit ? (
                                 <p className="mt-4 rounded bg-white p-4 text-sm text-gray-600">
-                                    すでに6匹そろっています。入れ替えたいポケモンを選択し、
+                                    すでに{ruleConfig.partyPokemonLimit}
+                                    匹そろっています。入れ替えたいポケモンを選択し、
                                     「入れ替え」ボタンを押してください。
                                 </p>
                             ) : (

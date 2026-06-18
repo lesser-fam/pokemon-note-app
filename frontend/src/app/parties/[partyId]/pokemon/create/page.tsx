@@ -6,12 +6,15 @@ import {
     fetchPokemonList,
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
-import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
-import { getEffortValueLimits } from "@/features/pokemonRules/partyRuleConfig";
+import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
+import {
+    getEffortValueLimits,
+    getPartyRuleConfig,
+} from "@/features/pokemonRules/partyRuleConfig";
 import type { NatureMaster } from "@/types/battleMaster";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
@@ -29,6 +32,10 @@ export default function CreatePartyPokemonPage() {
 
     const [party, setParty] = useState<Party | null>(null);
     const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
+    const ruleConfig = getPartyRuleConfig(party?.rule ?? "main_series");
+    const effortValueLimits = getEffortValueLimits(
+        party?.rule ?? "main_series",
+    );
     const [roleTags, setRoleTags] = useState<RoleTag[]>([]);
 
     const [pokemonKey, setPokemonKey] = useState("");
@@ -172,8 +179,10 @@ export default function CreatePartyPokemonPage() {
             return;
         }
 
-        if (currentPokemonList.length >= 6) {
-            setErrorMessage("このパーティにはすでに6匹登録されています。");
+        if (currentPokemonList.length >= ruleConfig.partyPokemonLimit) {
+            setErrorMessage(
+                `このパーティには${ruleConfig.partyPokemonLimit}匹まで登録できます。`,
+            );
             return;
         }
 
@@ -349,8 +358,6 @@ export default function CreatePartyPokemonPage() {
             </>
         );
     }
-
-    const effortValueLimits = getEffortValueLimits(party.rule);
 
     return (
         <>

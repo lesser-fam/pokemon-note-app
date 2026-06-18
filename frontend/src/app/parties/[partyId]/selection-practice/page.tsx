@@ -15,6 +15,7 @@ import { fetchOpponentPartyTemplates } from "@/features/opponentPartyTemplates/a
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
+import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
 import type { OpponentPartyTemplate } from "@/types/opponentPartyTemplate";
 import type { BattleLog, Party, PartyPokemon } from "@/types/party";
@@ -348,6 +349,7 @@ export default function SelectionPracticePage() {
     const [selectedPartyPokemonIds, setSelectedPartyPokemonIds] = useState<
         number[]
     >([]);
+    const ruleConfig = getPartyRuleConfig(party?.rule ?? "main_series");
 
     const [pokemonAbilityWarnings, setPokemonAbilityWarnings] = useState<
         PokemonAbilityWarning[]
@@ -620,7 +622,7 @@ export default function SelectionPracticePage() {
     };
 
     const handleAddOpponentPokemon = (pokemon: Pokemon) => {
-        if (opponentPokemonList.length >= 6) {
+        if (opponentPokemonList.length >= ruleConfig.partyPokemonLimit) {
             return;
         }
 
@@ -670,7 +672,7 @@ export default function SelectionPracticePage() {
                 return currentIds.filter((id) => id !== partyPokemonId);
             }
 
-            if (currentIds.length >= 3) {
+            if (currentIds.length >= ruleConfig.selectionPokemonLimit) {
                 return currentIds;
             }
 
@@ -705,7 +707,7 @@ export default function SelectionPracticePage() {
         : [];
 
     const selectedSelectionSuggestion =
-        selectedPartyPokemonIds.length === 3
+        selectedPartyPokemonIds.length === ruleConfig.selectionPokemonLimit
             ? (allMatchupSelectionSuggestions.find((suggestion) => {
                   return (
                       suggestion.leadPokemon.id ===
@@ -736,7 +738,7 @@ export default function SelectionPracticePage() {
 
     const canShowAnswer =
         opponentPokemonList.length > 0 &&
-        selectedPartyPokemonIds.length === 3 &&
+        selectedPartyPokemonIds.length === ruleConfig.selectionPokemonLimit &&
         topSuggestion !== null;
 
     const handleUseTopSuggestion = () => {
@@ -760,14 +762,17 @@ export default function SelectionPracticePage() {
             partyRule: party.rule,
         });
 
-        if (candidates.length < 6) {
+        if (candidates.length < ruleConfig.partyPokemonLimit) {
             setErrorMessage(
                 "ランダム生成に使えるポケモンが6匹未満のため、相手パーティを生成できませんでした。",
             );
             return;
         }
 
-        const generatedOpponentParty = shuffleArray(candidates).slice(0, 6);
+        const generatedOpponentParty = shuffleArray(candidates).slice(
+            0,
+            ruleConfig.partyPokemonLimit,
+        );
 
         setOpponentPokemonList(generatedOpponentParty);
         setSelectedPartyPokemonIds([]);
@@ -808,7 +813,10 @@ export default function SelectionPracticePage() {
                 pokemonList,
             }),
         }))
-        .filter(({ opponentPokemonList }) => opponentPokemonList.length === 6);
+        .filter(
+            ({ opponentPokemonList }) =>
+                opponentPokemonList.length === ruleConfig.partyPokemonLimit,
+        );
 
     const generateOpponentPartyFromTemplate = () => {
         setErrorMessage("");
@@ -1089,7 +1097,8 @@ export default function SelectionPracticePage() {
                         <h2 className="text-base font-bold">自分のパーティ</h2>
 
                         <p className="text-sm font-medium text-gray-600">
-                            {selectedPartyPokemonIds.length} / 3
+                            {selectedPartyPokemonIds.length} /{" "}
+                            {ruleConfig.selectionPokemonLimit}
                         </p>
                     </div>
 
@@ -1128,7 +1137,9 @@ export default function SelectionPracticePage() {
                             </h1>
 
                             <p className="text-xs text-gray-500">
-                                相手6匹を見て、自分で3匹を選びます。答え合わせでおすすめ選出βと比較できます。
+                                相手6匹を見て、自分で
+                                {ruleConfig.selectionPokemonLimit}
+                                匹を選びます。答え合わせでおすすめ選出βと比較できます。
                             </p>
                         </div>
                     </section>
@@ -1235,7 +1246,8 @@ export default function SelectionPracticePage() {
                             </div>
 
                             <p className="text-sm font-medium text-gray-600">
-                                {opponentPokemonList.length} / 6
+                                {opponentPokemonList.length} /{" "}
+                                {ruleConfig.partyPokemonLimit}
                             </p>
                         </div>
 
@@ -1287,9 +1299,11 @@ export default function SelectionPracticePage() {
                             <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
                                 相手ポケモンを入力すると、選出評価を確認できます。
                             </p>
-                        ) : selectedPartyPokemonIds.length < 3 ? (
+                        ) : selectedPartyPokemonIds.length <
+                          ruleConfig.selectionPokemonLimit ? (
                             <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                                自分の選出3匹を選ぶと、点数と答え合わせができます。
+                                自分の選出{ruleConfig.selectionPokemonLimit}
+                                匹を選ぶと、点数と答え合わせができます。
                             </p>
                         ) : (
                             <div className="mt-4 space-y-4">

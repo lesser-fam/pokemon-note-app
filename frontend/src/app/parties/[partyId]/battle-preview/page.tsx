@@ -22,6 +22,7 @@ import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
+import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import Link from "next/link";
@@ -51,6 +52,7 @@ export default function BattlePreviewPage() {
     const [opponentPokemonList, setOpponentPokemonList] = useState<Pokemon[]>(
         [],
     );
+    const ruleConfig = getPartyRuleConfig(party?.rule ?? "main_series");
 
     const [pokemonAbilityWarnings, setPokemonAbilityWarnings] = useState<
         PokemonAbilityWarning[]
@@ -194,7 +196,7 @@ export default function BattlePreviewPage() {
     };
 
     const handleAddOpponentPokemon = (pokemon: Pokemon) => {
-        if (opponentPokemonList.length >= 6) {
+        if (opponentPokemonList.length >= ruleConfig.partyPokemonLimit) {
             return;
         }
 
@@ -241,7 +243,7 @@ export default function BattlePreviewPage() {
                 return currentIds.filter((id) => id !== partyPokemonId);
             }
 
-            if (currentIds.length >= 3) {
+            if (currentIds.length >= ruleConfig.selectionPokemonLimit) {
                 return currentIds;
             }
 
@@ -671,7 +673,8 @@ export default function BattlePreviewPage() {
         `&selected=${selectedQuery}`;
 
     const canCreateBattleLog =
-        opponentPokemonList.length > 0 && selectedPartyPokemonIds.length === 3;
+        opponentPokemonList.length > 0 &&
+        selectedPartyPokemonIds.length === ruleConfig.selectionPokemonLimit;
 
     const getPartyPokemonDisplayName = (partyPokemon?: PartyPokemon | null) => {
         if (!partyPokemon) {
@@ -791,7 +794,8 @@ export default function BattlePreviewPage() {
                             </div>
 
                             <p className="text-sm font-medium text-gray-600">
-                                {opponentPokemonList.length} / 6
+                                {opponentPokemonList.length} /{" "}
+                                {ruleConfig.partyPokemonLimit}
                             </p>
                         </div>
 
@@ -811,7 +815,8 @@ export default function BattlePreviewPage() {
                                     )
                                 }
                                 isPokemonDisabled={(pokemon) =>
-                                    opponentPokemonList.length >= 6 ||
+                                    opponentPokemonList.length >=
+                                        ruleConfig.partyPokemonLimit ||
                                     opponentPokemonList.some(
                                         (selectedPokemon) =>
                                             selectedPokemon.key === pokemon.key,
@@ -857,9 +862,12 @@ export default function BattlePreviewPage() {
                             <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
                                 相手ポケモンを入力すると、おすすめ選出が表示されます。
                             </p>
-                        ) : currentPokemonList.length < 3 ? (
+                        ) : currentPokemonList.length <
+                          ruleConfig.selectionPokemonLimit ? (
                             <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                                おすすめ選出を表示するには、自分のポケモンを3匹以上登録してください。
+                                おすすめ選出を表示するには、自分のポケモンを
+                                {ruleConfig.selectionPokemonLimit}
+                                匹以上登録してください。
                             </p>
                         ) : (
                             <div className="mt-2 space-y-2">
@@ -1149,7 +1157,9 @@ export default function BattlePreviewPage() {
                                 <h2 className="font-bold">選出を決めたら</h2>
 
                                 <p className="mt-1 text-xs text-gray-500">
-                                    相手パーティと、自分の選出3匹を引き継いで対戦ログ作成画面へ進みます。
+                                    相手パーティと、自分の選出
+                                    {ruleConfig.selectionPokemonLimit}
+                                    匹を引き継いで対戦ログ作成画面へ進みます。
                                 </p>
 
                                 {opponentPokemonList.length === 0 && (
@@ -1158,9 +1168,12 @@ export default function BattlePreviewPage() {
                                     </p>
                                 )}
 
-                                {selectedPartyPokemonIds.length < 3 && (
+                                {selectedPartyPokemonIds.length <
+                                    ruleConfig.selectionPokemonLimit && (
                                     <p className="mt-1 text-xs text-red-600">
-                                        自パーティから選出する3匹を選んでください。
+                                        自パーティから選出する
+                                        {ruleConfig.selectionPokemonLimit}
+                                        匹を選んでください。
                                     </p>
                                 )}
                             </div>
@@ -1799,7 +1812,8 @@ export default function BattlePreviewPage() {
                                             現在の役割タグ点数から自動提案しています。
                                         </p>
 
-                                        {currentPokemonList.length >= 3 ? (
+                                        {currentPokemonList.length >=
+                                        ruleConfig.selectionPokemonLimit ? (
                                             <div className="mt-4 space-y-3">
                                                 {suggestedSelection.map(
                                                     (suggestion) => {
@@ -1876,7 +1890,11 @@ export default function BattlePreviewPage() {
                                             </div>
                                         ) : (
                                             <p className="mt-4 rounded bg-white p-4 text-sm text-gray-600">
-                                                自動提案には自分のポケモンを3匹以上登録してください。
+                                                自動提案には自分のポケモンを
+                                                {
+                                                    ruleConfig.selectionPokemonLimit
+                                                }
+                                                匹以上登録してください。
                                             </p>
                                         )}
                                     </div>
