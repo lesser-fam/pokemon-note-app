@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchCurrentUser } from "@/features/auth/api/authApi";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import {
     createOpponentPartyTemplate,
@@ -12,6 +13,7 @@ import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvai
 import type { OpponentPartyTemplate } from "@/types/opponentPartyTemplate";
 import type { Party, PartyRule } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
+import type { User } from "@/types/user";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -45,7 +47,10 @@ function OpponentPartyTemplatesContent() {
         null,
     );
     const [sourceParty, setSourceParty] = useState<Party | null>(null);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [selectedRule, setSelectedRule] = useState<PartyRule>("main_series");
+    const isAdmin = currentUser?.is_admin === true;
+
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
 
@@ -56,16 +61,18 @@ function OpponentPartyTemplatesContent() {
                     ? fetchParty(partyId)
                     : Promise.resolve(null);
 
-                const [pokemonData, templateData, partyData] =
+                const [pokemonData, templateData, partyData, currentUserData] =
                     await Promise.all([
                         fetchPokemonList(),
                         fetchOpponentPartyTemplates(),
                         partyDataPromise,
+                        fetchCurrentUser(),
                     ]);
 
                 setPokemonList(pokemonData);
                 setTemplates(templateData);
                 setSourceParty(partyData);
+                setCurrentUser(currentUserData);
 
                 if (partyData) {
                     setSelectedRule(partyData.rule);
@@ -155,6 +162,11 @@ function OpponentPartyTemplatesContent() {
     };
 
     const handleSave = async () => {
+        if (!isAdmin) {
+            setErrorMessage("テンプレートを登録できるのは管理者のみです。");
+            return;
+        }
+
         if (selectedPokemonList.length !== 6) {
             setErrorMessage("ポケモンを6匹選択してください。");
             return;
@@ -197,6 +209,11 @@ function OpponentPartyTemplatesContent() {
     };
 
     const handleDelete = async (templateId: number) => {
+        if (!isAdmin) {
+            setErrorMessage("テンプレートを削除できるのは管理者のみです。");
+            return;
+        }
+
         if (deletingTemplateId !== null) {
             return;
         }
@@ -271,13 +288,21 @@ function OpponentPartyTemplatesContent() {
             </div>
 
             <div className="mb-6">
-                <h1 className="text-2xl font-bold">
-                    相手パーティテンプレート登録
-                </h1>
+                <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-2xl font-bold">
+                        相手パーティテンプレート
+                    </h1>
+
+                    {isAdmin && (
+                        <span className="rounded bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">
+                            管理者
+                        </span>
+                    )}
+                </div>
 
                 <p className="mt-2 text-sm text-gray-600">
-                    環境上位で使われているパーティなどを6匹単位で登録します。
-                    登録したテンプレートは選出練習モードでランダム生成に使います。
+                    環境上位で使われているパーティなどを確認できます。
+                    登録済みテンプレートは選出練習モードでランダム生成に使います。
                 </p>
             </div>
 
@@ -293,239 +318,260 @@ function OpponentPartyTemplatesContent() {
                 </p>
             )}
 
-            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
-                <section className="rounded border bg-white p-4">
-                    <div className="flex items-center justify-between gap-3">
-                        <div>
-                            <h2 className="text-lg font-bold">
-                                ポケモンを検索
-                            </h2>
+            {isAdmin ? (
+                <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
+                    <section className="rounded border bg-white p-4">
+                        <div className="flex items-center justify-between gap-3">
+                            <div>
+                                <h2 className="text-lg font-bold">
+                                    ポケモンを検索
+                                </h2>
 
-                            <p className="mt-1 text-sm text-gray-600">
-                                テンプレートに登録する6匹を選択してください。
-                            </p>
+                                <p className="mt-1 text-sm text-gray-600">
+                                    テンプレートに登録する6匹を選択してください。
+                                </p>
+                            </div>
+
+                            <div className="mt-4">
+                                <p className="text-sm font-semibold">
+                                    適用ルール
+                                </p>
+
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedRule("main_series");
+                                            setSelectedPokemonList([]);
+                                            setErrorMessage("");
+                                            setSuccessMessage("");
+                                        }}
+                                        className={`rounded border px-3 py-2 text-sm font-semibold ${
+                                            selectedRule === "main_series"
+                                                ? "border-black bg-gray-50"
+                                                : "bg-white hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        本編ルール
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedRule("champions");
+                                            setSelectedPokemonList([]);
+                                            setErrorMessage("");
+                                            setSuccessMessage("");
+                                        }}
+                                        className={`rounded border px-3 py-2 text-sm font-semibold ${
+                                            selectedRule === "champions"
+                                                ? "border-black bg-gray-50"
+                                                : "bg-white hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        チャンピオンズ
+                                    </button>
+                                </div>
+
+                                {sourceParty && (
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        遷移元パーティのルールを初期選択しています。
+                                    </p>
+                                )}
+                            </div>
+
+                            <span className="rounded bg-gray-100 px-3 py-1 text-sm font-semibold">
+                                {selectedPokemonList.length} / 6
+                            </span>
                         </div>
 
                         <div className="mt-4">
-                            <p className="text-sm font-semibold">適用ルール</p>
+                            <PokemonSearchSelector
+                                layout="compact"
+                                pokemonList={pokemonList}
+                                searchKeyword={searchKeyword}
+                                onChangeSearchKeyword={setSearchKeyword}
+                                clearSearchKeywordOnSelect
+                                selectedTypes={selectedTypes}
+                                onChangeSelectedTypes={setSelectedTypes}
+                                isPokemonSelected={(pokemon) =>
+                                    selectedPokemonList.some(
+                                        (selectedPokemon) =>
+                                            selectedPokemon.key === pokemon.key,
+                                    )
+                                }
+                                isPokemonDisabled={(pokemon) =>
+                                    selectedPokemonList.length >= 6 ||
+                                    selectedPokemonList.some(
+                                        (selectedPokemon) =>
+                                            selectedPokemon.key === pokemon.key,
+                                    )
+                                }
+                                getPokemonStatusLabel={(pokemon) =>
+                                    selectedPokemonList.some(
+                                        (selectedPokemon) =>
+                                            selectedPokemon.key === pokemon.key,
+                                    )
+                                        ? "選択済み"
+                                        : null
+                                }
+                                onSelectPokemon={handleAddPokemon}
+                                filterPokemon={(pokemon) =>
+                                    isPokemonAvailableForRule(
+                                        pokemon,
+                                        selectedRule,
+                                    )
+                                }
+                            />
+                        </div>
+                    </section>
 
-                            <div className="mt-2 flex flex-wrap gap-2">
+                    <aside className="rounded border bg-white p-4 lg:sticky lg:top-4">
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-lg font-bold">登録予定</h2>
+
+                            {selectedPokemonList.length > 0 && (
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        setSelectedRule("main_series");
-                                        setSelectedPokemonList([]);
-                                        setErrorMessage("");
-                                        setSuccessMessage("");
-                                    }}
-                                    className={`rounded border px-3 py-2 text-sm font-semibold ${
-                                        selectedRule === "main_series"
-                                            ? "border-black bg-gray-50"
-                                            : "bg-white hover:bg-gray-50"
-                                    }`}
+                                    onClick={handleClearSelectedPokemon}
+                                    className="text-xs text-red-600"
                                 >
-                                    本編ルール
+                                    すべて外す
                                 </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setSelectedRule("champions");
-                                        setSelectedPokemonList([]);
-                                        setErrorMessage("");
-                                        setSuccessMessage("");
-                                    }}
-                                    className={`rounded border px-3 py-2 text-sm font-semibold ${
-                                        selectedRule === "champions"
-                                            ? "border-black bg-gray-50"
-                                            : "bg-white hover:bg-gray-50"
-                                    }`}
-                                >
-                                    チャンピオンズ
-                                </button>
-                            </div>
-
-                            {sourceParty && (
-                                <p className="mt-2 text-xs text-gray-500">
-                                    遷移元パーティのルールを初期選択しています。
-                                </p>
                             )}
                         </div>
 
-                        <span className="rounded bg-gray-100 px-3 py-1 text-sm font-semibold">
-                            {selectedPokemonList.length} / 6
-                        </span>
-                    </div>
+                        {selectedPokemonList.length === 0 ? (
+                            <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                                まだポケモンが選択されていません。
+                            </p>
+                        ) : (
+                            <div className="mt-4 space-y-2">
+                                {selectedPokemonList.map((pokemon, index) => (
+                                    <div
+                                        key={getPokemonIdentifier(pokemon)}
+                                        className="flex items-center gap-2 rounded border bg-gray-50 p-2"
+                                    >
+                                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-black text-xs font-bold text-white">
+                                            {index + 1}
+                                        </span>
 
-                    <div className="mt-4">
-                        <PokemonSearchSelector
-                            layout="compact"
-                            pokemonList={pokemonList}
-                            searchKeyword={searchKeyword}
-                            onChangeSearchKeyword={setSearchKeyword}
-                            clearSearchKeywordOnSelect
-                            selectedTypes={selectedTypes}
-                            onChangeSelectedTypes={setSelectedTypes}
-                            isPokemonSelected={(pokemon) =>
-                                selectedPokemonList.some(
-                                    (selectedPokemon) =>
-                                        selectedPokemon.key === pokemon.key,
-                                )
-                            }
-                            isPokemonDisabled={(pokemon) =>
-                                selectedPokemonList.length >= 6 ||
-                                selectedPokemonList.some(
-                                    (selectedPokemon) =>
-                                        selectedPokemon.key === pokemon.key,
-                                )
-                            }
-                            getPokemonStatusLabel={(pokemon) =>
-                                selectedPokemonList.some(
-                                    (selectedPokemon) =>
-                                        selectedPokemon.key === pokemon.key,
-                                )
-                                    ? "選択済み"
-                                    : null
-                            }
-                            onSelectPokemon={handleAddPokemon}
-                            filterPokemon={(pokemon) =>
-                                isPokemonAvailableForRule(pokemon, selectedRule)
-                            }
-                        />
-                    </div>
-                </section>
+                                        {pokemon.image_url ? (
+                                            <img
+                                                src={pokemon.image_url}
+                                                alt={pokemon.name}
+                                                className="h-10 w-10 shrink-0 object-contain"
+                                            />
+                                        ) : (
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-white text-xs text-gray-400">
+                                                ?
+                                            </div>
+                                        )}
 
-                <aside className="rounded border bg-white p-4 lg:sticky lg:top-4">
-                    <div className="flex items-center justify-between gap-3">
-                        <h2 className="text-lg font-bold">登録予定</h2>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-bold">
+                                                {pokemon.name}
+                                            </p>
 
-                        {selectedPokemonList.length > 0 && (
-                            <button
-                                type="button"
-                                onClick={handleClearSelectedPokemon}
-                                className="text-xs text-red-600"
-                            >
-                                すべて外す
-                            </button>
-                        )}
-                    </div>
-
-                    {selectedPokemonList.length === 0 ? (
-                        <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                            まだポケモンが選択されていません。
-                        </p>
-                    ) : (
-                        <div className="mt-4 space-y-2">
-                            {selectedPokemonList.map((pokemon, index) => (
-                                <div
-                                    key={getPokemonIdentifier(pokemon)}
-                                    className="flex items-center gap-2 rounded border bg-gray-50 p-2"
-                                >
-                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-black text-xs font-bold text-white">
-                                        {index + 1}
-                                    </span>
-
-                                    {pokemon.image_url ? (
-                                        <img
-                                            src={pokemon.image_url}
-                                            alt={pokemon.name}
-                                            className="h-10 w-10 shrink-0 object-contain"
-                                        />
-                                    ) : (
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-white text-xs text-gray-400">
-                                            ?
+                                            <p className="text-xs text-gray-500">
+                                                {pokemon.types.join(" / ")}
+                                            </p>
                                         </div>
-                                    )}
 
-                                    <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm font-bold">
-                                            {pokemon.name}
-                                        </p>
+                                        <div className="flex shrink-0 items-center gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    handleMovePokemon(
+                                                        getPokemonIdentifier(
+                                                            pokemon,
+                                                        ),
+                                                        "up",
+                                                    )
+                                                }
+                                                disabled={index === 0}
+                                                className="rounded border px-1.5 py-1 text-xs disabled:text-gray-300"
+                                            >
+                                                ↑
+                                            </button>
 
-                                        <p className="text-xs text-gray-500">
-                                            {pokemon.types.join(" / ")}
-                                        </p>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    handleMovePokemon(
+                                                        getPokemonIdentifier(
+                                                            pokemon,
+                                                        ),
+                                                        "down",
+                                                    )
+                                                }
+                                                disabled={
+                                                    index ===
+                                                    selectedPokemonList.length -
+                                                        1
+                                                }
+                                                className="rounded border px-1.5 py-1 text-xs disabled:text-gray-300"
+                                            >
+                                                ↓
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    handleRemovePokemon(pokemon)
+                                                }
+                                                className="rounded border border-red-200 px-1.5 py-1 text-xs text-red-600 hover:bg-red-50"
+                                            >
+                                                外す
+                                            </button>
+                                        </div>
                                     </div>
+                                ))}
+                            </div>
+                        )}
 
-                                    <div className="flex shrink-0 items-center gap-1">
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleMovePokemon(
-                                                    getPokemonIdentifier(
-                                                        pokemon,
-                                                    ),
-                                                    "up",
-                                                )
-                                            }
-                                            disabled={index === 0}
-                                            className="rounded border px-1.5 py-1 text-xs disabled:text-gray-300"
-                                        >
-                                            ↑
-                                        </button>
+                        <div className="mt-4">
+                            <label className="text-sm font-semibold">
+                                メモ 任意
+                            </label>
 
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleMovePokemon(
-                                                    getPokemonIdentifier(
-                                                        pokemon,
-                                                    ),
-                                                    "down",
-                                                )
-                                            }
-                                            disabled={
-                                                index ===
-                                                selectedPokemonList.length - 1
-                                            }
-                                            className="rounded border px-1.5 py-1 text-xs disabled:text-gray-300"
-                                        >
-                                            ↓
-                                        </button>
+                            <input
+                                value={memo}
+                                onChange={(event) =>
+                                    setMemo(event.target.value)
+                                }
+                                placeholder="例：S2上位構築、雨パーティ、受け寄りなど"
+                                maxLength={255}
+                                className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                            />
 
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleRemovePokemon(pokemon)
-                                            }
-                                            className="rounded border border-red-200 px-1.5 py-1 text-xs text-red-600 hover:bg-red-50"
-                                        >
-                                            外す
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                            <p className="mt-1 text-right text-xs text-gray-400">
+                                {memo.length} / 255
+                            </p>
                         </div>
-                    )}
 
-                    <div className="mt-4">
-                        <label className="text-sm font-semibold">
-                            メモ 任意
-                        </label>
+                        <button
+                            type="button"
+                            onClick={handleSave}
+                            disabled={
+                                selectedPokemonList.length !== 6 || isSaving
+                            }
+                            className="mt-4 w-full rounded bg-black px-4 py-2 text-sm text-white hover:bg-gray-800 disabled:bg-gray-400"
+                        >
+                            {isSaving ? "登録中..." : "テンプレートを登録"}
+                        </button>
+                    </aside>
+                </div>
+            ) : (
+                <section className="rounded border bg-white p-4">
+                    <h2 className="text-lg font-bold">共通テンプレート</h2>
 
-                        <input
-                            value={memo}
-                            onChange={(event) => setMemo(event.target.value)}
-                            placeholder="例：S2上位構築、雨パーティ、受け寄りなど"
-                            maxLength={255}
-                            className="mt-1 w-full rounded border px-3 py-2 text-sm"
-                        />
-
-                        <p className="mt-1 text-right text-xs text-gray-400">
-                            {memo.length} / 255
-                        </p>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={handleSave}
-                        disabled={selectedPokemonList.length !== 6 || isSaving}
-                        className="mt-4 w-full rounded bg-black px-4 py-2 text-sm text-white hover:bg-gray-800 disabled:bg-gray-400"
-                    >
-                        {isSaving ? "登録中..." : "テンプレートを登録"}
-                    </button>
-                </aside>
-            </div>
+                    <p className="mt-2 text-sm text-gray-600">
+                        登録と削除は管理者のみ行えます。
+                        登録済みテンプレートは選出練習モードで利用できます。
+                    </p>
+                </section>
+            )}
 
             <section className="mt-8 rounded border bg-white p-4">
                 <div className="flex items-center justify-between gap-3">
@@ -535,7 +581,9 @@ function OpponentPartyTemplatesContent() {
                         </h2>
 
                         <p className="mt-1 text-sm text-gray-600">
-                            登録済みの相手パーティを確認・削除できます。
+                            {isAdmin
+                                ? "登録済みの相手パーティを確認・削除できます。"
+                                : "登録済みの相手パーティを確認できます。"}
                         </p>
                     </div>
 
@@ -572,20 +620,23 @@ function OpponentPartyTemplatesContent() {
                                         </p>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            handleDelete(template.id)
-                                        }
-                                        disabled={
-                                            deletingTemplateId === template.id
-                                        }
-                                        className="rounded border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:text-gray-400"
-                                    >
-                                        {deletingTemplateId === template.id
-                                            ? "削除中..."
-                                            : "削除"}
-                                    </button>
+                                    {isAdmin && (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                handleDelete(template.id)
+                                            }
+                                            disabled={
+                                                deletingTemplateId ===
+                                                template.id
+                                            }
+                                            className="rounded border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:text-gray-400"
+                                        >
+                                            {deletingTemplateId === template.id
+                                                ? "削除中..."
+                                                : "削除"}
+                                        </button>
+                                    )}
                                 </div>
 
                                 <div className="mt-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">

@@ -27,5 +27,7 @@ Route::get('/natures', [NatureController::class, 'index']);
 Route::get('/pokemon-ability-warnings', [PokemonAbilityWarningController::class, 'index']);
 
 Route::get('/opponent-party-templates', [OpponentPartyTemplateController::class, 'index']);
-Route::post('/opponent-party-templates', [OpponentPartyTemplateController::class, 'store']);
-Route::delete('/opponent-party-templates/{opponentPartyTemplate}', [OpponentPartyTemplateController::class, 'destroy']);
+Route::middleware('admin')->group(function () {
+    Route::post('/opponent-party-templates', [OpponentPartyTemplateController::class, 'store']);
+    Route::delete('/opponent-party-templates/{opponentPartyTemplate}', [OpponentPartyTemplateController::class, 'destroy']);
+});
