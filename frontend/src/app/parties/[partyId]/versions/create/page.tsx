@@ -11,6 +11,7 @@ import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
+import { hasDuplicatedValues } from "@/features/partyPokemon/utils/hasDuplicatedValues";
 import { toggleRoleTagId } from "@/features/partyPokemon/utils/toggleRoleTagId";
 import { validateEffortValues } from "@/features/partyPokemon/utils/validateEffortValues";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
@@ -361,29 +362,23 @@ export default function CreatePartyVersionPage() {
 
         const effortValueLimits = getEffortValueLimits(party.rule);
 
-        const items = editablePokemonList
-            .map((pokemon) => pokemon.item.trim())
-            .filter((item) => item !== "");
-
-        const hasDuplicatedItem = new Set(items).size !== items.length;
+        const hasDuplicatedItem = hasDuplicatedValues(
+            editablePokemonList.map((pokemon) => pokemon.item),
+        );
 
         if (hasDuplicatedItem) {
             setErrorMessage("同じ持ち物は同じパーティに登録できません。");
             return;
         }
 
-        const hasDuplicatedMove = editablePokemonList.some((pokemon) => {
-            const moves = [
+        const hasDuplicatedMove = editablePokemonList.some((pokemon) =>
+            hasDuplicatedValues([
                 pokemon.move_1,
                 pokemon.move_2,
                 pokemon.move_3,
                 pokemon.move_4,
-            ]
-                .map((move) => move.trim())
-                .filter((move) => move !== "");
-
-            return new Set(moves).size !== moves.length;
-        });
+            ]),
+        );
 
         if (hasDuplicatedMove) {
             setErrorMessage(

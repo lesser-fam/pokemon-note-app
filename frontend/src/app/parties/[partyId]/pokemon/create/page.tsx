@@ -10,6 +10,8 @@ import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
+import { hasDuplicatedValues } from "@/features/partyPokemon/utils/hasDuplicatedValues";
+import { toggleRoleTagId } from "@/features/partyPokemon/utils/toggleRoleTagId";
 import { validateEffortValues } from "@/features/partyPokemon/utils/validateEffortValues";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
@@ -24,7 +26,6 @@ import type { RoleTag } from "@/types/roleTag";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { toggleRoleTagId } from "@/features/partyPokemon/utils/toggleRoleTagId";
 
 export default function CreatePartyPokemonPage() {
     const router = useRouter();
@@ -214,24 +215,22 @@ export default function CreatePartyPokemonPage() {
             return;
         }
 
-        const normalizedItem = item.trim();
-
-        const hasDuplicatedItem =
-            normalizedItem !== "" &&
-            currentPokemonList.some(
-                (partyPokemon) => partyPokemon.item?.trim() === normalizedItem,
-            );
+        const hasDuplicatedItem = hasDuplicatedValues([
+            ...currentPokemonList.map((partyPokemon) => partyPokemon.item),
+            item,
+        ]);
 
         if (hasDuplicatedItem) {
             setErrorMessage("同じ持ち物は同じパーティに登録できません。");
             return;
         }
 
-        const moves = [move1, move2, move3, move4]
-            .map((move) => move.trim())
-            .filter((move) => move !== "");
-
-        const hasDuplicatedMove = new Set(moves).size !== moves.length;
+        const hasDuplicatedMove = hasDuplicatedValues([
+            move1,
+            move2,
+            move3,
+            move4,
+        ]);
 
         if (hasDuplicatedMove) {
             setErrorMessage(
