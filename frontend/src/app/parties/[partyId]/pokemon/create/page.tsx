@@ -1,15 +1,17 @@
 "use client";
 
 import { AppHeader } from "@/components/AppHeader";
-import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import {
     fetchPokemonList,
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
-import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
+import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
+import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
+import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
+import { getEffortValueLimits } from "@/features/pokemonRules/partyRuleConfig";
 import type { NatureMaster } from "@/types/battleMaster";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
@@ -145,24 +147,6 @@ export default function CreatePartyPokemonPage() {
         );
     };
 
-    const getEffortValueLimits = () => {
-        const rule = party?.rule || "main_series";
-
-        if (rule === "champions") {
-            return {
-                totalLimit: 66,
-                singleLimit: 32,
-                label: "チャンピオンズ",
-            };
-        }
-
-        return {
-            totalLimit: 510,
-            singleLimit: 252,
-            label: "本編ルール",
-        };
-    };
-
     const toNumber = (value: string) => {
         return Number(value || 0);
     };
@@ -261,7 +245,7 @@ export default function CreatePartyPokemonPage() {
             return;
         }
 
-        const effortValueLimits = getEffortValueLimits();
+        const effortValueLimits = getEffortValueLimits(party.rule);
 
         const effortValues = [
             toNumber(evH),
@@ -366,7 +350,7 @@ export default function CreatePartyPokemonPage() {
         );
     }
 
-    const effortValueLimits = getEffortValueLimits();
+    const effortValueLimits = getEffortValueLimits(party.rule);
 
     return (
         <>
@@ -401,7 +385,11 @@ export default function CreatePartyPokemonPage() {
                                 selectedTypes={selectedTypes}
                                 onChangeSelectedTypes={setSelectedTypes}
                                 filterPokemon={(pokemon) =>
-                                    !isMegaForm(pokemon)
+                                    !isMegaForm(pokemon) &&
+                                    isPokemonAvailableForRule(
+                                        pokemon,
+                                        party.rule,
+                                    )
                                 }
                                 isPokemonSelected={(pokemon) =>
                                     pokemon.key === pokemonKey &&
