@@ -25,6 +25,7 @@ import { getPokemonTypeClassName } from "@/utils/pokemonTypeStyle";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 
 type OpponentGenerationMode = "random" | "battle_log" | "template";
 type PokemonAbilityCandidate = PokemonAbilityWarning["abilities"][number];
@@ -468,13 +469,6 @@ export default function SelectionPracticePage() {
             };
         },
     );
-
-    const findPokemonMaster = (pokemonKey: string, formKey: string) => {
-        return pokemonList.find(
-            (pokemon) =>
-                pokemon.key === pokemonKey && pokemon.form_key === formKey,
-        );
-    };
 
     const resetOtherOpponentMegaForms = (
         currentList: Pokemon[],
@@ -949,10 +943,11 @@ export default function SelectionPracticePage() {
     };
 
     const renderPartyPokemonCard = (partyPokemon: PartyPokemon) => {
-        const pokemonMaster = findPokemonMaster(
-            partyPokemon.pokemon_key,
-            partyPokemon.form_key,
-        );
+        const pokemonMaster = findPokemonMaster({
+            pokemonList,
+            pokemonKey: partyPokemon.pokemon_key,
+            formKey: partyPokemon.form_key,
+        });
 
         if (!pokemonMaster) {
             return (
@@ -1042,10 +1037,11 @@ export default function SelectionPracticePage() {
         label: string,
         partyPokemon: PartyPokemon,
     ) => {
-        const pokemonMaster = findPokemonMaster(
-            partyPokemon.pokemon_key,
-            partyPokemon.form_key,
-        );
+        const pokemonMaster = findPokemonMaster({
+            pokemonList,
+            pokemonKey: partyPokemon.pokemon_key,
+            formKey: partyPokemon.form_key,
+        });
 
         const isSelected = selectedPartyPokemonIds.includes(partyPokemon.id);
 
@@ -1343,10 +1339,13 @@ export default function SelectionPracticePage() {
                                         {selectedPartyPokemonList.map(
                                             (partyPokemon, index) => {
                                                 const pokemonMaster =
-                                                    findPokemonMaster(
-                                                        partyPokemon.pokemon_key,
-                                                        partyPokemon.form_key,
-                                                    );
+                                                    findPokemonMaster({
+                                                        pokemonList,
+                                                        pokemonKey:
+                                                            partyPokemon.pokemon_key,
+                                                        formKey:
+                                                            partyPokemon.form_key,
+                                                    });
 
                                                 return (
                                                     <div

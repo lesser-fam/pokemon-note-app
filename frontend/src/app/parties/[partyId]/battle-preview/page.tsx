@@ -23,11 +23,11 @@ import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
 import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
-
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 
 //ルール別ポケモン確認用
 // import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
@@ -285,13 +285,6 @@ export default function BattlePreviewPage() {
 
         const isNextMegaForm = isMegaForm(nextPokemon);
 
-        /*
-         * メガフォームへ切り替える場合は、
-         * ほかのポケモンを登録時のフォームへ戻します。
-         *
-         * DBの値は変更せず、
-         * 対戦前画面の一時上書きだけを解除します。
-         */
         setOwnPokemonFormOverrides((currentOverrides) => {
             const nextOverrides = {
                 ...currentOverrides,
@@ -307,10 +300,6 @@ export default function BattlePreviewPage() {
                 });
             }
 
-            /*
-             * 登録時のフォームへ戻す場合は、
-             * 自分自身の一時上書きも削除します。
-             */
             if (nextPokemon.form_key === originalPartyPokemon.form_key) {
                 delete nextOverrides[partyPokemonId];
 
@@ -322,10 +311,6 @@ export default function BattlePreviewPage() {
             return nextOverrides;
         });
 
-        /*
-         * ほかのメガ状態を解除した場合は、
-         * そのポケモンへ一時適用していた特性も解除します。
-         */
         if (isNextMegaForm) {
             setOwnPokemonAbilityOverrides((currentOverrides) => {
                 const nextOverrides = {
@@ -344,10 +329,6 @@ export default function BattlePreviewPage() {
             });
         }
 
-        /*
-         * 登録時のフォームへ戻した場合は、
-         * 登録済みの元の特性へ戻します。
-         */
         if (nextPokemon.form_key === originalPartyPokemon.form_key) {
             setOwnPokemonAbilityOverrides((currentOverrides) => {
                 const nextOverrides = {
@@ -362,9 +343,6 @@ export default function BattlePreviewPage() {
             return;
         }
 
-        /*
-         * 切り替え後フォームの特性候補を取得します。
-         */
         try {
             const data = await fetchPokemonAbilityWarnings([
                 `${nextPokemon.key}:${nextPokemon.form_key}`,
@@ -372,11 +350,6 @@ export default function BattlePreviewPage() {
 
             const abilityCandidates = data[0]?.abilities ?? [];
 
-            /*
-             * 候補が1件なら自動適用します。
-             * 複数候補なら誤った特性を勝手に選ばず、
-             * 一時的に未選択として扱います。
-             */
             const temporaryAbility =
                 abilityCandidates.length === 1 ? abilityCandidates[0] : null;
 
@@ -524,13 +497,6 @@ export default function BattlePreviewPage() {
         );
     };
 
-    const findPokemonMaster = (pokemonKey: string, formKey: string) => {
-        return pokemonList.find(
-            (pokemon) =>
-                pokemon.key === pokemonKey && pokemon.form_key === formKey,
-        );
-    };
-
     const getPokemonAbilities = (pokemon: Pokemon) => {
         const pokemonAbilityData = pokemonAbilityWarnings.find(
             (item) =>
@@ -598,10 +564,11 @@ export default function BattlePreviewPage() {
 
     const defensiveMatchupResults = effectiveCurrentPokemonList
         .map((partyPokemon) => {
-            const pokemonMaster = findPokemonMaster(
-                partyPokemon.pokemon_key,
-                partyPokemon.form_key,
-            );
+            const pokemonMaster = findPokemonMaster({
+                pokemonList,
+                pokemonKey: partyPokemon.pokemon_key,
+                formKey: partyPokemon.form_key,
+            });
 
             const matchupResult = calculateDefensiveMatchupScore({
                 defenderTypes: pokemonMaster?.types ?? [],
@@ -681,10 +648,11 @@ export default function BattlePreviewPage() {
             return "未設定";
         }
 
-        const pokemonMaster = findPokemonMaster(
-            partyPokemon.pokemon_key,
-            partyPokemon.form_key,
-        );
+        const pokemonMaster = findPokemonMaster({
+            pokemonList,
+            pokemonKey: partyPokemon.pokemon_key,
+            formKey: partyPokemon.form_key,
+        });
 
         return (
             partyPokemon.nickname ||
@@ -697,10 +665,11 @@ export default function BattlePreviewPage() {
         label: string,
         partyPokemon: PartyPokemon,
     ) => {
-        const pokemonMaster = findPokemonMaster(
-            partyPokemon.pokemon_key,
-            partyPokemon.form_key,
-        );
+        const pokemonMaster = findPokemonMaster({
+            pokemonList,
+            pokemonKey: partyPokemon.pokemon_key,
+            formKey: partyPokemon.form_key,
+        });
 
         return (
             <div className="rounded bg-white px-2 py-1.5">
@@ -735,10 +704,11 @@ export default function BattlePreviewPage() {
         ) ?? null;
 
     const actionOwnPokemonMaster = actionOwnPartyPokemon
-        ? (findPokemonMaster(
-              actionOwnPartyPokemon.pokemon_key,
-              actionOwnPartyPokemon.form_key,
-          ) ?? null)
+        ? (findPokemonMaster({
+              pokemonList,
+              pokemonKey: actionOwnPartyPokemon.pokemon_key,
+              formKey: actionOwnPartyPokemon.form_key,
+          }) ?? null)
         : null;
 
     const actionOpponentPokemon =
@@ -755,7 +725,13 @@ export default function BattlePreviewPage() {
                         pokemonList={pokemonList}
                         selectedPartyPokemonIds={selectedPartyPokemonIds}
                         highlightedStats={ownHighlightedStats}
-                        findPokemonMaster={findPokemonMaster}
+                        findPokemonMaster={(pokemonKey, formKey) =>
+                            findPokemonMaster({
+                                pokemonList,
+                                pokemonKey,
+                                formKey,
+                            })
+                        }
                         onToggleSelection={handleTogglePartyPokemonSelection}
                         onChangeForm={handleChangeOwnPokemonForm}
                         actionTargetPartyPokemonId={actionOwnPokemonId}
@@ -1484,10 +1460,13 @@ export default function BattlePreviewPage() {
                                                 matchupResult,
                                             }) => {
                                                 const pokemonMaster =
-                                                    findPokemonMaster(
-                                                        partyPokemon.pokemon_key,
-                                                        partyPokemon.form_key,
-                                                    );
+                                                    findPokemonMaster({
+                                                        pokemonList,
+                                                        pokemonKey:
+                                                            partyPokemon.pokemon_key,
+                                                        formKey:
+                                                            partyPokemon.form_key,
+                                                    });
 
                                                 return (
                                                     <div
@@ -1618,10 +1597,13 @@ export default function BattlePreviewPage() {
                                                 matchupResult,
                                             }) => {
                                                 const pokemonMaster =
-                                                    findPokemonMaster(
-                                                        partyPokemon.pokemon_key,
-                                                        partyPokemon.form_key,
-                                                    );
+                                                    findPokemonMaster({
+                                                        pokemonList,
+                                                        pokemonKey:
+                                                            partyPokemon.pokemon_key,
+                                                        formKey:
+                                                            partyPokemon.form_key,
+                                                    });
 
                                                 return (
                                                     <div
@@ -1820,12 +1802,17 @@ export default function BattlePreviewPage() {
                                                         const pokemonMaster =
                                                             suggestion.pokemon
                                                                 ? findPokemonMaster(
-                                                                      suggestion
-                                                                          .pokemon
-                                                                          .pokemon_key,
-                                                                      suggestion
-                                                                          .pokemon
-                                                                          .form_key,
+                                                                      {
+                                                                          pokemonList,
+                                                                          pokemonKey:
+                                                                              suggestion
+                                                                                  .pokemon
+                                                                                  .pokemon_key,
+                                                                          formKey:
+                                                                              suggestion
+                                                                                  .pokemon
+                                                                                  .form_key,
+                                                                      },
                                                                   )
                                                                 : null;
 

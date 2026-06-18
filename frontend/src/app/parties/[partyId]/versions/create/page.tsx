@@ -26,6 +26,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { FormEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
+import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 
 type EditablePokemon = {
     pokemon_key: string;
@@ -215,13 +216,6 @@ export default function CreatePartyVersionPage() {
 
         loadData();
     }, [partyId, isInvalidPartyId]);
-
-    const findPokemonMaster = (pokemonKey: string, formKey: string) => {
-        return pokemonList.find(
-            (pokemon) =>
-                pokemon.key === pokemonKey && pokemon.form_key === formKey,
-        );
-    };
 
     const findNatureMaster = (
         natureId: number | null,
@@ -651,7 +645,11 @@ export default function CreatePartyVersionPage() {
             : null;
 
     const editingPokemonMaster = editingPokemon
-        ? findPokemonMaster(editingPokemon.pokemon_key, editingPokemon.form_key)
+        ? findPokemonMaster({
+              pokemonList,
+              pokemonKey: editingPokemon.pokemon_key,
+              formKey: editingPokemon.form_key,
+          })
         : undefined;
 
     const editingNatureMaster = editingPokemon
@@ -750,10 +748,11 @@ export default function CreatePartyVersionPage() {
 
                         <div className="mt-5 grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
                             {editablePokemonList.map((pokemon, index) => {
-                                const pokemonMaster = findPokemonMaster(
-                                    pokemon.pokemon_key,
-                                    pokemon.form_key,
-                                );
+                                const pokemonMaster = findPokemonMaster({
+                                    pokemonList,
+                                    pokemonKey: pokemon.pokemon_key,
+                                    formKey: pokemon.form_key,
+                                });
 
                                 const isSelected =
                                     selectedPokemonIndex === index;

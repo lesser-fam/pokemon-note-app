@@ -20,6 +20,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
+import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 
 export default function PartyDetailPage() {
     const router = useRouter();
@@ -76,15 +77,12 @@ export default function PartyDetailPage() {
         );
     }
 
-    const findPokemonMaster = (pokemonKey: string, formKey: string) => {
-        return pokemonList.find(
-            (pokemon) =>
-                pokemon.key === pokemonKey && pokemon.form_key === formKey,
-        );
-    };
-
     const getPokemonMasterName = (pokemonKey: string, formKey = "default") => {
-        const pokemonMaster = findPokemonMaster(pokemonKey, formKey);
+        const pokemonMaster = findPokemonMaster({
+            pokemonList,
+            pokemonKey,
+            formKey,
+        });
 
         return pokemonMaster?.name || pokemonKey;
     };
@@ -174,7 +172,7 @@ export default function PartyDetailPage() {
         } catch (error) {
             console.error(error);
             setErrorMessage(
-                "ポケモンを外せませんでした。6匹そろった後の変更は、新バージョン作成から行ってください。",
+                `ポケモンを外せませんでした。${ruleConfig.partyPokemonLimit}匹そろった後の変更は、新バージョン作成から行ってください。`,
             );
         } finally {
             setDeletingPartyPokemonId(null);
@@ -278,7 +276,11 @@ export default function PartyDetailPage() {
         partyPokemon?: PartyPokemon | null,
     ) => {
         const pokemonMaster = partyPokemon
-            ? findPokemonMaster(partyPokemon.pokemon_key, partyPokemon.form_key)
+            ? findPokemonMaster({
+                  pokemonList,
+                  pokemonKey: partyPokemon.pokemon_key,
+                  formKey: partyPokemon.form_key,
+              })
             : undefined;
 
         return (
@@ -349,10 +351,11 @@ export default function PartyDetailPage() {
                 {opponents.map(([pokemonKey, formKey]) => {
                     const normalizedFormKey = (formKey as string) || "default";
 
-                    const pokemonMaster = findPokemonMaster(
-                        pokemonKey as string,
-                        normalizedFormKey,
-                    );
+                    const pokemonMaster = findPokemonMaster({
+                        pokemonList,
+                        pokemonKey: pokemonKey as string,
+                        formKey: normalizedFormKey,
+                    });
 
                     const selectedIndex = selectedOpponents.findIndex(
                         ([selectedPokemonKey, selectedFormKey]) =>
@@ -407,10 +410,11 @@ export default function PartyDetailPage() {
         return (
             <div className="flex flex-wrap gap-2">
                 {selectedPokemonList.map((partyPokemon, index) => {
-                    const pokemonMaster = findPokemonMaster(
-                        partyPokemon!.pokemon_key,
-                        partyPokemon!.form_key,
-                    );
+                    const pokemonMaster = findPokemonMaster({
+                        pokemonList,
+                        pokemonKey: partyPokemon!.pokemon_key,
+                        formKey: partyPokemon!.form_key,
+                    });
 
                     return (
                         <div
@@ -482,10 +486,11 @@ export default function PartyDetailPage() {
                     const partyPokemon = findPartyPokemonBySummaryKey(item);
 
                     const pokemonMaster = partyPokemon
-                        ? findPokemonMaster(
-                              partyPokemon.pokemon_key,
-                              partyPokemon.form_key,
-                          )
+                        ? findPokemonMaster({
+                              pokemonList,
+                              pokemonKey: partyPokemon.pokemon_key,
+                              formKey: partyPokemon.form_key,
+                          })
                         : undefined;
 
                     return (
@@ -540,10 +545,11 @@ export default function PartyDetailPage() {
                 {items.map((item) => {
                     const [pokemonKey, formKey] = item.key.split(":");
 
-                    const pokemonMaster = findPokemonMaster(
+                    const pokemonMaster = findPokemonMaster({
+                        pokemonList,
                         pokemonKey,
-                        formKey || "default",
-                    );
+                        formKey: formKey || "default",
+                    });
 
                     return (
                         <div
@@ -709,7 +715,9 @@ export default function PartyDetailPage() {
 
                     {canRemoveInitialPokemon && (
                         <p className="mt-3 rounded bg-gray-50 p-3 text-sm text-gray-600">
-                            初回登録中は、間違えて追加したポケモンを「外す」ことができます。6匹そろった後の変更は「新バージョン作成」から行います。
+                            初回登録中は、間違えて追加したポケモンを「外す」ことができます。
+                            {ruleConfig.partyPokemonLimit}
+                            匹そろった後の変更は「新バージョン作成」から行います。
                         </p>
                     )}
 
@@ -717,10 +725,11 @@ export default function PartyDetailPage() {
                         {party.current_version?.pokemon &&
                         party.current_version.pokemon.length > 0 ? (
                             party.current_version.pokemon.map((pokemon) => {
-                                const pokemonMaster = findPokemonMaster(
-                                    pokemon.pokemon_key,
-                                    pokemon.form_key,
-                                );
+                                const pokemonMaster = findPokemonMaster({
+                                    pokemonList,
+                                    pokemonKey: pokemon.pokemon_key,
+                                    formKey: pokemon.form_key,
+                                });
 
                                 return (
                                     <RegisteredPartyPokemonCard
@@ -1128,12 +1137,17 @@ export default function PartyDetailPage() {
                                                             {(() => {
                                                                 const pokemonMaster =
                                                                     findPokemonMaster(
-                                                                        battleLog
-                                                                            .needed_pokemon!
-                                                                            .pokemon_key,
-                                                                        battleLog
-                                                                            .needed_pokemon!
-                                                                            .form_key,
+                                                                        {
+                                                                            pokemonList,
+                                                                            pokemonKey:
+                                                                                battleLog
+                                                                                    .needed_pokemon!
+                                                                                    .pokemon_key,
+                                                                            formKey:
+                                                                                battleLog
+                                                                                    .needed_pokemon!
+                                                                                    .form_key,
+                                                                        },
                                                                     );
 
                                                                 return (
@@ -1239,7 +1253,13 @@ export default function PartyDetailPage() {
 
                 <PartyVersionHistory
                     versions={party.versions ?? []}
-                    findPokemonMaster={findPokemonMaster}
+                    findPokemonMaster={(pokemonKey, formKey) =>
+                        findPokemonMaster({
+                            pokemonList,
+                            pokemonKey,
+                            formKey,
+                        })
+                    }
                 />
             </main>
         </>
