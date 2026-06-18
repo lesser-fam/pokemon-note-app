@@ -18,6 +18,7 @@ import {
 } from "@/features/partyVersions/constants/editablePokemonFields";
 import { useEditablePokemonList } from "@/features/partyVersions/hooks/useEditablePokemonList";
 import { convertPartyPokemonToEditablePokemon } from "@/features/partyVersions/utils/editablePokemon";
+import { shiftIndexAfterRemoval } from "@/features/partyVersions/utils/shiftIndexAfterRemoval";
 import { validateEditablePokemonList } from "@/features/partyVersions/utils/validateEditablePokemonList";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
@@ -133,25 +134,6 @@ export default function CreatePartyVersionPage() {
                 block: "start",
             });
         });
-    };
-
-    const shiftIndexAfterRemoval = (
-        currentIndex: number | null,
-        removedIndex: number,
-    ): number | null => {
-        if (currentIndex === null) {
-            return null;
-        }
-
-        if (currentIndex === removedIndex) {
-            return null;
-        }
-
-        if (currentIndex > removedIndex) {
-            return currentIndex - 1;
-        }
-
-        return currentIndex;
     };
 
     const handleStartReplacingSelectedPokemon = () => {
