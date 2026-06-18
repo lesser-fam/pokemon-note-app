@@ -35,6 +35,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { FormEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
+import { validateEffortValues } from "@/features/partyPokemon/utils/validateEffortValues";
 
 export default function CreatePartyVersionPage() {
     const router = useRouter();
@@ -272,17 +273,6 @@ export default function CreatePartyVersionPage() {
         );
     };
 
-    const calculateEffortValueTotal = (pokemon: EditablePokemon) => {
-        return (
-            pokemon.ev_h +
-            pokemon.ev_a +
-            pokemon.ev_b +
-            pokemon.ev_c +
-            pokemon.ev_d +
-            pokemon.ev_s
-        );
-    };
-
     const handleSelectPokemonCard = (index: number) => {
         setSelectedPokemonIndex(index);
 
@@ -417,15 +407,12 @@ export default function CreatePartyVersionPage() {
                     pokemon.ev_s,
                 ];
 
-                const hasOverSingleLimit = effortValues.some(
-                    (value) => value > effortValueLimits.singleLimit,
+                const validationResult = validateEffortValues(
+                    effortValues,
+                    effortValueLimits,
                 );
 
-                const total = calculateEffortValueTotal(pokemon);
-
-                return (
-                    hasOverSingleLimit || total > effortValueLimits.totalLimit
-                );
+                return !validationResult.isValid;
             },
         );
 

@@ -10,17 +10,17 @@ import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
+import { validateEffortValues } from "@/features/partyPokemon/utils/validateEffortValues";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
+import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import {
     getEffortValueLimits,
     getPartyRuleConfig,
 } from "@/features/pokemonRules/partyRuleConfig";
-import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import type { NatureMaster } from "@/types/battleMaster";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { RoleTag } from "@/types/roleTag";
-
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -159,14 +159,6 @@ export default function CreatePartyPokemonPage() {
         return Number(value || 0);
     };
 
-    const effortValueTotal =
-        toNumber(evH) +
-        toNumber(evA) +
-        toNumber(evB) +
-        toNumber(evC) +
-        toNumber(evD) +
-        toNumber(evS);
-
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -266,14 +258,12 @@ export default function CreatePartyPokemonPage() {
             toNumber(evS),
         ];
 
-        const hasOverSingleLimit = effortValues.some(
-            (value) => value > effortValueLimits.singleLimit,
+        const effortValueValidation = validateEffortValues(
+            effortValues,
+            effortValueLimits,
         );
 
-        if (
-            hasOverSingleLimit ||
-            effortValueTotal > effortValueLimits.totalLimit
-        ) {
+        if (!effortValueValidation.isValid) {
             setErrorMessage(
                 `${effortValueLimits.label}では、努力値は1項目${effortValueLimits.singleLimit}まで、合計${effortValueLimits.totalLimit}までです。`,
             );
