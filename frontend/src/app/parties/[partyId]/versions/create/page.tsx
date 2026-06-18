@@ -11,6 +11,8 @@ import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
+import { toggleRoleTagId } from "@/features/partyPokemon/utils/toggleRoleTagId";
+import { validateEffortValues } from "@/features/partyPokemon/utils/validateEffortValues";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
 import {
     effortValueFieldMap,
@@ -35,8 +37,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { FormEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
-import { validateEffortValues } from "@/features/partyPokemon/utils/validateEffortValues";
-import { MAX_ROLE_TAG_COUNT } from "@/features/partyPokemon/constants/partyPokemonLimits";
 
 export default function CreatePartyVersionPage() {
     const router = useRouter();
@@ -148,20 +148,12 @@ export default function CreatePartyVersionPage() {
                     return pokemon;
                 }
 
-                const hasTag = pokemon.role_tag_ids.includes(roleTagId);
-
-                if (
-                    !hasTag &&
-                    pokemon.role_tag_ids.length >= MAX_ROLE_TAG_COUNT
-                ) {
-                    return pokemon;
-                }
-
                 return {
                     ...pokemon,
-                    role_tag_ids: hasTag
-                        ? pokemon.role_tag_ids.filter((id) => id !== roleTagId)
-                        : [...pokemon.role_tag_ids, roleTagId],
+                    role_tag_ids: toggleRoleTagId(
+                        pokemon.role_tag_ids,
+                        roleTagId,
+                    ),
                 };
             }),
         );
