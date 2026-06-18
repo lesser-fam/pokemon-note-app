@@ -7,17 +7,23 @@ import {
     fetchPokemonList,
     fetchRoleTags,
 } from "@/features/master/api/masterApi";
-import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
+import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import type { EffortValueStatKey } from "@/features/partyPokemon/components/EffortValueEditor";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
+import type { EditablePokemon } from "@/features/partyVersions/types/editablePokemon";
+import {
+    convertPartyPokemonToEditablePokemon,
+    createEditablePokemon,
+} from "@/features/partyVersions/utils/editablePokemon";
+import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
+import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import {
     getEffortValueLimits,
     getPartyRuleConfig,
 } from "@/features/pokemonRules/partyRuleConfig";
-import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import type { NatureMaster } from "@/types/battleMaster";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
@@ -26,48 +32,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { FormEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
-import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
-
-type EditablePokemon = {
-    pokemon_key: string;
-    form_key: string;
-    nickname: string;
-
-    item: string;
-    item_id: number | null;
-
-    ability: string;
-    ability_id: number | null;
-
-    nature: string;
-    nature_id: number | null;
-
-    ev_h: number;
-    ev_a: number;
-    ev_b: number;
-    ev_c: number;
-    ev_d: number;
-    ev_s: number;
-
-    move_1: string;
-    move_1_id: number | null;
-    move_1_type: string;
-
-    move_2: string;
-    move_2_id: number | null;
-    move_2_type: string;
-
-    move_3: string;
-    move_3_id: number | null;
-    move_3_type: string;
-
-    move_4: string;
-    move_4_id: number | null;
-    move_4_type: string;
-
-    memo: string;
-    role_tag_ids: number[];
-};
 
 const effortValueFieldMap: Record<EffortValueStatKey, keyof EditablePokemon> = {
     h: "ev_h",
@@ -158,47 +122,7 @@ export default function CreatePartyVersionPage() {
                 const currentPokemon = partyData.current_version?.pokemon ?? [];
 
                 const initialEditablePokemon = currentPokemon.map(
-                    (pokemon) => ({
-                        pokemon_key: pokemon.pokemon_key,
-                        form_key: pokemon.form_key,
-                        nickname: pokemon.nickname ?? "",
-
-                        item: pokemon.item ?? "",
-                        item_id: pokemon.item_id ?? null,
-
-                        ability: pokemon.ability ?? "",
-                        ability_id: pokemon.ability_id ?? null,
-
-                        nature: pokemon.nature ?? "",
-                        nature_id: pokemon.nature_id ?? null,
-
-                        ev_h: pokemon.ev_h ?? 0,
-                        ev_a: pokemon.ev_a ?? 0,
-                        ev_b: pokemon.ev_b ?? 0,
-                        ev_c: pokemon.ev_c ?? 0,
-                        ev_d: pokemon.ev_d ?? 0,
-                        ev_s: pokemon.ev_s ?? 0,
-
-                        move_1: pokemon.move_1 ?? "",
-                        move_1_id: pokemon.move_1_id ?? null,
-                        move_1_type: pokemon.move_1_type ?? "",
-
-                        move_2: pokemon.move_2 ?? "",
-                        move_2_id: pokemon.move_2_id ?? null,
-                        move_2_type: pokemon.move_2_type ?? "",
-
-                        move_3: pokemon.move_3 ?? "",
-                        move_3_id: pokemon.move_3_id ?? null,
-                        move_3_type: pokemon.move_3_type ?? "",
-
-                        move_4: pokemon.move_4 ?? "",
-                        move_4_id: pokemon.move_4_id ?? null,
-                        move_4_type: pokemon.move_4_type ?? "",
-
-                        memo: pokemon.memo ?? "",
-                        role_tag_ids:
-                            pokemon.role_tags?.map((tag) => tag.id) ?? [],
-                    }),
+                    convertPartyPokemonToEditablePokemon,
                 );
 
                 setEditablePokemonList(initialEditablePokemon);
@@ -265,49 +189,6 @@ export default function CreatePartyVersionPage() {
                 };
             }),
         );
-    };
-
-    const createEditablePokemon = (pokemon: Pokemon): EditablePokemon => {
-        return {
-            pokemon_key: pokemon.key,
-            form_key: pokemon.form_key,
-            nickname: "",
-
-            item: "",
-            item_id: null,
-
-            ability: "",
-            ability_id: null,
-
-            nature: "",
-            nature_id: null,
-
-            ev_h: 0,
-            ev_a: 0,
-            ev_b: 0,
-            ev_c: 0,
-            ev_d: 0,
-            ev_s: 0,
-
-            move_1: "",
-            move_1_id: null,
-            move_1_type: "",
-
-            move_2: "",
-            move_2_id: null,
-            move_2_type: "",
-
-            move_3: "",
-            move_3_id: null,
-            move_3_type: "",
-
-            move_4: "",
-            move_4_id: null,
-            move_4_type: "",
-
-            memo: "",
-            role_tag_ids: [],
-        };
     };
 
     const scrollToSection = (sectionRef: RefObject<HTMLDivElement | null>) => {
