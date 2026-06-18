@@ -17,8 +17,8 @@ import {
     moveFieldMap,
 } from "@/features/partyVersions/constants/editablePokemonFields";
 import { useEditablePokemonList } from "@/features/partyVersions/hooks/useEditablePokemonList";
+import { usePartyVersionPokemonSelection } from "@/features/partyVersions/hooks/usePartyVersionPokemonSelection";
 import { convertPartyPokemonToEditablePokemon } from "@/features/partyVersions/utils/editablePokemon";
-import { shiftIndexAfterRemoval } from "@/features/partyVersions/utils/shiftIndexAfterRemoval";
 import { validateEditablePokemonList } from "@/features/partyVersions/utils/validateEditablePokemonList";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
@@ -49,6 +49,7 @@ export default function CreatePartyVersionPage() {
     );
     const [roleTags, setRoleTags] = useState<RoleTag[]>([]);
     const [natureList, setNatureList] = useState<NatureMaster[]>([]);
+
     const {
         editablePokemonList,
         initializePokemonList,
@@ -58,23 +59,29 @@ export default function CreatePartyVersionPage() {
         replacePokemon,
         removePokemon,
     } = useEditablePokemonList();
+
+    const {
+        selectedPokemonIndex,
+        editingPokemonIndex,
+        replaceTargetIndex,
+        selectPokemon,
+        startEditingSelectedPokemon,
+        startReplacingSelectedPokemon,
+        finishAddingPokemon,
+        finishReplacingPokemon,
+        finishRemovingPokemon,
+        cancelReplacingPokemon,
+        closePokemonEditor,
+    } = usePartyVersionPokemonSelection();
+
     const [changeNote, setChangeNote] = useState("");
-    const [replaceTargetIndex, setReplaceTargetIndex] = useState<number | null>(
-        null,
-    );
+
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-
-    const [selectedPokemonIndex, setSelectedPokemonIndex] = useState<
-        number | null
-    >(null);
-    const [editingPokemonIndex, setEditingPokemonIndex] = useState<
-        number | null
-    >(null);
 
     const pokemonSearchSectionRef = useRef<HTMLDivElement | null>(null);
     const pokemonEditorSectionRef = useRef<HTMLDivElement | null>(null);
@@ -137,13 +144,12 @@ export default function CreatePartyVersionPage() {
     };
 
     const handleStartReplacingSelectedPokemon = () => {
-        if (selectedPokemonIndex === null) {
+        const replacingIndex = startReplacingSelectedPokemon();
+
+        if (replacingIndex === null) {
             return;
         }
 
-        setReplaceTargetIndex(selectedPokemonIndex);
-
-        setEditingPokemonIndex(null);
         setSearchKeyword("");
         setSelectedTypes([]);
 
@@ -158,16 +164,7 @@ export default function CreatePartyVersionPage() {
         const removedIndex = selectedPokemonIndex;
 
         removePokemon(removedIndex);
-
-        setSelectedPokemonIndex(null);
-
-        setEditingPokemonIndex((currentIndex) =>
-            shiftIndexAfterRemoval(currentIndex, removedIndex),
-        );
-
-        setReplaceTargetIndex((currentIndex) =>
-            shiftIndexAfterRemoval(currentIndex, removedIndex),
-        );
+        finishRemovingPokemon(removedIndex);
     };
 
     const handleAddPokemon = (pokemon: Pokemon) => {
@@ -179,8 +176,7 @@ export default function CreatePartyVersionPage() {
 
         addPokemon(pokemon);
 
-        setSelectedPokemonIndex(addedIndex);
-        setEditingPokemonIndex(null);
+        finishAddingPokemon(addedIndex);
     };
 
     const handleReplacePokemon = (pokemon: Pokemon) => {
@@ -191,10 +187,7 @@ export default function CreatePartyVersionPage() {
         const replacedIndex = replaceTargetIndex;
 
         replacePokemon(replacedIndex, pokemon);
-
-        setReplaceTargetIndex(null);
-        setSelectedPokemonIndex(replacedIndex);
-        setEditingPokemonIndex(null);
+        finishReplacingPokemon(replacedIndex);
     };
 
     const isAlreadySelectedPokemon = (pokemon: Pokemon) => {
@@ -206,23 +199,15 @@ export default function CreatePartyVersionPage() {
     };
 
     const handleSelectPokemonCard = (index: number) => {
-        setSelectedPokemonIndex(index);
-
-        setEditingPokemonIndex((currentEditingIndex) => {
-            if (currentEditingIndex === null) {
-                return currentEditingIndex;
-            }
-
-            return index;
-        });
+        selectPokemon(index);
     };
 
     const handleStartEditingSelectedPokemon = () => {
-        if (selectedPokemonIndex === null) {
+        const editingIndex = startEditingSelectedPokemon();
+
+        if (editingIndex === null) {
             return;
         }
-
-        setEditingPokemonIndex(selectedPokemonIndex);
 
         scrollToSection(pokemonEditorSectionRef);
     };
@@ -564,9 +549,7 @@ export default function CreatePartyVersionPage() {
 
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            setEditingPokemonIndex(null)
-                                        }
+                                        onClick={closePokemonEditor}
                                         className="text-sm text-blue-600"
                                     >
                                         編集欄を閉じる
@@ -766,9 +749,7 @@ export default function CreatePartyVersionPage() {
                                 {replaceTargetIndex !== null && (
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            setReplaceTargetIndex(null)
-                                        }
+                                        onClick={cancelReplacingPokemon}
                                         className="text-sm text-blue-600"
                                     >
                                         入れ替えをやめる
