@@ -2,11 +2,10 @@
 
 import { AppHeader } from "@/components/AppHeader";
 import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
-import { deleteBattleLog } from "@/features/battleLogs/api/battleLogApi";
 import { summarizeBattleLogs } from "@/features/battleLogs/utils/summarizeBattleLogs";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
-import { deleteParty, fetchParty } from "@/features/parties/api/partyApi";
+import { fetchParty } from "@/features/parties/api/partyApi";
 import { BattleLogListSection } from "@/features/parties/components/BattleLogListSection";
 import { BattleLogSummarySection } from "@/features/parties/components/BattleLogSummarySection";
 import { PartyDetailHeader } from "@/features/parties/components/PartyDetailHeader";
@@ -15,23 +14,17 @@ import { PartyVersionHistory } from "@/features/parties/components/PartyVersionH
 import { RegisteredPartyPokemonSection } from "@/features/parties/components/RegisteredPartyPokemonSection";
 import { SavedSelectionTemplatesSection } from "@/features/parties/components/SavedSelectionTemplatesSection";
 import { SuggestedSelectionSection } from "@/features/parties/components/SuggestedSelectionSection";
+import { usePartyDetailActions } from "@/features/parties/hooks/usePartyDetailAction";
 import { canRemoveInitialPartyPokemon } from "@/features/parties/utils/canRemoveInitialPartyPokemon";
-import { deletePartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
-import {
-    createSelectionTemplate,
-    deleteSelectionTemplate,
-} from "@/features/selectionTemplates/api/selectionTemplateApi";
-import { createSuggestedSelectionTemplatePayload } from "@/features/selectionTemplates/utils/createSuggestedSelectionTemplatePayload";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function PartyDetailPage() {
-    const router = useRouter();
     const params = useParams<{ partyId: string }>();
     const partyId = Number(params.partyId);
     const isInvalidPartyId = Number.isNaN(partyId);
@@ -40,15 +33,7 @@ export default function PartyDetailPage() {
     const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
 
     const [isLoading, setIsLoading] = useState(true);
-    const [isSavingSelection, setIsSavingSelection] = useState(false);
-    const [isDeletingParty, setIsDeletingParty] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [deletingPartyPokemonId, setDeletingPartyPokemonId] = useState<
-        number | null
-    >(null);
-    const [deletingBattleLogId, setDeletingBattleLogId] = useState<
-        number | null
-    >(null);
 
     useEffect(() => {
         const loadParty = async () => {
@@ -75,6 +60,31 @@ export default function PartyDetailPage() {
         loadParty();
     }, [partyId, isInvalidPartyId]);
 
+    const ruleConfig = party ? getPartyRuleConfig(party.rule) : null;
+
+    const currentPokemonList = party?.current_version?.pokemon ?? [];
+    const suggestedSelection = suggestBasicSelection(currentPokemonList);
+    const battleLogs = party?.current_version?.battle_logs ?? [];
+    const battleLogSummary = summarizeBattleLogs(battleLogs);
+
+    const {
+        isSavingSelection,
+        isDeletingParty,
+        deletingPartyPokemonId,
+        deletingBattleLogId,
+        handleDeleteParty,
+        handleRemoveInitialPokemon,
+        handleSaveSuggestedSelection,
+        handleDeleteSelectionTemplate,
+        handleDeleteBattleLog,
+    } = usePartyDetailActions({
+        party,
+        suggestedSelection,
+        partyPokemonLimit: ruleConfig?.partyPokemonLimit ?? 0,
+        setParty,
+        setErrorMessage,
+    });
+
     if (isInvalidPartyId) {
         return (
             <PageStateMessage
@@ -88,7 +98,7 @@ export default function PartyDetailPage() {
         return <PageStateMessage message="読み込み中..." />;
     }
 
-    if (errorMessage || !party) {
+    if (errorMessage || !party || !ruleConfig) {
         return (
             <PageStateMessage
                 message={errorMessage || "パーティが見つかりません。"}
@@ -97,152 +107,11 @@ export default function PartyDetailPage() {
         );
     }
 
-    const ruleConfig = getPartyRuleConfig(party.rule);
-
-    const currentPokemonList = party.current_version?.pokemon ?? [];
-    const suggestedSelection = suggestBasicSelection(currentPokemonList);
-    const battleLogs = party.current_version?.battle_logs ?? [];
-    const battleLogSummary = summarizeBattleLogs(battleLogs);
-
     const canRemoveInitialPokemon = canRemoveInitialPartyPokemon({
         currentVersion: party.current_version,
         currentPokemonCount: currentPokemonList.length,
         partyPokemonLimit: ruleConfig.partyPokemonLimit,
     });
-
-    const refreshParty = async () => {
-        const refreshedParty = await fetchParty(party.id);
-        setParty(refreshedParty);
-    };
-
-    const handleDeleteParty = async () => {
-        const confirmed = window.confirm(
-            "このパーティを削除します。登録ポケモン、基本選出、対戦ログ、バージョン履歴も確認できなくなります。よろしいですか？",
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
-        setIsDeletingParty(true);
-        setErrorMessage("");
-
-        try {
-            await deleteParty(party.id);
-
-            router.replace("/parties");
-        } catch (error) {
-            console.error(error);
-
-            setErrorMessage("パーティの削除に失敗しました。");
-
-            setIsDeletingParty(false);
-        }
-    };
-
-    const handleRemoveInitialPokemon = async (partyPokemonId: number) => {
-        const confirmed = window.confirm(
-            "このポケモンをパーティから外します。よろしいですか？",
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
-        setDeletingPartyPokemonId(partyPokemonId);
-        setErrorMessage("");
-
-        try {
-            await deletePartyPokemon(partyPokemonId);
-
-            await refreshParty();
-        } catch (error) {
-            console.error(error);
-            setErrorMessage(
-                `ポケモンを外せませんでした。${ruleConfig.partyPokemonLimit}匹そろった後の変更は、新バージョン作成から行ってください。`,
-            );
-        } finally {
-            setDeletingPartyPokemonId(null);
-        }
-    };
-
-    const handleSaveSuggestedSelection = async () => {
-        if (!party.current_version) {
-            setErrorMessage("現在のバージョンが見つかりません。");
-            return;
-        }
-
-        const suggestedSelectionPayload =
-            createSuggestedSelectionTemplatePayload(suggestedSelection);
-
-        if (!suggestedSelectionPayload.isValid) {
-            setErrorMessage("保存できる基本選出がありません。");
-            return;
-        }
-
-        setIsSavingSelection(true);
-        setErrorMessage("");
-
-        try {
-            await createSelectionTemplate(
-                party.current_version.id,
-                suggestedSelectionPayload.payload,
-            );
-
-            await refreshParty();
-        } catch (error) {
-            console.error(error);
-            setErrorMessage("基本選出の保存に失敗しました。");
-        } finally {
-            setIsSavingSelection(false);
-        }
-    };
-
-    const handleDeleteSelectionTemplate = async (
-        selectionTemplateId: number,
-    ) => {
-        const confirmed = window.confirm(
-            "この基本選出を削除します。よろしいですか？",
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
-        try {
-            await deleteSelectionTemplate(selectionTemplateId);
-
-            await refreshParty();
-        } catch (error) {
-            console.error(error);
-            setErrorMessage("基本選出の削除に失敗しました。");
-        }
-    };
-
-    const handleDeleteBattleLog = async (battleLogId: number) => {
-        const confirmed = window.confirm(
-            "この対戦ログを削除します。よろしいですか？",
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
-        setDeletingBattleLogId(battleLogId);
-        setErrorMessage("");
-
-        try {
-            await deleteBattleLog(battleLogId);
-
-            await refreshParty();
-        } catch (error) {
-            console.error(error);
-
-            setErrorMessage("対戦ログの削除に失敗しました。");
-        } finally {
-            setDeletingBattleLogId(null);
-        }
-    };
 
     return (
         <>
