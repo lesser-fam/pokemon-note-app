@@ -13,15 +13,13 @@ import {
     StatComparisonModeSection,
     type ComparisonMode,
 } from "@/features/battlePreview/components/StatComparisonModeSection";
+import { useOpponentPokemonList } from "@/features/battlePreview/hooks/useOpponentPokemonList";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
 import { createBattleLogCreateNavigation } from "@/features/battlePreview/utils/createBattleLogCreateNavigation";
 import { createEffectivePartyPokemonList } from "@/features/battlePreview/utils/createEffectivePartyPokemonList";
 import { getHighlightedStatsByComparisonMode } from "@/features/battlePreview/utils/getHighlightedStatsByComparisonMode";
-import {
-    findDefaultForm,
-    isMegaForm,
-} from "@/features/battlePreview/utils/megaEvolution";
+import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
@@ -48,10 +46,20 @@ export default function BattlePreviewPage() {
 
     const [party, setParty] = useState<Party | null>(null);
     const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
-    const [opponentPokemonList, setOpponentPokemonList] = useState<Pokemon[]>(
-        [],
-    );
+
     const ruleConfig = getPartyRuleConfig(party?.rule ?? "main_series");
+
+    const {
+        opponentPokemonList,
+        actionOpponentPokemonKey,
+        handleAddOpponentPokemon,
+        handleRemoveOpponentPokemon,
+        handleChangeOpponentPokemonForm,
+        handleToggleActionOpponentPokemon,
+    } = useOpponentPokemonList({
+        pokemonList,
+        partyPokemonLimit: ruleConfig.partyPokemonLimit,
+    });
 
     const [pokemonAbilityWarnings, setPokemonAbilityWarnings] = useState<
         PokemonAbilityWarning[]
@@ -74,9 +82,6 @@ export default function BattlePreviewPage() {
     const [actionOwnPokemonId, setActionOwnPokemonId] = useState<number | null>(
         null,
     );
-    const [actionOpponentPokemonKey, setActionOpponentPokemonKey] = useState<
-        string | null
-    >(null);
 
     const [pokemonCommonMoves, setPokemonCommonMoves] = useState<
         PokemonCommonMove[]
@@ -161,65 +166,6 @@ export default function BattlePreviewPage() {
         loadPokemonCommonMoves();
     }, [opponentPokemonList]);
 
-    const resetOtherOpponentMegaForms = (
-        currentList: Pokemon[],
-        excludedPokemonKey?: string,
-    ): Pokemon[] => {
-        return currentList.map((pokemon) => {
-            if (pokemon.key === excludedPokemonKey) {
-                return pokemon;
-            }
-
-            if (!isMegaForm(pokemon)) {
-                return pokemon;
-            }
-
-            return findDefaultForm(pokemonList, pokemon.key) ?? pokemon;
-        });
-    };
-
-    const handleAddOpponentPokemon = (pokemon: Pokemon) => {
-        if (opponentPokemonList.length >= ruleConfig.partyPokemonLimit) {
-            return;
-        }
-
-        const alreadySelected = opponentPokemonList.some(
-            (selectedPokemon) => selectedPokemon.key === pokemon.key,
-        );
-
-        if (alreadySelected) {
-            return;
-        }
-
-        setOpponentPokemonList((currentList) => {
-            const nextList = isMegaForm(pokemon)
-                ? resetOtherOpponentMegaForms(currentList)
-                : currentList;
-
-            return [...nextList, pokemon];
-        });
-    };
-
-    const handleRemoveOpponentPokemon = (pokemon: Pokemon) => {
-        setOpponentPokemonList((currentList) =>
-            currentList.filter(
-                (selectedPokemon) =>
-                    !(
-                        selectedPokemon.key === pokemon.key &&
-                        selectedPokemon.form_key === pokemon.form_key
-                    ),
-            ),
-        );
-
-        setActionOpponentPokemonKey((currentKey) => {
-            if (currentKey === pokemon.key) {
-                return null;
-            }
-
-            return currentKey;
-        });
-    };
-
     const handleTogglePartyPokemonSelection = (partyPokemonId: number) => {
         setSelectedPartyPokemonIds((currentIds) => {
             if (currentIds.includes(partyPokemonId)) {
@@ -237,12 +183,6 @@ export default function BattlePreviewPage() {
     const handleToggleActionOwnPokemon = (partyPokemonId: number) => {
         setActionOwnPokemonId((currentId) =>
             currentId === partyPokemonId ? null : partyPokemonId,
-        );
-    };
-
-    const handleToggleActionOpponentPokemon = (pokemon: Pokemon) => {
-        setActionOpponentPokemonKey((currentKey) =>
-            currentKey === pokemon.key ? null : pokemon.key,
         );
     };
 
@@ -348,21 +288,6 @@ export default function BattlePreviewPage() {
                 [partyPokemonId]: null,
             }));
         }
-    };
-
-    const handleChangeOpponentPokemonForm = (
-        currentPokemon: Pokemon,
-        nextPokemon: Pokemon,
-    ) => {
-        setOpponentPokemonList((currentList) => {
-            const baseList = isMegaForm(nextPokemon)
-                ? resetOtherOpponentMegaForms(currentList, currentPokemon.key)
-                : currentList;
-
-            return baseList.map((pokemon) =>
-                pokemon.key === currentPokemon.key ? nextPokemon : pokemon,
-            );
-        });
     };
 
     const { ownHighlightedStats, opponentHighlightedStats } =
