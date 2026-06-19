@@ -89,7 +89,7 @@ export default function PartyDetailPage() {
     if (errorMessage || !party) {
         return (
             <PageStateMessage
-                message="パーティが見つかりません。"
+                message={errorMessage || "パーティが見つかりません。"}
                 variant="error"
             />
         );
