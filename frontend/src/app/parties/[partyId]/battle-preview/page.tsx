@@ -1,7 +1,10 @@
 "use client";
 
+import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
+import { BattlePreviewHeader } from "@/features/battlePreview/components/BattlePreviewHeader";
 import { NextBattleActionSuggestions } from "@/features/battlePreview/components/NextBattleActionSuggestions";
 import { OpponentPartyColumn } from "@/features/battlePreview/components/OpponentPartyColumn";
+import { OpponentPokemonSearchSection } from "@/features/battlePreview/components/OpponentPokemonSearchSection";
 import { OwnPartyColumn } from "@/features/battlePreview/components/OwnPartyColumn";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
@@ -11,9 +14,10 @@ import {
 } from "@/features/battlePreview/utils/megaEvolution";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
-import { fetchPokemonCommonMoves } from "@/features/pokemonCommonMoves/api/pokemonCommonMoveApi";
+import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { fetchParty } from "@/features/parties/api/partyApi";
-import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
+import { fetchPokemonCommonMoves } from "@/features/pokemonCommonMoves/api/pokemonCommonMoveApi";
+import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
@@ -22,14 +26,9 @@ import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
-import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
-import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
-import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
-import { BattlePreviewHeader } from "@/features/battlePreview/components/BattlePreviewHeader";
 
 type ComparisonMode =
     | "speed"
@@ -719,67 +718,17 @@ export default function BattlePreviewPage() {
                 <div className="min-w-0 space-y-3 xl:max-h-[calc(100vh-1rem)] xl:overflow-y-auto xl:pr-1">
                     <BattlePreviewHeader partyId={party.id} />
 
-                    <section className="rounded border bg-white p-4">
-                        <div className="flex items-center justify-between gap-3">
-                            <div>
-                                <h2 className="text-lg font-bold">
-                                    相手ポケモンを探す
-                                </h2>
-
-                                <p className="mt-1 text-xs text-gray-500">
-                                    相手パーティへ追加するポケモンを選択してください。
-                                </p>
-                            </div>
-
-                            <p className="text-sm font-medium text-gray-600">
-                                {opponentPokemonList.length} /{" "}
-                                {ruleConfig.partyPokemonLimit}
-                            </p>
-                        </div>
-
-                        <div className="mt-4">
-                            <PokemonSearchSelector
-                                layout="compact"
-                                pokemonList={pokemonList}
-                                searchKeyword={searchKeyword}
-                                onChangeSearchKeyword={setSearchKeyword}
-                                clearSearchKeywordOnSelect
-                                selectedTypes={selectedTypes}
-                                onChangeSelectedTypes={setSelectedTypes}
-                                isPokemonSelected={(pokemon) =>
-                                    opponentPokemonList.some(
-                                        (selectedPokemon) =>
-                                            selectedPokemon.key === pokemon.key,
-                                    )
-                                }
-                                isPokemonDisabled={(pokemon) =>
-                                    opponentPokemonList.length >=
-                                        ruleConfig.partyPokemonLimit ||
-                                    opponentPokemonList.some(
-                                        (selectedPokemon) =>
-                                            selectedPokemon.key === pokemon.key,
-                                    )
-                                }
-                                getPokemonStatusLabel={(pokemon) =>
-                                    opponentPokemonList.some(
-                                        (selectedPokemon) =>
-                                            selectedPokemon.key === pokemon.key,
-                                    )
-                                        ? "選択済み"
-                                        : null
-                                }
-                                onSelectPokemon={(pokemon) =>
-                                    handleAddOpponentPokemon(pokemon)
-                                }
-                                filterPokemon={(pokemon) =>
-                                    isPokemonAvailableForRule(
-                                        pokemon,
-                                        party?.rule,
-                                    )
-                                }
-                            />
-                        </div>
-                    </section>
+                    <OpponentPokemonSearchSection
+                        partyRule={party.rule}
+                        pokemonList={pokemonList}
+                        opponentPokemonList={opponentPokemonList}
+                        partyPokemonLimit={ruleConfig.partyPokemonLimit}
+                        searchKeyword={searchKeyword}
+                        selectedTypes={selectedTypes}
+                        onChangeSearchKeyword={setSearchKeyword}
+                        onChangeSelectedTypes={setSelectedTypes}
+                        onSelectPokemon={handleAddOpponentPokemon}
+                    />
 
                     <section className="rounded border bg-white p-3">
                         <div className="flex items-center justify-between gap-3">
