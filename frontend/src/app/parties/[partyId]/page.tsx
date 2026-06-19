@@ -8,6 +8,7 @@ import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { deleteParty, fetchParty } from "@/features/parties/api/partyApi";
 import { PartyDetailHeader } from "@/features/parties/components/PartyDetailHeader";
+import { PartyDetailNavigationLinks } from "@/features/parties/components/PartyDetailNavigationLinks";
 import { PartyVersionHistory } from "@/features/parties/components/PartyVersionHistory";
 import { RegisteredPartyPokemonCard } from "@/features/parties/components/RegisteredPartyPokemonCard";
 import { deletePartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
@@ -588,28 +589,7 @@ export default function PartyDetailPage() {
                     onDeleteParty={handleDeleteParty}
                 />
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                    <Link
-                        href={`/parties/${party.id}/battle-preview`}
-                        className="rounded border px-3 py-2 text-sm font-semibold hover:bg-gray-50"
-                    >
-                        対戦前選出
-                    </Link>
-
-                    <Link
-                        href={`/parties/${party.id}/selection-practice`}
-                        className="rounded border px-3 py-2 text-sm font-semibold hover:bg-gray-50"
-                    >
-                        選出練習モード
-                    </Link>
-
-                    <Link
-                        href={`/opponent-party-templates?partyId=${party.id}`}
-                        className="rounded border px-3 py-2 text-sm font-semibold hover:bg-gray-50"
-                    >
-                        相手パーティテンプレート
-                    </Link>
-                </div>
+                <PartyDetailNavigationLinks partyId={party.id} />
 
                 <section className="mt-8 rounded border p-6">
                     <div className="flex items-center justify-between">
