@@ -9,13 +9,11 @@ import { NextBattleActionSuggestions } from "@/features/battlePreview/components
 import { OpponentPartyColumn } from "@/features/battlePreview/components/OpponentPartyColumn";
 import { OpponentPokemonSearchSection } from "@/features/battlePreview/components/OpponentPokemonSearchSection";
 import { OwnPartyColumn } from "@/features/battlePreview/components/OwnPartyColumn";
-import {
-    StatComparisonModeSection,
-    type ComparisonMode,
-} from "@/features/battlePreview/components/StatComparisonModeSection";
+import { StatComparisonModeSection } from "@/features/battlePreview/components/StatComparisonModeSection";
 import { useActionOwnPokemon } from "@/features/battlePreview/hooks/useActionOwnPokemon";
 import { useOpponentPokemonList } from "@/features/battlePreview/hooks/useOpponentPokemonList";
 import { useSelectedPartyPokemonIds } from "@/features/battlePreview/hooks/useSelectedPartyPokemonIds";
+import { useStatComparisonMode } from "@/features/battlePreview/hooks/useStatComparisonMode";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
 import { createBattleLogCreateNavigation } from "@/features/battlePreview/utils/createBattleLogCreateNavigation";
@@ -62,6 +60,9 @@ export default function BattlePreviewPage() {
     const { actionOwnPokemonId, handleToggleActionOwnPokemon } =
         useActionOwnPokemon();
 
+    const { comparisonMode, handleToggleComparisonMode } =
+        useStatComparisonMode();
+
     const {
         opponentPokemonList,
         actionOpponentPokemonKey,
@@ -86,7 +87,6 @@ export default function BattlePreviewPage() {
     >({});
     const [ownPokemonAbilityOverrides, setOwnPokemonAbilityOverrides] =
         useState<Record<number, PokemonAbilityCandidate | null>>({});
-    const [comparisonMode, setComparisonMode] = useState<ComparisonMode>(null);
 
     const [pokemonCommonMoves, setPokemonCommonMoves] = useState<
         PokemonCommonMove[]
@@ -170,14 +170,6 @@ export default function BattlePreviewPage() {
 
         loadPokemonCommonMoves();
     }, [opponentPokemonList]);
-
-    const handleToggleComparisonMode = (
-        nextMode: Exclude<ComparisonMode, null>,
-    ) => {
-        setComparisonMode((currentMode) =>
-            currentMode === nextMode ? null : nextMode,
-        );
-    };
 
     const handleChangeOwnPokemonForm = async (
         partyPokemonId: number,
