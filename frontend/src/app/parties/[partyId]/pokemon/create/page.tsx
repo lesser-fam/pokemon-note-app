@@ -12,6 +12,7 @@ import { PartyPokemonSearchSection } from "@/features/partyPokemon/components/Pa
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { SelectedPokemonPreviewCard } from "@/features/partyPokemon/components/SelectedPokemonPreviewCard";
 import { usePartyPokemonForm } from "@/features/partyPokemon/hooks/usePartyPokemonForm";
+import { getPartyPokemonInputValidationMessage } from "@/features/partyPokemon/utils/getPartyPokemonInputValidationMessage";
 import { toggleRoleTagId } from "@/features/partyPokemon/utils/toggleRoleTagId";
 import { validatePartyPokemonInput } from "@/features/partyPokemon/utils/validatePartyPokemonInput";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
@@ -223,20 +224,11 @@ export default function CreatePartyPokemonPage() {
         });
 
         if (!validationResult.isValid) {
-            if (validationResult.error === "invalid_effort_values") {
-                setErrorMessage(
-                    `${effortValueLimits.label}では、努力値は1項目${effortValueLimits.singleLimit}まで、合計${effortValueLimits.totalLimit}までです。`,
-                );
-                return;
-            }
-
-            if (validationResult.error === "duplicated_item") {
-                setErrorMessage("同じ持ち物は同じパーティに登録できません。");
-                return;
-            }
-
             setErrorMessage(
-                "同じポケモンに同じ技を複数登録することはできません。",
+                getPartyPokemonInputValidationMessage(
+                    validationResult.error,
+                    effortValueLimits,
+                ),
             );
             return;
         }
