@@ -13,6 +13,7 @@ import {
     StatComparisonModeSection,
     type ComparisonMode,
 } from "@/features/battlePreview/components/StatComparisonModeSection";
+import { useActionOwnPokemon } from "@/features/battlePreview/hooks/useActionOwnPokemon";
 import { useOpponentPokemonList } from "@/features/battlePreview/hooks/useOpponentPokemonList";
 import { useSelectedPartyPokemonIds } from "@/features/battlePreview/hooks/useSelectedPartyPokemonIds";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
@@ -58,6 +59,9 @@ export default function BattlePreviewPage() {
         selectionPokemonLimit: ruleConfig.selectionPokemonLimit,
     });
 
+    const { actionOwnPokemonId, handleToggleActionOwnPokemon } =
+        useActionOwnPokemon();
+
     const {
         opponentPokemonList,
         actionOpponentPokemonKey,
@@ -83,10 +87,6 @@ export default function BattlePreviewPage() {
     const [ownPokemonAbilityOverrides, setOwnPokemonAbilityOverrides] =
         useState<Record<number, PokemonAbilityCandidate | null>>({});
     const [comparisonMode, setComparisonMode] = useState<ComparisonMode>(null);
-
-    const [actionOwnPokemonId, setActionOwnPokemonId] = useState<number | null>(
-        null,
-    );
 
     const [pokemonCommonMoves, setPokemonCommonMoves] = useState<
         PokemonCommonMove[]
@@ -170,12 +170,6 @@ export default function BattlePreviewPage() {
 
         loadPokemonCommonMoves();
     }, [opponentPokemonList]);
-
-    const handleToggleActionOwnPokemon = (partyPokemonId: number) => {
-        setActionOwnPokemonId((currentId) =>
-            currentId === partyPokemonId ? null : partyPokemonId,
-        );
-    };
 
     const handleToggleComparisonMode = (
         nextMode: Exclude<ComparisonMode, null>,
