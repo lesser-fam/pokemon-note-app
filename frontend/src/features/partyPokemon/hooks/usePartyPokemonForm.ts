@@ -219,7 +219,7 @@ export const usePartyPokemonForm = () => {
         { name: move4, id: move4Id },
     ];
 
-    const ValidationMoves: ValidationMoves = [move1, move2, move3, move4];
+    const validationMoves: ValidationMoves = [move1, move2, move3, move4];
 
     const selectAbility = (selectedAbility: { id: number; name: string }) => {
         setAbility(selectedAbility.name);
@@ -324,7 +324,7 @@ export const usePartyPokemonForm = () => {
 
         validationEffortValues,
         validationMoveEntries,
-        ValidationMoves,
+        validationMoves,
 
         selectAbility,
         changeItemText,

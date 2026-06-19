@@ -70,7 +70,7 @@ export default function CreatePartyPokemonPage() {
 
         validationEffortValues,
         validationMoveEntries,
-        ValidationMoves,
+        validationMoves,
 
         updateEffortValue,
         updateMove,
@@ -174,7 +174,7 @@ export default function CreatePartyPokemonPage() {
 
             moveEntries: validationMoveEntries,
             effortValues: validationEffortValues,
-            moves: ValidationMoves,
+            moves: validationMoves,
 
             item,
             existingItems: currentPokemonList.map(
