@@ -1,6 +1,7 @@
 "use client";
 
 import { AppHeader } from "@/components/AppHeader";
+import { PageStateMessage } from "@/components/pageStates/PageStatesMessage";
 import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import {
     fetchPokemonList,
@@ -10,6 +11,7 @@ import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
+import { SelectedPokemonPreviewCard } from "@/features/partyPokemon/components/SelectedPokemonPreviewCard";
 import { toggleRoleTagId } from "@/features/partyPokemon/utils/toggleRoleTagId";
 import { validatePartyPokemonInput } from "@/features/partyPokemon/utils/validatePartyPokemonInput";
 import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
@@ -25,7 +27,6 @@ import type { RoleTag } from "@/types/roleTag";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { PageStateMessage } from "@/components/pageStates/PageStatesMessage";
 
 export default function CreatePartyPokemonPage() {
     const router = useRouter();
@@ -393,50 +394,10 @@ export default function CreatePartyPokemonPage() {
                             />
                         </div>
 
-                        {pokemonKey ? (
-                            <div className="mt-5 rounded border border-black bg-gray-50 p-4">
-                                <p className="text-xs font-semibold text-gray-500">
-                                    選択中のポケモン
-                                </p>
-
-                                <div className="mt-2 flex items-center gap-3">
-                                    {selectedPokemonMaster?.image_url && (
-                                        <img
-                                            src={
-                                                selectedPokemonMaster.image_url
-                                            }
-                                            alt={selectedPokemonMaster.name}
-                                            className="h-12 w-12 object-contain"
-                                        />
-                                    )}
-
-                                    <div>
-                                        <p className="font-bold">
-                                            {selectedPokemonMaster?.name ||
-                                                pokemonKey}
-                                        </p>
-
-                                        {selectedPokemonMaster && (
-                                            <p className="mt-1 text-xs text-gray-600">
-                                                {selectedPokemonMaster.types.join(
-                                                    " / ",
-                                                )}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <p className="mt-3 rounded bg-white px-3 py-2 text-xs text-gray-700">
-                                    このポケモンの特性、持ち物、性格、努力値、技、役割タグを下で入力してください。
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="mt-5 rounded bg-gray-50 p-4">
-                                <p className="text-sm text-gray-500">
-                                    まず登録するポケモンを選択してください。
-                                </p>
-                            </div>
-                        )}
+                        <SelectedPokemonPreviewCard
+                            pokemonKey={pokemonKey}
+                            selectedPokemonMaster={selectedPokemonMaster}
+                        />
                     </section>
 
                     <section className="rounded border bg-white p-5">
