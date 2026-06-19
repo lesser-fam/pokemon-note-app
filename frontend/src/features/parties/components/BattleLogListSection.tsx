@@ -1,0 +1,381 @@
+import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
+import type { Party } from "@/types/party";
+import type { Pokemon } from "@/types/pokemon";
+import Link from "next/link";
+
+type BattleLog = NonNullable<
+    NonNullable<Party["current_version"]>["battle_logs"]
+>[number];
+
+type BattleLogListSectionProps = {
+    partyId: number;
+    battleLogs: BattleLog[];
+    pokemonList: Pokemon[];
+    deletingBattleLogId: number | null;
+    onDeleteBattleLog: (battleLogId: number) => void;
+};
+
+export const BattleLogListSection = ({
+    partyId,
+    battleLogs,
+    pokemonList,
+    deletingBattleLogId,
+    onDeleteBattleLog,
+}: BattleLogListSectionProps) => {
+    const getPokemonMasterName = (pokemonKey: string, formKey = "default") => {
+        const pokemonMaster = findPokemonMaster({
+            pokemonList,
+            pokemonKey,
+            formKey,
+        });
+
+        return pokemonMaster?.name || pokemonKey;
+    };
+
+    const renderOpponentPokemonList = (battleLog: BattleLog) => {
+        const opponents = [
+            [battleLog.opponent_pokemon_1, battleLog.opponent_form_1],
+            [battleLog.opponent_pokemon_2, battleLog.opponent_form_2],
+            [battleLog.opponent_pokemon_3, battleLog.opponent_form_3],
+            [battleLog.opponent_pokemon_4, battleLog.opponent_form_4],
+            [battleLog.opponent_pokemon_5, battleLog.opponent_form_5],
+            [battleLog.opponent_pokemon_6, battleLog.opponent_form_6],
+        ].filter(([pokemonKey]) => pokemonKey);
+
+        const selectedOpponents = [
+            [
+                battleLog.selected_opponent_pokemon_1,
+                battleLog.selected_opponent_form_1,
+            ],
+            [
+                battleLog.selected_opponent_pokemon_2,
+                battleLog.selected_opponent_form_2,
+            ],
+            [
+                battleLog.selected_opponent_pokemon_3,
+                battleLog.selected_opponent_form_3,
+            ],
+        ].filter(([pokemonKey]) => pokemonKey);
+
+        return (
+            <div className="flex flex-wrap gap-1.5">
+                {opponents.map(([pokemonKey, formKey]) => {
+                    const normalizedFormKey = (formKey as string) || "default";
+
+                    const pokemonMaster = findPokemonMaster({
+                        pokemonList,
+                        pokemonKey: pokemonKey as string,
+                        formKey: normalizedFormKey,
+                    });
+
+                    const selectedIndex = selectedOpponents.findIndex(
+                        ([selectedPokemonKey, selectedFormKey]) =>
+                            selectedPokemonKey === pokemonKey &&
+                            ((selectedFormKey as string) || "default") ===
+                                normalizedFormKey,
+                    );
+
+                    const selectionOrder =
+                        selectedIndex >= 0 ? selectedIndex + 1 : null;
+
+                    return (
+                        <div
+                            key={`${pokemonKey}-${formKey}`}
+                            className={`flex items-center gap-1 rounded border px-2 py-1 text-xs ${
+                                selectionOrder
+                                    ? "border-black bg-blue-50"
+                                    : "border-transparent bg-white"
+                            }`}
+                        >
+                            {selectionOrder && (
+                                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-black text-[10px] font-semibold text-white">
+                                    {selectionOrder}
+                                </span>
+                            )}
+
+                            {pokemonMaster?.image_url && (
+                                <img
+                                    src={pokemonMaster.image_url}
+                                    alt={pokemonMaster.name}
+                                    className="h-7 w-7 object-contain"
+                                />
+                            )}
+
+                            <span>{pokemonMaster?.name || pokemonKey}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const renderSelectedPokemonList = (battleLog: BattleLog) => {
+        const selectedPokemonList = [
+            battleLog.selected_pokemon1,
+            battleLog.selected_pokemon2,
+            battleLog.selected_pokemon3,
+        ].filter(Boolean);
+
+        return (
+            <div className="flex flex-wrap gap-2">
+                {selectedPokemonList.map((partyPokemon, index) => {
+                    const pokemonMaster = findPokemonMaster({
+                        pokemonList,
+                        pokemonKey: partyPokemon!.pokemon_key,
+                        formKey: partyPokemon!.form_key,
+                    });
+
+                    return (
+                        <div
+                            key={partyPokemon!.id}
+                            className="flex items-center gap-2 rounded bg-white px-2 py-1.5"
+                        >
+                            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-black text-[10px] font-semibold text-white">
+                                {index + 1}
+                            </span>
+
+                            {pokemonMaster?.image_url ? (
+                                <img
+                                    src={pokemonMaster.image_url}
+                                    alt={pokemonMaster.name}
+                                    className="h-8 w-8 shrink-0 object-contain"
+                                />
+                            ) : (
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">
+                                    ?
+                                </div>
+                            )}
+
+                            <span className="max-w-28 truncate text-xs font-semibold">
+                                {partyPokemon!.nickname ||
+                                    pokemonMaster?.name ||
+                                    partyPokemon!.pokemon_key}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const renderNeededPokemon = (battleLog: BattleLog) => {
+        if (!battleLog.needed_pokemon) {
+            return null;
+        }
+
+        const pokemonMaster = findPokemonMaster({
+            pokemonList,
+            pokemonKey: battleLog.needed_pokemon.pokemon_key,
+            formKey: battleLog.needed_pokemon.form_key,
+        });
+
+        return (
+            <div className="shrink-0">
+                <p className="text-sm font-semibold">必要だった味方</p>
+
+                <div className="mt-2 flex items-center gap-2 rounded bg-white px-2 py-1.5">
+                    {pokemonMaster?.image_url ? (
+                        <img
+                            src={pokemonMaster.image_url}
+                            alt={pokemonMaster.name}
+                            className="h-8 w-8 shrink-0 object-contain"
+                        />
+                    ) : (
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">
+                            ?
+                        </div>
+                    )}
+
+                    <span className="max-w-28 truncate text-xs font-semibold">
+                        {battleLog.needed_pokemon.nickname ||
+                            pokemonMaster?.name ||
+                            battleLog.needed_pokemon.pokemon_key}
+                    </span>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <section className="mt-8 rounded border bg-white p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 className="text-lg font-bold">対戦ログ</h2>
+
+                    <p className="mt-1 text-xs text-gray-600">
+                        保存した対戦結果と反省メモを確認できます。
+                    </p>
+                </div>
+
+                <p className="text-sm font-medium text-gray-600">
+                    {battleLogs.length}件
+                </p>
+            </div>
+
+            {battleLogs.length > 0 ? (
+                <div className="mt-4 max-h-180 space-y-2 overflow-y-auto pr-1">
+                    {[...battleLogs]
+                        .sort(
+                            (a, b) =>
+                                new Date(b.created_at).getTime() -
+                                new Date(a.created_at).getTime(),
+                        )
+                        .map((battleLog) => {
+                            const heavyOpponentName =
+                                battleLog.heavy_opponent_key
+                                    ? getPokemonMasterName(
+                                          battleLog.heavy_opponent_key,
+                                          battleLog.heavy_opponent_form ||
+                                              "default",
+                                      )
+                                    : null;
+
+                            return (
+                                <details
+                                    key={battleLog.id}
+                                    className="rounded border bg-gray-50 p-3"
+                                >
+                                    <summary className="cursor-pointer list-none">
+                                        <div className="flex flex-wrap items-start justify-between gap-3">
+                                            <div>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span
+                                                        className={`rounded px-2 py-1 text-xs font-semibold ${
+                                                            battleLog.result ===
+                                                            "win"
+                                                                ? "bg-blue-100 text-blue-700"
+                                                                : "bg-red-100 text-red-700"
+                                                        }`}
+                                                    >
+                                                        {battleLog.result ===
+                                                        "win"
+                                                            ? "WIN"
+                                                            : "LOSE"}
+                                                    </span>
+
+                                                    <span className="text-xs text-gray-500">
+                                                        {new Date(
+                                                            battleLog.created_at,
+                                                        ).toLocaleString()}
+                                                    </span>
+                                                </div>
+
+                                                <div className="mt-3">
+                                                    {renderOpponentPokemonList(
+                                                        battleLog,
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <span className="shrink-0 text-xs text-blue-600">
+                                                詳細を見る
+                                            </span>
+                                        </div>
+
+                                        {(heavyOpponentName ||
+                                            (battleLog.loss_tags &&
+                                                battleLog.loss_tags.length >
+                                                    0)) && (
+                                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                {heavyOpponentName && (
+                                                    <span className="rounded bg-white px-2 py-1 text-xs text-gray-700">
+                                                        重かった相手：
+                                                        {heavyOpponentName}
+                                                    </span>
+                                                )}
+
+                                                {battleLog.loss_tags?.map(
+                                                    (tag) => (
+                                                        <span
+                                                            key={tag}
+                                                            className="rounded bg-white px-2 py-1 text-xs text-gray-600"
+                                                        >
+                                                            {tag}
+                                                        </span>
+                                                    ),
+                                                )}
+                                            </div>
+                                        )}
+                                    </summary>
+
+                                    <div className="mt-4 border-t pt-4">
+                                        <div className="flex flex-wrap items-start gap-4 lg:gap-14">
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-semibold">
+                                                    自分の選出
+                                                </p>
+
+                                                <div className="mt-2">
+                                                    {renderSelectedPokemonList(
+                                                        battleLog,
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {renderNeededPokemon(battleLog)}
+                                        </div>
+
+                                        {battleLog.reflection && (
+                                            <div className="mt-4">
+                                                <p className="text-sm font-semibold">
+                                                    反省メモ
+                                                </p>
+
+                                                <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
+                                                    {battleLog.reflection}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {battleLog.next_note && (
+                                            <div className="mt-4">
+                                                <p className="text-sm font-semibold">
+                                                    次回メモ
+                                                </p>
+
+                                                <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
+                                                    {battleLog.next_note}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        <div className="mt-4 flex justify-end gap-2 border-t pt-3">
+                                            <Link
+                                                href={`/parties/${partyId}/battle-logs/${battleLog.id}/edit`}
+                                                className="rounded border px-3 py-1 text-xs hover:bg-white"
+                                            >
+                                                このログを編集
+                                            </Link>
+
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    onDeleteBattleLog(
+                                                        battleLog.id,
+                                                    )
+                                                }
+                                                disabled={
+                                                    deletingBattleLogId ===
+                                                    battleLog.id
+                                                }
+                                                className="rounded border border-red-300 px-3 py-1 text-xs text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                {deletingBattleLogId ===
+                                                battleLog.id
+                                                    ? "削除中..."
+                                                    : "このログを削除"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </details>
+                            );
+                        })}
+                </div>
+            ) : (
+                <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                    まだ対戦ログはありません。
+                </p>
+            )}
+        </section>
+    );
+};
