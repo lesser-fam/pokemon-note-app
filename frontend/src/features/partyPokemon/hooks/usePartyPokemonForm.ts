@@ -11,6 +11,13 @@ type EditableMoves = [EditableMove, EditableMove, EditableMove, EditableMove];
 
 type ValidationEffortValues = [number, number, number, number, number, number];
 
+type ValidationMoveEntries = Array<{
+    name: string;
+    id: number | null;
+}>;
+
+type ValidationMoves = [string, string, string, string];
+
 export const usePartyPokemonForm = () => {
     const [nickname, setNickname] = useState("");
 
@@ -205,6 +212,15 @@ export const usePartyPokemonForm = () => {
         toNumber(evS),
     ];
 
+    const validationMoveEntries: ValidationMoveEntries = [
+        { name: move1, id: move1Id },
+        { name: move2, id: move2Id },
+        { name: move3, id: move3Id },
+        { name: move4, id: move4Id },
+    ];
+
+    const ValidationMoves: ValidationMoves = [move1, move2, move3, move4];
+
     return {
         nickname,
         setNickname,
@@ -280,5 +296,7 @@ export const usePartyPokemonForm = () => {
         createRequestPokemon,
 
         validationEffortValues,
+        validationMoveEntries,
+        ValidationMoves,
     };
 };

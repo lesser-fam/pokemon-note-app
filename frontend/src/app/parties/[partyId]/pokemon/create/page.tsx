@@ -69,30 +69,20 @@ export default function CreatePartyPokemonPage() {
         selectedNatureMaster,
         setSelectedNatureMaster,
 
-        move1,
-        move1Id,
-
-        move2,
-        move2Id,
-
-        move3,
-        move3Id,
-
-        move4,
-        move4Id,
-
         memo,
         setMemo,
 
         effortValues,
         moves,
 
+        validationEffortValues,
+        validationMoveEntries,
+        ValidationMoves,
+
         updateEffortValue,
         updateMove,
 
         createRequestPokemon,
-
-        validationEffortValues,
     } = usePartyPokemonForm();
 
     const [isLoading, setIsLoading] = useState(true);
@@ -183,15 +173,10 @@ export default function CreatePartyPokemonPage() {
             nature,
             natureId,
 
-            moveEntries: [
-                { name: move1, id: move1Id },
-                { name: move2, id: move2Id },
-                { name: move3, id: move3Id },
-                { name: move4, id: move4Id },
-            ],
-
+            moveEntries: validationMoveEntries,
             effortValues: validationEffortValues,
-            moves: [move1, move2, move3, move4],
+            moves: ValidationMoves,
+
             item,
             existingItems: currentPokemonList.map(
                 (partyPokemon) => partyPokemon.item,
