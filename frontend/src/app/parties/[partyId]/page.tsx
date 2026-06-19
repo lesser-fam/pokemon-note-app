@@ -109,6 +109,11 @@ export default function PartyDetailPage() {
         (party.current_version.selection_templates?.length ?? 0) === 0 &&
         (party.current_version.battle_logs?.length ?? 0) === 0;
 
+    const refreshParty = async () => {
+        const refreshedParty = await fetchParty(party.id);
+        setParty(refreshedParty);
+    };
+
     const handleDeleteParty = async () => {
         const confirmed = window.confirm(
             "このパーティを削除します。登録ポケモン、基本選出、対戦ログ、バージョン履歴も確認できなくなります。よろしいですか？",
@@ -149,8 +154,7 @@ export default function PartyDetailPage() {
         try {
             await deletePartyPokemon(partyPokemonId);
 
-            const refreshedParty = await fetchParty(party.id);
-            setParty(refreshedParty);
+            await refreshParty();
         } catch (error) {
             console.error(error);
             setErrorMessage(
@@ -194,8 +198,7 @@ export default function PartyDetailPage() {
                 memo: "役割タグの点数から自動提案された基本選出です。",
             });
 
-            const refreshedParty = await fetchParty(party.id);
-            setParty(refreshedParty);
+            await refreshParty();
         } catch (error) {
             console.error(error);
             setErrorMessage("基本選出の保存に失敗しました。");
@@ -218,8 +221,7 @@ export default function PartyDetailPage() {
         try {
             await deleteSelectionTemplate(selectionTemplateId);
 
-            const refreshedParty = await fetchParty(party.id);
-            setParty(refreshedParty);
+            await refreshParty();
         } catch (error) {
             console.error(error);
             setErrorMessage("基本選出の削除に失敗しました。");
@@ -241,9 +243,7 @@ export default function PartyDetailPage() {
         try {
             await deleteBattleLog(battleLogId);
 
-            const refreshedParty = await fetchParty(party.id);
-
-            setParty(refreshedParty);
+            await refreshParty();
         } catch (error) {
             console.error(error);
 
