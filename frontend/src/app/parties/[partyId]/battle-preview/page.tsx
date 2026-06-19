@@ -14,6 +14,7 @@ import {
     type ComparisonMode,
 } from "@/features/battlePreview/components/StatComparisonModeSection";
 import { useOpponentPokemonList } from "@/features/battlePreview/hooks/useOpponentPokemonList";
+import { useSelectedPartyPokemonIds } from "@/features/battlePreview/hooks/useSelectedPartyPokemonIds";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
 import { createBattleLogCreateNavigation } from "@/features/battlePreview/utils/createBattleLogCreateNavigation";
@@ -50,6 +51,14 @@ export default function BattlePreviewPage() {
     const ruleConfig = getPartyRuleConfig(party?.rule ?? "main_series");
 
     const {
+        selectedPartyPokemonIds,
+        handleTogglePartyPokemonSelection,
+        selectPartyPokemonIds,
+    } = useSelectedPartyPokemonIds({
+        selectionPokemonLimit: ruleConfig.selectionPokemonLimit,
+    });
+
+    const {
         opponentPokemonList,
         actionOpponentPokemonKey,
         handleAddOpponentPokemon,
@@ -67,10 +76,6 @@ export default function BattlePreviewPage() {
 
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-
-    const [selectedPartyPokemonIds, setSelectedPartyPokemonIds] = useState<
-        number[]
-    >([]);
 
     const [ownPokemonFormOverrides, setOwnPokemonFormOverrides] = useState<
         Record<number, string>
@@ -165,20 +170,6 @@ export default function BattlePreviewPage() {
 
         loadPokemonCommonMoves();
     }, [opponentPokemonList]);
-
-    const handleTogglePartyPokemonSelection = (partyPokemonId: number) => {
-        setSelectedPartyPokemonIds((currentIds) => {
-            if (currentIds.includes(partyPokemonId)) {
-                return currentIds.filter((id) => id !== partyPokemonId);
-            }
-
-            if (currentIds.length >= ruleConfig.selectionPokemonLimit) {
-                return currentIds;
-            }
-
-            return [...currentIds, partyPokemonId];
-        });
-    };
 
     const handleToggleActionOwnPokemon = (partyPokemonId: number) => {
         setActionOwnPokemonId((currentId) =>
@@ -468,7 +459,7 @@ export default function BattlePreviewPage() {
                             matchupSelectionSuggestions
                         }
                         pokemonList={pokemonList}
-                        onSelectSuggestion={setSelectedPartyPokemonIds}
+                        onSelectSuggestion={selectPartyPokemonIds}
                     />
 
                     <StatComparisonModeSection
