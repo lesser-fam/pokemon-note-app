@@ -31,9 +31,9 @@ import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { BattleLogCreateNavigationSection } from "@/features/battlePreview/components/BattleLogCreateNavigationSection";
 
 type PokemonAbilityCandidate = PokemonAbilityWarning["abilities"][number];
 
@@ -716,45 +716,13 @@ export default function BattlePreviewPage() {
                         pokemonCommonMoves={pokemonCommonMoves}
                     />
 
-                    <section className="sticky bottom-0 z-10 rounded border bg-white/95 p-3 shadow-sm backdrop-blur">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                                <h2 className="font-bold">選出を決めたら</h2>
-
-                                <p className="mt-1 text-xs text-gray-500">
-                                    相手パーティと、自分の選出
-                                    {ruleConfig.selectionPokemonLimit}
-                                    匹を引き継いで対戦ログ作成画面へ進みます。
-                                </p>
-
-                                {opponentPokemonList.length === 0 && (
-                                    <p className="mt-2 text-xs text-red-600">
-                                        相手ポケモンを1匹以上選んでください。
-                                    </p>
-                                )}
-
-                                {selectedPartyPokemonIds.length <
-                                    ruleConfig.selectionPokemonLimit && (
-                                    <p className="mt-1 text-xs text-red-600">
-                                        自パーティから選出する
-                                        {ruleConfig.selectionPokemonLimit}
-                                        匹を選んでください。
-                                    </p>
-                                )}
-                            </div>
-
-                            <Link
-                                href={battleLogCreateHref}
-                                className={`rounded px-4 py-2 text-sm text-white ${
-                                    canCreateBattleLog
-                                        ? "bg-black hover:bg-gray-800"
-                                        : "pointer-events-none bg-gray-400"
-                                }`}
-                            >
-                                対戦ログ作成へ
-                            </Link>
-                        </div>
-                    </section>
+                    <BattleLogCreateNavigationSection
+                        battleLogCreateHref={battleLogCreateHref}
+                        canCreateBattleLog={canCreateBattleLog}
+                        opponentPokemonCount={opponentPokemonList.length}
+                        selectedPokemonCount={selectedPartyPokemonIds.length}
+                        selectionPokemonLimit={ruleConfig.selectionPokemonLimit}
+                    />
 
                     <details className="rounded border bg-white p-3">
                         <summary className="cursor-pointer text-sm font-bold">
