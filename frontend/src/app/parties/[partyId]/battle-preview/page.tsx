@@ -29,6 +29,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
+import { BattlePreviewHeader } from "@/features/battlePreview/components/BattlePreviewHeader";
 
 type ComparisonMode =
     | "speed"
@@ -716,22 +717,7 @@ export default function BattlePreviewPage() {
                 </div>
 
                 <div className="min-w-0 space-y-3 xl:max-h-[calc(100vh-1rem)] xl:overflow-y-auto xl:pr-1">
-                    <section className="rounded border bg-white px-3 py-2">
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                            <Link
-                                href={`/parties/${party.id}`}
-                                className="text-xs text-blue-600"
-                            >
-                                ← パーティ詳細へ戻る
-                            </Link>
-
-                            <h1 className="text-base font-bold">対戦前選出</h1>
-
-                            <p className="text-xs text-gray-500">
-                                相手の6匹を入力して、選出判断の準備をします。
-                            </p>
-                        </div>
-                    </section>
+                    <BattlePreviewHeader partyId={party.id} />
 
                     <section className="rounded border bg-white p-4">
                         <div className="flex items-center justify-between gap-3">
