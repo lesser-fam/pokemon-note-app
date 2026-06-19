@@ -16,6 +16,7 @@ import {
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
 import { createBattleLogCreateNavigation } from "@/features/battlePreview/utils/createBattleLogCreateNavigation";
+import { createEffectivePartyPokemonList } from "@/features/battlePreview/utils/createEffectivePartyPokemonList";
 import { getHighlightedStatsByComparisonMode } from "@/features/battlePreview/utils/getHighlightedStatsByComparisonMode";
 import {
     findDefaultForm,
@@ -383,37 +384,11 @@ export default function BattlePreviewPage() {
 
     const currentPokemonList = party?.current_version?.pokemon ?? [];
 
-    const effectiveCurrentPokemonList = currentPokemonList.map(
-        (partyPokemon) => {
-            const overriddenFormKey = ownPokemonFormOverrides[partyPokemon.id];
-
-            const hasAbilityOverride = Object.prototype.hasOwnProperty.call(
-                ownPokemonAbilityOverrides,
-                partyPokemon.id,
-            );
-
-            const overriddenAbility =
-                ownPokemonAbilityOverrides[partyPokemon.id];
-
-            return {
-                ...partyPokemon,
-
-                form_key: overriddenFormKey ?? partyPokemon.form_key,
-
-                ability: hasAbilityOverride
-                    ? (overriddenAbility?.name ?? "")
-                    : partyPokemon.ability,
-
-                ability_id: hasAbilityOverride
-                    ? (overriddenAbility?.id ?? null)
-                    : partyPokemon.ability_id,
-
-                ability_master: hasAbilityOverride
-                    ? overriddenAbility
-                    : partyPokemon.ability_master,
-            };
-        },
-    );
+    const effectiveCurrentPokemonList = createEffectivePartyPokemonList({
+        currentPokemonList,
+        formOverrides: ownPokemonFormOverrides,
+        abilityOverrides: ownPokemonAbilityOverrides,
+    });
 
     const offensiveMatchupResults = effectiveCurrentPokemonList
         .map((partyPokemon) => {
