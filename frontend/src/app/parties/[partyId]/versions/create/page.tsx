@@ -9,14 +9,10 @@ import {
 } from "@/features/master/api/masterApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { fetchParty } from "@/features/parties/api/partyApi";
-import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
 import { EditablePokemonCardList } from "@/features/partyVersions/components/EditablePokemonCardList";
-import {
-    effortValueFieldMap,
-    moveFieldMap,
-} from "@/features/partyVersions/constants/editablePokemonFields";
+import { EditablePokemonEditorSection } from "@/features/partyVersions/components/EditablePokemonEditorSection";
 import { useEditablePokemonList } from "@/features/partyVersions/hooks/useEditablePokemonList";
 import { usePartyVersionPokemonSelection } from "@/features/partyVersions/hooks/usePartyVersionPokemonSelection";
 import { convertPartyPokemonToEditablePokemon } from "@/features/partyVersions/utils/editablePokemon";
@@ -471,202 +467,18 @@ export default function CreatePartyVersionPage() {
                         />
 
                         {editingPokemon && editingPokemonIndex !== null && (
-                            <div
-                                ref={pokemonEditorSectionRef}
-                                className="mt-5 w-full min-w-0 scroll-mt-4 rounded border bg-gray-50 p-5"
-                            >
-                                <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                        <h3 className="font-bold">
-                                            {editingPokemonMaster?.name ||
-                                                editingPokemon.pokemon_key}
-                                            の型・技情報
-                                        </h3>
-
-                                        <p className="mt-1 text-xs text-gray-500">
-                                            登録済みの内容を編集できます。
-                                        </p>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={closePokemonEditor}
-                                        className="text-sm text-blue-600"
-                                    >
-                                        編集欄を閉じる
-                                    </button>
-                                </div>
-
-                                <div className="mt-4">
-                                    <PokemonBuildEditor
-                                        pokemonKey={editingPokemon.pokemon_key}
-                                        formKey={editingPokemon.form_key}
-                                        nickname={editingPokemon.nickname}
-                                        onChangeNickname={(value) =>
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "nickname",
-                                                value,
-                                            )
-                                        }
-                                        abilityId={editingPokemon.ability_id}
-                                        onSelectAbility={(selectedAbility) => {
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "ability",
-                                                selectedAbility.name,
-                                            );
-
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "ability_id",
-                                                selectedAbility.id,
-                                            );
-                                        }}
-                                        item={editingPokemon.item}
-                                        onChangeItemText={(value) => {
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "item",
-                                                value,
-                                            );
-
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "item_id",
-                                                null,
-                                            );
-                                        }}
-                                        onSelectItem={(option) => {
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "item",
-                                                option.name,
-                                            );
-
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "item_id",
-                                                option.id,
-                                            );
-                                        }}
-                                        nature={editingPokemon.nature}
-                                        natureId={editingPokemon.nature_id}
-                                        natureMaster={editingNatureMaster}
-                                        onChangeNatureText={(value) => {
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "nature",
-                                                value,
-                                            );
-
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "nature_id",
-                                                null,
-                                            );
-                                        }}
-                                        onSelectNature={(option) => {
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "nature",
-                                                option.name,
-                                            );
-
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "nature_id",
-                                                option.id,
-                                            );
-                                        }}
-                                        effortValues={{
-                                            h: editingPokemon.ev_h,
-                                            a: editingPokemon.ev_a,
-                                            b: editingPokemon.ev_b,
-                                            c: editingPokemon.ev_c,
-                                            d: editingPokemon.ev_d,
-                                            s: editingPokemon.ev_s,
-                                        }}
-                                        effortValueLimits={effortValueLimits}
-                                        onChangeEffortValue={(
-                                            statKey,
-                                            value,
-                                        ) => {
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                effortValueFieldMap[statKey],
-                                                Number(value || 0),
-                                            );
-                                        }}
-                                        moves={[
-                                            {
-                                                name: editingPokemon.move_1,
-                                                id: editingPokemon.move_1_id,
-                                                type: editingPokemon.move_1_type,
-                                            },
-                                            {
-                                                name: editingPokemon.move_2,
-                                                id: editingPokemon.move_2_id,
-                                                type: editingPokemon.move_2_type,
-                                            },
-                                            {
-                                                name: editingPokemon.move_3,
-                                                id: editingPokemon.move_3_id,
-                                                type: editingPokemon.move_3_type,
-                                            },
-                                            {
-                                                name: editingPokemon.move_4,
-                                                id: editingPokemon.move_4_id,
-                                                type: editingPokemon.move_4_type,
-                                            },
-                                        ]}
-                                        onChangeMove={(moveIndex, move) => {
-                                            const fields =
-                                                moveFieldMap[moveIndex];
-
-                                            if (!fields) {
-                                                return;
-                                            }
-
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                fields.name,
-                                                move.name,
-                                            );
-
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                fields.id,
-                                                move.id,
-                                            );
-
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                fields.type,
-                                                move.type,
-                                            );
-                                        }}
-                                        memo={editingPokemon.memo}
-                                        onChangeMemo={(value) =>
-                                            updatePokemon(
-                                                editingPokemonIndex,
-                                                "memo",
-                                                value,
-                                            )
-                                        }
-                                        roleTags={roleTags}
-                                        selectedRoleTagIds={
-                                            editingPokemon.role_tag_ids
-                                        }
-                                        onToggleRoleTag={(roleTagId) =>
-                                            toggleRoleTag(
-                                                editingPokemonIndex,
-                                                roleTagId,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
+                            <EditablePokemonEditorSection
+                                sectionRef={pokemonEditorSectionRef}
+                                editingPokemon={editingPokemon}
+                                editingPokemonIndex={editingPokemonIndex}
+                                editingPokemonMaster={editingPokemonMaster}
+                                editingNatureMaster={editingNatureMaster}
+                                effortValueLimits={effortValueLimits}
+                                roleTags={roleTags}
+                                onClose={closePokemonEditor}
+                                onUpdatePokemon={updatePokemon}
+                                onToggleRoleTag={toggleRoleTag}
+                            />
                         )}
 
                         <div
