@@ -1,5 +1,6 @@
 import type { PartyPokemon } from "@/types/party";
-import type { ReactNode } from "react";
+import { SelectionPokemonCard } from "./SelectionPokemonCard";
+import type { Pokemon } from "@/types/pokemon";
 
 type SuggestedSelectionItem = {
     role: string;
@@ -15,10 +16,7 @@ type SuggestedSelectionSectionProps = {
     selectionPokemonLimit: number;
     isSavingSelection: boolean;
     onSaveSuggestedSelection: () => void;
-    renderSelectionPokemon: (
-        label: string,
-        partyPokemon?: PartyPokemon | null,
-    ) => ReactNode;
+    pokemonList: Pokemon[];
 };
 
 export const SuggestedSelectionSection = ({
@@ -27,7 +25,7 @@ export const SuggestedSelectionSection = ({
     selectionPokemonLimit,
     isSavingSelection,
     onSaveSuggestedSelection,
-    renderSelectionPokemon,
+    pokemonList,
 }: SuggestedSelectionSectionProps) => {
     return (
         <div className="rounded border bg-white p-5">
@@ -62,10 +60,11 @@ export const SuggestedSelectionSection = ({
                 <div className="mt-4 grid gap-2 sm:grid-cols-3">
                     {suggestedSelection.map((suggestion) => (
                         <div key={suggestion.role}>
-                            {renderSelectionPokemon(
-                                suggestion.label,
-                                suggestion.pokemon,
-                            )}
+                            <SelectionPokemonCard
+                                label={suggestion.label}
+                                partyPokemon={suggestion.pokemon}
+                                pokemonList={pokemonList}
+                            />
 
                             <p className="mt-2 text-xs text-gray-600">
                                 {suggestion.reason}

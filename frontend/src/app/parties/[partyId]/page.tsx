@@ -11,6 +11,7 @@ import { PartyDetailHeader } from "@/features/parties/components/PartyDetailHead
 import { PartyDetailNavigationLinks } from "@/features/parties/components/PartyDetailNavigationLinks";
 import { PartyVersionHistory } from "@/features/parties/components/PartyVersionHistory";
 import { RegisteredPartyPokemonSection } from "@/features/parties/components/RegisteredPartyPokemonSection";
+import { SavedSelectionTemplatesSection } from "@/features/parties/components/SavedSelectionTemplatesSection";
 import { SuggestedSelectionSection } from "@/features/parties/components/SuggestedSelectionSection";
 import { deletePartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
@@ -19,12 +20,11 @@ import {
     createSelectionTemplate,
     deleteSelectionTemplate,
 } from "@/features/selectionTemplates/api/selectionTemplateApi";
-import type { Party, PartyPokemon } from "@/types/party";
+import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { SavedSelectionTemplatesSection } from "@/features/parties/components/SavedSelectionTemplatesSection";
 
 export default function PartyDetailPage() {
     const router = useRouter();
@@ -259,54 +259,6 @@ export default function PartyDetailPage() {
         } finally {
             setDeletingBattleLogId(null);
         }
-    };
-
-    const renderSelectionPokemon = (
-        label: string,
-        partyPokemon?: PartyPokemon | null,
-    ) => {
-        const pokemonMaster = partyPokemon
-            ? findPokemonMaster({
-                  pokemonList,
-                  pokemonKey: partyPokemon.pokemon_key,
-                  formKey: partyPokemon.form_key,
-              })
-            : undefined;
-
-        return (
-            <div className="rounded border bg-gray-50 p-3">
-                <p className="text-xs font-semibold text-gray-500">{label}</p>
-
-                <div className="mt-2 flex items-center gap-2">
-                    {pokemonMaster?.image_url ? (
-                        <img
-                            src={pokemonMaster.image_url}
-                            alt={pokemonMaster.name}
-                            className="h-10 w-10 shrink-0 object-contain"
-                        />
-                    ) : (
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-white text-xs text-gray-500">
-                            ?
-                        </div>
-                    )}
-
-                    <div className="min-w-0">
-                        <p className="truncate text-sm font-bold">
-                            {partyPokemon?.nickname ||
-                                pokemonMaster?.name ||
-                                partyPokemon?.pokemon_key ||
-                                "未設定"}
-                        </p>
-
-                        {pokemonMaster && (
-                            <p className="mt-0.5 truncate text-[11px] text-gray-600">
-                                {pokemonMaster.types.join(" / ")}
-                            </p>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
     };
 
     const renderOpponentPokemonList = (
@@ -610,7 +562,7 @@ export default function PartyDetailPage() {
                         selectionPokemonLimit={ruleConfig.selectionPokemonLimit}
                         isSavingSelection={isSavingSelection}
                         onSaveSuggestedSelection={handleSaveSuggestedSelection}
-                        renderSelectionPokemon={renderSelectionPokemon}
+                        pokemonList={pokemonList}
                     />
 
                     <SavedSelectionTemplatesSection
@@ -621,7 +573,7 @@ export default function PartyDetailPage() {
                         onDeleteSelectionTemplate={
                             handleDeleteSelectionTemplate
                         }
-                        renderSelectionPokemon={renderSelectionPokemon}
+                        pokemonList={pokemonList}
                     />
                 </section>
 

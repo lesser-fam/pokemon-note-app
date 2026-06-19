@@ -1,22 +1,20 @@
-import type { PartyPokemon, SelectionTemplate } from "@/types/party";
+import type { SelectionTemplate } from "@/types/party";
+import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { SelectionPokemonCard } from "./SelectionPokemonCard";
 
 type SavedSelectionTemplatesSectionProps = {
     partyId: number;
     selectionTemplates: SelectionTemplate[];
     onDeleteSelectionTemplate: (selectionTemplateId: number) => void;
-    renderSelectionPokemon: (
-        label: string,
-        partyPokemon?: PartyPokemon | null,
-    ) => ReactNode;
+    pokemonList: Pokemon[];
 };
 
 export const SavedSelectionTemplatesSection = ({
     partyId,
     selectionTemplates,
     onDeleteSelectionTemplate,
-    renderSelectionPokemon,
+    pokemonList,
 }: SavedSelectionTemplatesSectionProps) => {
     return (
         <div className="rounded border bg-white p-5">
@@ -69,20 +67,23 @@ export const SavedSelectionTemplatesSection = ({
                             </div>
 
                             <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                                {renderSelectionPokemon(
-                                    "初手",
-                                    template.lead_pokemon,
-                                )}
+                                <SelectionPokemonCard
+                                    label="初手"
+                                    partyPokemon={template.lead_pokemon}
+                                    pokemonList={pokemonList}
+                                />
 
-                                {renderSelectionPokemon(
-                                    "引き先",
-                                    template.switch_pokemon,
-                                )}
+                                <SelectionPokemonCard
+                                    label="引き先"
+                                    partyPokemon={template.switch_pokemon}
+                                    pokemonList={pokemonList}
+                                />
 
-                                {renderSelectionPokemon(
-                                    "勝ち筋",
-                                    template.finisher_pokemon,
-                                )}
+                                <SelectionPokemonCard
+                                    label="勝ち筋"
+                                    partyPokemon={template.finisher_pokemon}
+                                    pokemonList={pokemonList}
+                                />
                             </div>
                         </div>
                     ))}
