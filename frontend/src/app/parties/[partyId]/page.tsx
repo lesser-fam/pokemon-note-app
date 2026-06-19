@@ -11,6 +11,7 @@ import { PartyDetailHeader } from "@/features/parties/components/PartyDetailHead
 import { PartyDetailNavigationLinks } from "@/features/parties/components/PartyDetailNavigationLinks";
 import { PartyVersionHistory } from "@/features/parties/components/PartyVersionHistory";
 import { RegisteredPartyPokemonSection } from "@/features/parties/components/RegisteredPartyPokemonSection";
+import { SuggestedSelectionSection } from "@/features/parties/components/SuggestedSelectionSection";
 import { deletePartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
@@ -602,62 +603,14 @@ export default function PartyDetailPage() {
                 />
 
                 <section className="mt-8 grid gap-5 lg:grid-cols-2">
-                    <div className="rounded border bg-white p-5">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div>
-                                <h2 className="text-lg font-bold">
-                                    おすすめ基本選出
-                                </h2>
-
-                                <p className="mt-1 text-xs text-gray-600">
-                                    役割タグの点数から、初手・引き先・勝ち筋を仮提案します。
-                                </p>
-                            </div>
-
-                            {currentPokemonList.length >=
-                                ruleConfig.selectionPokemonLimit && (
-                                <button
-                                    type="button"
-                                    onClick={handleSaveSuggestedSelection}
-                                    disabled={isSavingSelection}
-                                    className="rounded bg-black px-3 py-2 text-xs text-white disabled:opacity-50"
-                                >
-                                    {isSavingSelection
-                                        ? "保存中..."
-                                        : "この選出を保存"}
-                                </button>
-                            )}
-                        </div>
-
-                        {currentPokemonList.length <
-                        ruleConfig.selectionPokemonLimit ? (
-                            <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                                基本選出を提案するには、ポケモンを
-                                {ruleConfig.selectionPokemonLimit}
-                                匹以上登録してください。
-                            </p>
-                        ) : (
-                            <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                                {suggestedSelection.map((suggestion) => (
-                                    <div key={suggestion.role}>
-                                        {renderSelectionPokemon(
-                                            suggestion.label,
-                                            suggestion.pokemon,
-                                        )}
-
-                                        <p className="mt-2 text-xs text-gray-600">
-                                            {suggestion.reason}
-                                        </p>
-
-                                        <p className="mt-1 text-[11px] text-gray-400">
-                                            点数：
-                                            {suggestion.score}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    <SuggestedSelectionSection
+                        suggestedSelection={suggestedSelection}
+                        currentPokemonCount={currentPokemonList.length}
+                        selectionPokemonLimit={ruleConfig.selectionPokemonLimit}
+                        isSavingSelection={isSavingSelection}
+                        onSaveSuggestedSelection={handleSaveSuggestedSelection}
+                        renderSelectionPokemon={renderSelectionPokemon}
+                    />
 
                     <div className="rounded border bg-white p-5">
                         <h2 className="text-lg font-bold">保存済み基本選出</h2>
