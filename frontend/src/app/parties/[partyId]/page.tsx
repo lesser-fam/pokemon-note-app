@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
+import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
 
 export default function PartyDetailPage() {
     const router = useRouter();
@@ -67,16 +68,6 @@ export default function PartyDetailPage() {
         loadParty();
     }, [partyId, isInvalidPartyId]);
 
-    if (isInvalidPartyId) {
-        return (
-            <main className="mx-auto max-w-7xl p-8">
-                <p className="rounded bg-red-100 p-3 text-red-700">
-                    パーティIDが正しくありません。
-                </p>
-            </main>
-        );
-    }
-
     const getPokemonMasterName = (pokemonKey: string, formKey = "default") => {
         const pokemonMaster = findPokemonMaster({
             pokemonList,
@@ -87,29 +78,25 @@ export default function PartyDetailPage() {
         return pokemonMaster?.name || pokemonKey;
     };
 
-    if (isLoading) {
+    if (isInvalidPartyId) {
         return (
-            <>
-                <AppHeader />
-
-                <main className="mx-auto max-w-7xl p-8">
-                    <p>読み込み中...</p>
-                </main>
-            </>
+            <PageStateMessage
+                message="パーティIDが正しくありません。"
+                variant="error"
+            />
         );
+    }
+
+    if (isLoading) {
+        return <PageStateMessage message="読み込み中..." />;
     }
 
     if (errorMessage || !party) {
         return (
-            <>
-                <AppHeader />
-
-                <main className="mx-auto max-w-7xl p-8">
-                    <p className="rounded bg-red-100 p-3 text-red-700">
-                        {errorMessage || "パーティが見つかりません。"}
-                    </p>
-                </main>
-            </>
+            <PageStateMessage
+                message="パーティが見つかりません。"
+                variant="error"
+            />
         );
     }
 
