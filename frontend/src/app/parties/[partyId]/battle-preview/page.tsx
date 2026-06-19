@@ -28,9 +28,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
-
-//ルール別ポケモン確認用
-// import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
+import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
 
 type ComparisonMode =
     | "speed"
@@ -110,22 +108,6 @@ export default function BattlePreviewPage() {
 
         loadData();
     }, [partyId, isInvalidPartyId]);
-
-    //確認用
-    // useEffect(() => {
-    //     if (pokemonList.length === 0) {
-    //         return;
-    //     }
-
-    //     const result = convertChampionsDexNumbersToIdentifiers(pokemonList);
-
-    //     console.log("sourceCount", result.sourceCount);
-    //     console.log("matchedCount", result.matchedCount);
-    //     console.log("missingCount", result.missingCount);
-    //     console.log("missingDexNumbers", result.missingDexNumbers);
-    //     console.log("matchedPokemon", result.matchedPokemon);
-    //     console.log("matched", result.matched);
-    // }, [pokemonList]);
 
     useEffect(() => {
         const loadPokemonAbilityWarnings = async () => {
@@ -602,29 +584,23 @@ export default function BattlePreviewPage() {
 
     if (isInvalidPartyId) {
         return (
-            <main className="mx-auto max-w-6xl p-8">
-                <p className="rounded bg-red-100 p-3 text-red-700">
-                    パーティIDが正しくありません。
-                </p>
-            </main>
+            <PageStateMessage
+                message="パーティIDが正しくありません。"
+                variant="error"
+            />
         );
     }
 
     if (isLoading) {
-        return (
-            <main className="mx-auto max-w-6xl p-8">
-                <p>読み込み中...</p>
-            </main>
-        );
+        return <PageStateMessage message="読み込み中..." />;
     }
 
     if (errorMessage || !party) {
         return (
-            <main className="mx-auto max-w-6xl p-8">
-                <p className="rounded bg-red-100 p-3 text-red-700">
-                    {errorMessage || "パーティが見つかりません。"}
-                </p>
-            </main>
+            <PageStateMessage
+                message={errorMessage || "パーティが見つかりません。"}
+                variant="error"
+            />
         );
     }
 
