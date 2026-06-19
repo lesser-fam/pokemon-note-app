@@ -143,6 +143,57 @@ export const usePartyPokemonForm = () => {
         },
     ];
 
+    const toNumber = (value: string) => {
+        return Number(value || 0);
+    };
+
+    const createRequestPokemon = (
+        pokemonKey: string,
+        formKey: string,
+        selectedRoleTagIds: number[],
+    ) => {
+        return {
+            pokemon_key: pokemonKey,
+            form_key: formKey,
+            nickname,
+
+            item,
+            item_id: itemId,
+
+            ability,
+            ability_id: abilityId,
+
+            nature,
+            nature_id: natureId,
+
+            ev_h: toNumber(evH),
+            ev_a: toNumber(evA),
+            ev_b: toNumber(evB),
+            ev_c: toNumber(evC),
+            ev_d: toNumber(evD),
+            ev_s: toNumber(evS),
+
+            move_1: move1,
+            move_1_id: move1Id,
+            move_1_type: move1Type || undefined,
+
+            move_2: move2,
+            move_2_id: move2Id,
+            move_2_type: move2Type || undefined,
+
+            move_3: move3,
+            move_3_id: move3Id,
+            move_3_type: move3Type || undefined,
+
+            move_4: move4,
+            move_4_id: move4Id,
+            move_4_type: move4Type || undefined,
+
+            memo,
+            role_tag_ids: selectedRoleTagIds,
+        };
+    };
+
     return {
         nickname,
         setNickname,
@@ -214,5 +265,7 @@ export const usePartyPokemonForm = () => {
 
         updateEffortValue,
         updateMove,
+
+        createRequestPokemon,
     };
 };
