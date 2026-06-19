@@ -25,6 +25,7 @@ import type { RoleTag } from "@/types/roleTag";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { PageStateMessage } from "@/components/pageStates/PageStatesMessage";
 
 export default function CreatePartyPokemonPage() {
     const router = useRouter();
@@ -111,16 +112,6 @@ export default function CreatePartyPokemonPage() {
 
         loadData();
     }, [partyId, isInvalidPartyId]);
-
-    if (isInvalidPartyId) {
-        return (
-            <main className="mx-auto max-w-7xl p-6">
-                <p className="rounded bg-red-100 p-3 text-red-700">
-                    パーティIDが正しくありません。
-                </p>
-            </main>
-        );
-    }
 
     const handleSelectPokemon = (pokemon: Pokemon) => {
         setPokemonKey(pokemon.key);
@@ -308,29 +299,25 @@ export default function CreatePartyPokemonPage() {
         }
     };
 
-    if (isLoading) {
+    if (isInvalidPartyId) {
         return (
-            <>
-                <AppHeader />
-
-                <main className="mx-auto max-w-7xl p-6">
-                    <p>読み込み中...</p>
-                </main>
-            </>
+            <PageStateMessage
+                message="パーティIDが正しくありません。"
+                variant="error"
+            />
         );
+    }
+
+    if (isLoading) {
+        return <PageStateMessage message="読み込み中..." />;
     }
 
     if (!party) {
         return (
-            <>
-                <AppHeader />
-
-                <main className="mx-auto max-w-7xl p-6">
-                    <p className="rounded bg-red-100 p-3 text-red-700">
-                        パーティが見つかりません。
-                    </p>
-                </main>
-            </>
+            <PageStateMessage
+                message="パーティが見つかりません。"
+                variant="error"
+            />
         );
     }
 
