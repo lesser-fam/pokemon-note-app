@@ -2,6 +2,7 @@
 
 import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
 import { BattlePreviewHeader } from "@/features/battlePreview/components/BattlePreviewHeader";
+import { MatchupSuggestionPokemonCard } from "@/features/battlePreview/components/MatchupSuggestionPokemonCard";
 import { NextBattleActionSuggestions } from "@/features/battlePreview/components/NextBattleActionSuggestions";
 import { OpponentPartyColumn } from "@/features/battlePreview/components/OpponentPartyColumn";
 import { OpponentPokemonSearchSection } from "@/features/battlePreview/components/OpponentPokemonSearchSection";
@@ -637,43 +638,6 @@ export default function BattlePreviewPage() {
         );
     };
 
-    const renderSuggestedSelectionPokemon = (
-        label: string,
-        partyPokemon: PartyPokemon,
-    ) => {
-        const pokemonMaster = findPokemonMaster({
-            pokemonList,
-            pokemonKey: partyPokemon.pokemon_key,
-            formKey: partyPokemon.form_key,
-        });
-
-        return (
-            <div className="rounded bg-white px-2 py-1.5">
-                <p className="text-[10px] font-semibold text-gray-500">
-                    {label}
-                </p>
-
-                <div className="mt-1 flex min-w-0 items-center gap-1.5">
-                    {pokemonMaster?.image_url ? (
-                        <img
-                            src={pokemonMaster.image_url}
-                            alt={pokemonMaster.name}
-                            className="h-8 w-8 shrink-0 object-contain"
-                        />
-                    ) : (
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-[10px] text-gray-400">
-                            ?
-                        </div>
-                    )}
-
-                    <p className="min-w-0 truncate text-xs font-bold">
-                        {getPartyPokemonDisplayName(partyPokemon)}
-                    </p>
-                </div>
-            </div>
-        );
-    };
-
     const actionOwnPartyPokemon =
         effectiveCurrentPokemonList.find(
             (partyPokemon) => partyPokemon.id === actionOwnPokemonId,
@@ -800,20 +764,29 @@ export default function BattlePreviewPage() {
                                             </div>
 
                                             <div className="mt-2 grid grid-cols-3 gap-1.5">
-                                                {renderSuggestedSelectionPokemon(
-                                                    "初手",
-                                                    suggestion.leadPokemon,
-                                                )}
+                                                <MatchupSuggestionPokemonCard
+                                                    label="初手"
+                                                    partyPokemon={
+                                                        suggestion.leadPokemon
+                                                    }
+                                                    pokemonList={pokemonList}
+                                                />
 
-                                                {renderSuggestedSelectionPokemon(
-                                                    "引き先",
-                                                    suggestion.switchPokemon,
-                                                )}
+                                                <MatchupSuggestionPokemonCard
+                                                    label="引き先"
+                                                    partyPokemon={
+                                                        suggestion.switchPokemon
+                                                    }
+                                                    pokemonList={pokemonList}
+                                                />
 
-                                                {renderSuggestedSelectionPokemon(
-                                                    "勝ち筋",
-                                                    suggestion.finisherPokemon,
-                                                )}
+                                                <MatchupSuggestionPokemonCard
+                                                    label="勝ち筋"
+                                                    partyPokemon={
+                                                        suggestion.finisherPokemon
+                                                    }
+                                                    pokemonList={pokemonList}
+                                                />
                                             </div>
 
                                             <details className="mt-1.5">
