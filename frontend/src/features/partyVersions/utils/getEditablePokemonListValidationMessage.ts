@@ -10,6 +10,14 @@ export const getEditablePokemonListValidationMessage = (
     error: EditablePokemonListValidationError,
     effortValueLimits: EffortValueLimits,
 ): string => {
+    if (error === "unselected_master_data") {
+        return "特性、性格、技は検索候補から選択してください。";
+    }
+
+    if (error === "duplicated_pokemon") {
+        return "同じ種類のポケモンは、フォーム違いを含めて同じパーティに登録できません。";
+    }
+
     if (error === "invalid_effort_values") {
         return `${effortValueLimits.label}では、努力値は1項目${effortValueLimits.singleLimit}まで、合計${effortValueLimits.totalLimit}までです。`;
     }

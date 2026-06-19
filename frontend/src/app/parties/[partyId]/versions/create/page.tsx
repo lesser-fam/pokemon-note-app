@@ -15,6 +15,7 @@ import { EditablePokemonSearchSection } from "@/features/partyVersions/component
 import { useEditablePokemonList } from "@/features/partyVersions/hooks/useEditablePokemonList";
 import { usePartyVersionPokemonSelection } from "@/features/partyVersions/hooks/usePartyVersionPokemonSelection";
 import { convertPartyPokemonToEditablePokemon } from "@/features/partyVersions/utils/editablePokemon";
+import { getEditablePokemonListValidationMessage } from "@/features/partyVersions/utils/getEditablePokemonListValidationMessage";
 import { validateEditablePokemonList } from "@/features/partyVersions/utils/validateEditablePokemonList";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import {
@@ -29,7 +30,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { FormEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
-import { getEditablePokemonListValidationMessage } from "@/features/partyVersions/utils/getEditablePokemonListValidationMessage";
 
 export default function CreatePartyVersionPage() {
     const router = useRouter();
@@ -225,50 +225,6 @@ export default function CreatePartyVersionPage() {
             )
         ) {
             setErrorMessage("未選択のポケモンがあります。");
-            return;
-        }
-
-        const hasUnselectedMasterData = editablePokemonList.some((pokemon) => {
-            // if (pokemon.item.trim() !== "" && pokemon.item_id === null) {
-            //     return true;
-            // }
-
-            if (pokemon.ability.trim() !== "" && pokemon.ability_id === null) {
-                return true;
-            }
-
-            if (pokemon.nature.trim() !== "" && pokemon.nature_id === null) {
-                return true;
-            }
-
-            const moves = [
-                { name: pokemon.move_1, id: pokemon.move_1_id },
-                { name: pokemon.move_2, id: pokemon.move_2_id },
-                { name: pokemon.move_3, id: pokemon.move_3_id },
-                { name: pokemon.move_4, id: pokemon.move_4_id },
-            ];
-
-            return moves.some(
-                (move) => move.name.trim() !== "" && move.id === null,
-            );
-        });
-
-        if (hasUnselectedMasterData) {
-            setErrorMessage("特性、性格、技は検索候補から選択してください。");
-            return;
-        }
-
-        const pokemonKeys = editablePokemonList.map(
-            (pokemon) => pokemon.pokemon_key,
-        );
-
-        const hasDuplicatedPokemon =
-            new Set(pokemonKeys).size !== pokemonKeys.length;
-
-        if (hasDuplicatedPokemon) {
-            setErrorMessage(
-                "同じ種類のポケモンは、フォーム違いを含めて同じパーティに登録できません。",
-            );
             return;
         }
 
