@@ -8,8 +8,8 @@ import {
 } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
+import { PartyPokemonBuildSection } from "@/features/partyPokemon/components/PartyPokemonBuildSection";
 import { PartyPokemonSearchSection } from "@/features/partyPokemon/components/PartyPokemonSearchSection";
-import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { SelectedPokemonPreviewCard } from "@/features/partyPokemon/components/SelectedPokemonPreviewCard";
 import { usePartyPokemonForm } from "@/features/partyPokemon/hooks/usePartyPokemonForm";
 import { getPartyPokemonInputValidationMessage } from "@/features/partyPokemon/utils/getPartyPokemonInputValidationMessage";
@@ -273,38 +273,32 @@ export default function CreatePartyPokemonPage() {
                         selectedPokemonMaster={selectedPokemonMaster}
                     />
 
-                    <section className="rounded border bg-white p-5">
-                        <h2 className="text-lg font-bold">型・技情報</h2>
-
-                        <div className="mt-4">
-                            <PokemonBuildEditor
-                                pokemonKey={pokemonKey}
-                                formKey={formKey}
-                                nickname={nickname}
-                                onChangeNickname={setNickname}
-                                abilityId={abilityId}
-                                onSelectAbility={selectAbility}
-                                item={item}
-                                onChangeItemText={changeItemText}
-                                onSelectItem={selectItem}
-                                nature={nature}
-                                natureId={natureId}
-                                natureMaster={selectedNatureMaster}
-                                onChangeNatureText={changeNatureText}
-                                onSelectNature={selectNature}
-                                effortValues={effortValues}
-                                effortValueLimits={effortValueLimits}
-                                onChangeEffortValue={updateEffortValue}
-                                moves={moves}
-                                onChangeMove={updateMove}
-                                memo={memo}
-                                onChangeMemo={setMemo}
-                                roleTags={roleTags}
-                                selectedRoleTagIds={selectedRoleTagIds}
-                                onToggleRoleTag={handleToggleRoleTag}
-                            />
-                        </div>
-                    </section>
+                    <PartyPokemonBuildSection
+                        pokemonKey={pokemonKey}
+                        formKey={formKey}
+                        nickname={nickname}
+                        onChangeNickname={setNickname}
+                        abilityId={abilityId}
+                        onSelectAbility={selectAbility}
+                        item={item}
+                        onChangeItemText={changeItemText}
+                        onSelectItem={selectItem}
+                        nature={nature}
+                        natureId={natureId}
+                        natureMaster={selectedNatureMaster}
+                        onChangeNatureText={changeNatureText}
+                        onSelectNature={selectNature}
+                        effortValues={effortValues}
+                        effortValueLimits={effortValueLimits}
+                        onChangeEffortValue={updateEffortValue}
+                        moves={moves}
+                        onChangeMove={updateMove}
+                        memo={memo}
+                        onChangeMemo={setMemo}
+                        roleTags={roleTags}
+                        selectedRoleTagIds={selectedRoleTagIds}
+                        onToggleRoleTag={handleToggleRoleTag}
+                    />
 
                     {errorMessage && (
                         <p className="mt-6 rounded bg-red-100 p-3 text-red-700">
