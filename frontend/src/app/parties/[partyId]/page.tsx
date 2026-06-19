@@ -27,6 +27,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BattleLogListSection } from "@/features/parties/components/BattleLogListSection";
+import { createSuggestedSelectionTemplatePayload } from "@/features/selectionTemplates/utils/createSuggestedSelectionTemplatePayload";
 
 export default function PartyDetailPage() {
     const router = useRouter();
@@ -171,17 +172,10 @@ export default function PartyDetailPage() {
             return;
         }
 
-        const lead = suggestedSelection.find(
-            (suggestion) => suggestion.role === "lead",
-        );
-        const switchPokemon = suggestedSelection.find(
-            (suggestion) => suggestion.role === "switch",
-        );
-        const finisher = suggestedSelection.find(
-            (suggestion) => suggestion.role === "finisher",
-        );
+        const suggestedSelectionPayload =
+            createSuggestedSelectionTemplatePayload(suggestedSelection);
 
-        if (!lead?.pokemon || !switchPokemon?.pokemon || !finisher?.pokemon) {
+        if (!suggestedSelectionPayload.isValid) {
             setErrorMessage("保存できる基本選出がありません。");
             return;
         }
@@ -190,13 +184,10 @@ export default function PartyDetailPage() {
         setErrorMessage("");
 
         try {
-            await createSelectionTemplate(party.current_version.id, {
-                name: "おすすめ基本選出",
-                lead_pokemon_id: lead.pokemon.id,
-                switch_pokemon_id: switchPokemon.pokemon.id,
-                finisher_pokemon_id: finisher.pokemon.id,
-                memo: "役割タグの点数から自動提案された基本選出です。",
-            });
+            await createSelectionTemplate(
+                party.current_version.id,
+                suggestedSelectionPayload.payload,
+            );
 
             await refreshParty();
         } catch (error) {
