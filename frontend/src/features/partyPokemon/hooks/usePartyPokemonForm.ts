@@ -221,6 +221,33 @@ export const usePartyPokemonForm = () => {
 
     const ValidationMoves: ValidationMoves = [move1, move2, move3, move4];
 
+    const selectAbility = (selectedAbility: { id: number; name: string }) => {
+        setAbility(selectedAbility.name);
+        setAbilityId(selectedAbility.id);
+    };
+
+    const changeItemText = (value: string) => {
+        setItem(value);
+        setItemId(null);
+    };
+
+    const selectItem = (option: { id: number; name: string }) => {
+        setItem(option.name);
+        setItemId(option.id);
+    };
+
+    const changeNatureText = (value: string) => {
+        setNature(value);
+        setNatureId(null);
+        setSelectedNatureMaster(null);
+    };
+
+    const selectNature = (option: NatureMaster) => {
+        setNature(option.name);
+        setNatureId(option.id);
+        setSelectedNatureMaster(option);
+    };
+
     return {
         nickname,
         setNickname,
@@ -298,5 +325,11 @@ export const usePartyPokemonForm = () => {
         validationEffortValues,
         validationMoveEntries,
         ValidationMoves,
+
+        selectAbility,
+        changeItemText,
+        selectItem,
+        changeNatureText,
+        selectNature,
     };
 };

@@ -52,22 +52,15 @@ export default function CreatePartyPokemonPage() {
         setNickname,
 
         item,
-        setItem,
-
-        setItemId,
 
         ability,
-        setAbility,
         abilityId,
-        setAbilityId,
         resetAbility,
 
         nature,
-        setNature,
         natureId,
-        setNatureId,
+
         selectedNatureMaster,
-        setSelectedNatureMaster,
 
         memo,
         setMemo,
@@ -83,6 +76,12 @@ export default function CreatePartyPokemonPage() {
         updateMove,
 
         createRequestPokemon,
+
+        selectAbility,
+        changeItemText,
+        selectItem,
+        changeNatureText,
+        selectNature,
     } = usePartyPokemonForm();
 
     const [isLoading, setIsLoading] = useState(true);
@@ -284,33 +283,15 @@ export default function CreatePartyPokemonPage() {
                                 nickname={nickname}
                                 onChangeNickname={setNickname}
                                 abilityId={abilityId}
-                                onSelectAbility={(selectedAbility) => {
-                                    setAbility(selectedAbility.name);
-
-                                    setAbilityId(selectedAbility.id);
-                                }}
+                                onSelectAbility={selectAbility}
                                 item={item}
-                                onChangeItemText={(value) => {
-                                    setItem(value);
-                                    setItemId(null);
-                                }}
-                                onSelectItem={(option) => {
-                                    setItem(option.name);
-                                    setItemId(option.id);
-                                }}
+                                onChangeItemText={changeItemText}
+                                onSelectItem={selectItem}
                                 nature={nature}
                                 natureId={natureId}
                                 natureMaster={selectedNatureMaster}
-                                onChangeNatureText={(value) => {
-                                    setNature(value);
-                                    setNatureId(null);
-                                    setSelectedNatureMaster(null);
-                                }}
-                                onSelectNature={(option) => {
-                                    setNature(option.name);
-                                    setNatureId(option.id);
-                                    setSelectedNatureMaster(option);
-                                }}
+                                onChangeNatureText={changeNatureText}
+                                onSelectNature={selectNature}
                                 effortValues={effortValues}
                                 effortValueLimits={effortValueLimits}
                                 onChangeEffortValue={updateEffortValue}
