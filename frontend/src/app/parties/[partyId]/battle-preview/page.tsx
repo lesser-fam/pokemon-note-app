@@ -15,6 +15,7 @@ import {
 } from "@/features/battlePreview/components/StatComparisonModeSection";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
+import { getHighlightedStatsByComparisonMode } from "@/features/battlePreview/utils/getHighlightedStatsByComparisonMode";
 import {
     findDefaultForm,
     isMegaForm,
@@ -362,35 +363,8 @@ export default function BattlePreviewPage() {
         });
     };
 
-    const ownHighlightedStats =
-        comparisonMode === "speed"
-            ? ["s" as const]
-            : comparisonMode === "own_attack_vs_opponent_defense"
-              ? ["a" as const]
-              : comparisonMode === "own_defense_vs_opponent_attack"
-                ? ["b" as const]
-                : comparisonMode ===
-                    "own_special_attack_vs_opponent_special_defense"
-                  ? ["c" as const]
-                  : comparisonMode ===
-                      "own_special_defense_vs_opponent_special_attack"
-                    ? ["d" as const]
-                    : [];
-
-    const opponentHighlightedStats =
-        comparisonMode === "speed"
-            ? ["s" as const]
-            : comparisonMode === "own_attack_vs_opponent_defense"
-              ? ["b" as const]
-              : comparisonMode === "own_defense_vs_opponent_attack"
-                ? ["a" as const]
-                : comparisonMode ===
-                    "own_special_attack_vs_opponent_special_defense"
-                  ? ["d" as const]
-                  : comparisonMode ===
-                      "own_special_defense_vs_opponent_special_attack"
-                    ? ["c" as const]
-                    : [];
+    const { ownHighlightedStats, opponentHighlightedStats } =
+        getHighlightedStatsByComparisonMode(comparisonMode);
 
     const opponentAnalysis = analyzeOpponentParty(opponentPokemonList);
     const opponentWeaknessAnalysis =
