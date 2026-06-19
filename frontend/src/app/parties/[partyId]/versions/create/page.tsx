@@ -1,7 +1,7 @@
 "use client";
 
 import { AppHeader } from "@/components/AppHeader";
-import { PageStateMessage } from "@/components/pageStates/PageStatesMessage";
+import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
 import {
     fetchNatureList,
     fetchPokemonList,

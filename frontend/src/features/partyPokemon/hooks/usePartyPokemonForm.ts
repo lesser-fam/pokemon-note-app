@@ -196,7 +196,7 @@ export const usePartyPokemonForm = () => {
         };
     };
 
-    const validateEffortValues: ValidationEffortValues = [
+    const validationEffortValues: ValidationEffortValues = [
         toNumber(evH),
         toNumber(evA),
         toNumber(evB),
@@ -279,6 +279,6 @@ export const usePartyPokemonForm = () => {
 
         createRequestPokemon,
 
-        validateEffortValues,
+        validationEffortValues,
     };
 };

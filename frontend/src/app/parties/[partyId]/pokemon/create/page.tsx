@@ -1,7 +1,7 @@
 "use client";
 
 import { AppHeader } from "@/components/AppHeader";
-import { PageStateMessage } from "@/components/pageStates/PageStatesMessage";
+import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
 import {
     fetchPokemonList,
     fetchRoleTags,
@@ -92,7 +92,7 @@ export default function CreatePartyPokemonPage() {
 
         createRequestPokemon,
 
-        validateEffortValues,
+        validationEffortValues,
     } = usePartyPokemonForm();
 
     const [isLoading, setIsLoading] = useState(true);
@@ -169,52 +169,28 @@ export default function CreatePartyPokemonPage() {
             return;
         }
 
-        // if (item.trim() !== "" && itemId === null) {
-        //     setErrorMessage("持ち物は検索候補から選択してください。");
-        //     return;
-        // }
-
-        if (ability.trim() !== "" && abilityId === null) {
-            setErrorMessage("特性は検索候補から選択してください。");
-            return;
-        }
-
-        if (nature.trim() !== "" && natureId === null) {
-            setErrorMessage("性格は検索候補から選択してください。");
-            return;
-        }
-
-        const moveEntries = [
-            { name: move1, id: move1Id },
-            { name: move2, id: move2Id },
-            { name: move3, id: move3Id },
-            { name: move4, id: move4Id },
-        ];
-
-        const hasUnselectedMove = moveEntries.some(
-            (move) => move.name.trim() !== "" && move.id === null,
-        );
-
-        if (hasUnselectedMove) {
-            setErrorMessage("技は検索候補から選択してください。");
-            return;
-        }
-
-        const isDuplicatedPokemon = currentPokemonList.some(
-            (partyPokemon) => partyPokemon.pokemon_key === pokemonKey,
-        );
-
-        if (isDuplicatedPokemon) {
-            setErrorMessage(
-                "同じ種類のポケモンは、フォーム違いを含めて同じパーティに登録できません。",
-            );
-            return;
-        }
-
         const effortValueLimits = getEffortValueLimits(party.rule);
 
         const validationResult = validatePartyPokemonInput({
-            effortValues: validateEffortValues,
+            pokemonKey,
+            existingPokemonKeys: currentPokemonList.map(
+                (partyPokemon) => partyPokemon.pokemon_key,
+            ),
+
+            ability,
+            abilityId,
+
+            nature,
+            natureId,
+
+            moveEntries: [
+                { name: move1, id: move1Id },
+                { name: move2, id: move2Id },
+                { name: move3, id: move3Id },
+                { name: move4, id: move4Id },
+            ],
+
+            effortValues: validationEffortValues,
             moves: [move1, move2, move3, move4],
             item,
             existingItems: currentPokemonList.map(
