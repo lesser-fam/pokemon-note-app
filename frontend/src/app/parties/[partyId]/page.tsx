@@ -1,13 +1,17 @@
 "use client";
 
 import { AppHeader } from "@/components/AppHeader";
+import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
 import { deleteBattleLog } from "@/features/battleLogs/api/battleLogApi";
 import { summarizeBattleLogs } from "@/features/battleLogs/utils/summarizeBattleLogs";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
+import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { deleteParty, fetchParty } from "@/features/parties/api/partyApi";
+import { PartyDetailHeader } from "@/features/parties/components/PartyDetailHeader";
 import { PartyVersionHistory } from "@/features/parties/components/PartyVersionHistory";
 import { RegisteredPartyPokemonCard } from "@/features/parties/components/RegisteredPartyPokemonCard";
 import { deletePartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
+import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
 import {
     createSelectionTemplate,
@@ -18,10 +22,6 @@ import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
-import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
-import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
-import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
 
 export default function PartyDetailPage() {
     const router = useRouter();
@@ -582,69 +582,11 @@ export default function PartyDetailPage() {
                     ← パーティ一覧へ戻る
                 </Link>
 
-                <div className="mt-4 rounded border p-6">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                                <PartyRuleBadge rule={party.rule} />
-
-                                {party.current_version && (
-                                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
-                                        現在のバージョン：v
-                                        {party.current_version.version_number}
-                                    </span>
-                                )}
-                            </div>
-
-                            <h1 className="mt-3 wrap-break-word text-2xl font-bold">
-                                {party.name}
-                            </h1>
-                        </div>
-
-                        <div className="flex flex-wrap gap-3 md:justify-end">
-                            <Link
-                                href={`/parties/${party.id}/edit`}
-                                className="rounded border px-4 py-2 text-sm hover:bg-gray-50"
-                            >
-                                パーティ情報を編集
-                            </Link>
-
-                            <Link
-                                href={`/parties/${party.id}/versions/create`}
-                                className="rounded border px-4 py-2 text-sm hover:bg-gray-50"
-                            >
-                                新バージョン作成
-                            </Link>
-
-                            <button
-                                type="button"
-                                onClick={handleDeleteParty}
-                                disabled={isDeletingParty}
-                                className="rounded border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {isDeletingParty
-                                    ? "削除中..."
-                                    : "パーティを削除"}
-                            </button>
-                        </div>
-                    </div>
-
-                    {party.concept && (
-                        <div className="mt-6">
-                            <h2 className="font-semibold">コンセプト</h2>
-                            <p className="mt-1 text-gray-700">
-                                {party.concept}
-                            </p>
-                        </div>
-                    )}
-
-                    {party.memo && (
-                        <div className="mt-6">
-                            <h2 className="font-semibold">メモ</h2>
-                            <p className="mt-1 text-gray-700">{party.memo}</p>
-                        </div>
-                    )}
-                </div>
+                <PartyDetailHeader
+                    party={party}
+                    isDeletingParty={isDeletingParty}
+                    onDeleteParty={handleDeleteParty}
+                />
 
                 <div className="mt-4 flex flex-wrap gap-2">
                     <Link
