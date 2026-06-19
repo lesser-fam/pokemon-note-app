@@ -15,6 +15,7 @@ import {
 } from "@/features/battlePreview/components/StatComparisonModeSection";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
 import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeOpponentWeakness";
+import { createBattleLogCreateNavigation } from "@/features/battlePreview/utils/createBattleLogCreateNavigation";
 import { getHighlightedStatsByComparisonMode } from "@/features/battlePreview/utils/getHighlightedStatsByComparisonMode";
 import {
     findDefaultForm,
@@ -495,20 +496,13 @@ export default function BattlePreviewPage() {
         );
     }
 
-    const opponentQuery = opponentPokemonList
-        .map((pokemon) => `${pokemon.key}:${pokemon.form_key}`)
-        .join(",");
-
-    const selectedQuery = selectedPartyPokemonIds.join(",");
-
-    const battleLogCreateHref =
-        `/parties/${party.id}/battle-logs/create` +
-        `?opponents=${opponentQuery}` +
-        `&selected=${selectedQuery}`;
-
-    const canCreateBattleLog =
-        opponentPokemonList.length > 0 &&
-        selectedPartyPokemonIds.length === ruleConfig.selectionPokemonLimit;
+    const { battleLogCreateHref, canCreateBattleLog } =
+        createBattleLogCreateNavigation({
+            partyId: party.id,
+            opponentPokemonList,
+            selectedPartyPokemonIds,
+            selectionPokemonLimit: ruleConfig.selectionPokemonLimit,
+        });
 
     const actionOwnPartyPokemon =
         effectiveCurrentPokemonList.find(
