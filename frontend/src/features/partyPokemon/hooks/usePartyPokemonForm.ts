@@ -1,5 +1,5 @@
-import { useState } from "react";
 import type { NatureMaster } from "@/types/battleMaster";
+import { useState } from "react";
 
 type EditableMove = {
     name: string;
@@ -8,6 +8,8 @@ type EditableMove = {
 };
 
 type EditableMoves = [EditableMove, EditableMove, EditableMove, EditableMove];
+
+type ValidationEffortValues = [number, number, number, number, number, number];
 
 export const usePartyPokemonForm = () => {
     const [nickname, setNickname] = useState("");
@@ -194,6 +196,15 @@ export const usePartyPokemonForm = () => {
         };
     };
 
+    const validateEffortValues: ValidationEffortValues = [
+        toNumber(evH),
+        toNumber(evA),
+        toNumber(evB),
+        toNumber(evC),
+        toNumber(evD),
+        toNumber(evS),
+    ];
+
     return {
         nickname,
         setNickname,
@@ -267,5 +278,7 @@ export const usePartyPokemonForm = () => {
         updateMove,
 
         createRequestPokemon,
+
+        validateEffortValues,
     };
 };

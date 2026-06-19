@@ -68,13 +68,6 @@ export default function CreatePartyPokemonPage() {
         selectedNatureMaster,
         setSelectedNatureMaster,
 
-        evH,
-        evA,
-        evB,
-        evC,
-        evD,
-        evS,
-
         move1,
         move1Id,
 
@@ -97,6 +90,8 @@ export default function CreatePartyPokemonPage() {
         updateMove,
 
         createRequestPokemon,
+
+        validateEffortValues,
     } = usePartyPokemonForm();
 
     const [isLoading, setIsLoading] = useState(true);
@@ -151,10 +146,6 @@ export default function CreatePartyPokemonPage() {
         return currentPokemonList.some(
             (partyPokemon) => partyPokemon.pokemon_key === pokemon.key,
         );
-    };
-
-    const toNumber = (value: string) => {
-        return Number(value || 0);
     };
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -221,17 +212,8 @@ export default function CreatePartyPokemonPage() {
 
         const effortValueLimits = getEffortValueLimits(party.rule);
 
-        const effortValues = [
-            toNumber(evH),
-            toNumber(evA),
-            toNumber(evB),
-            toNumber(evC),
-            toNumber(evD),
-            toNumber(evS),
-        ];
-
         const validationResult = validatePartyPokemonInput({
-            effortValues,
+            effortValues: validateEffortValues,
             moves: [move1, move2, move3, move4],
             item,
             existingItems: currentPokemonList.map(
