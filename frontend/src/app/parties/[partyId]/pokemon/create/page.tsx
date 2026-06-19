@@ -2,7 +2,6 @@
 
 import { AppHeader } from "@/components/AppHeader";
 import { PageStateMessage } from "@/components/pageStates/PageStatesMessage";
-import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import {
     fetchPokemonList,
     fetchRoleTags,
@@ -10,11 +9,9 @@ import {
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
-import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { SelectedPokemonPreviewCard } from "@/features/partyPokemon/components/SelectedPokemonPreviewCard";
 import { toggleRoleTagId } from "@/features/partyPokemon/utils/toggleRoleTagId";
 import { validatePartyPokemonInput } from "@/features/partyPokemon/utils/validatePartyPokemonInput";
-import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import {
     getEffortValueLimits,
@@ -27,6 +24,7 @@ import type { RoleTag } from "@/types/roleTag";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { PartyPokemonSearchSection } from "@/features/partyPokemon/components/PartyPokemonSearchSection";
 
 export default function CreatePartyPokemonPage() {
     const router = useRouter();
@@ -344,61 +342,23 @@ export default function CreatePartyPokemonPage() {
                 </p>
 
                 <form onSubmit={handleSubmit} className="mt-8 space-y-8">
-                    <section className="rounded border bg-white p-5">
-                        <h2 className="text-lg font-bold">ポケモン選択</h2>
+                    <PartyPokemonSearchSection
+                        pokemonList={pokemonList}
+                        partyRule={party.rule}
+                        selectedPokemonKey={pokemonKey}
+                        selectedFormKey={formKey}
+                        searchKeyword={searchKeyword}
+                        selectedTypes={selectedTypes}
+                        onChangeSearchKeyword={setSearchKeyword}
+                        onChangeSelectedTypes={setSelectedTypes}
+                        isPokemonRegistered={isAlreadyRegisteredPokemon}
+                        onSelectPokemon={handleSelectPokemon}
+                    />
 
-                        <p className="mt-1 text-sm text-gray-600">
-                            名前・かな・タイプから登録するポケモンを探せます。
-                        </p>
-
-                        <div className="mt-4">
-                            <PokemonSearchSelector
-                                pokemonList={pokemonList}
-                                searchKeyword={searchKeyword}
-                                onChangeSearchKeyword={setSearchKeyword}
-                                selectedTypes={selectedTypes}
-                                onChangeSelectedTypes={setSelectedTypes}
-                                filterPokemon={(pokemon) =>
-                                    !isMegaForm(pokemon) &&
-                                    isPokemonAvailableForRule(
-                                        pokemon,
-                                        party.rule,
-                                    )
-                                }
-                                isPokemonSelected={(pokemon) =>
-                                    pokemon.key === pokemonKey &&
-                                    pokemon.form_key === formKey
-                                }
-                                isPokemonDisabled={isAlreadyRegisteredPokemon}
-                                getPokemonStatusLabel={(pokemon) => {
-                                    if (isAlreadyRegisteredPokemon(pokemon)) {
-                                        return "登録済み";
-                                    }
-
-                                    if (
-                                        pokemon.key === pokemonKey &&
-                                        pokemon.form_key === formKey
-                                    ) {
-                                        return "選択中";
-                                    }
-
-                                    return null;
-                                }}
-                                onSelectPokemon={(pokemon) => {
-                                    if (isAlreadyRegisteredPokemon(pokemon)) {
-                                        return;
-                                    }
-
-                                    handleSelectPokemon(pokemon);
-                                }}
-                            />
-                        </div>
-
-                        <SelectedPokemonPreviewCard
-                            pokemonKey={pokemonKey}
-                            selectedPokemonMaster={selectedPokemonMaster}
-                        />
-                    </section>
+                    <SelectedPokemonPreviewCard
+                        pokemonKey={pokemonKey}
+                        selectedPokemonMaster={selectedPokemonMaster}
+                    />
 
                     <section className="rounded border bg-white p-5">
                         <h2 className="text-lg font-bold">型・技情報</h2>
