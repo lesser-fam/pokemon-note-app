@@ -29,6 +29,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { FormEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
+import { getEditablePokemonListValidationMessage } from "@/features/partyVersions/utils/getEditablePokemonListValidationMessage";
 
 export default function CreatePartyVersionPage() {
     const router = useRouter();
@@ -277,20 +278,11 @@ export default function CreatePartyVersionPage() {
         );
 
         if (!validationResult.isValid) {
-            if (validationResult.error === "invalid_effort_values") {
-                setErrorMessage(
-                    `${effortValueLimits.label}では、努力値は1項目${effortValueLimits.singleLimit}まで、合計${effortValueLimits.totalLimit}までです。`,
-                );
-                return;
-            }
-
-            if (validationResult.error === "duplicated_items") {
-                setErrorMessage("同じ持ち物は同じパーティに登録できません。");
-                return;
-            }
-
             setErrorMessage(
-                "同じポケモンに同じ技を複数登録することはできません。",
+                getEditablePokemonListValidationMessage(
+                    validationResult.error,
+                    effortValueLimits,
+                ),
             );
             return;
         }
