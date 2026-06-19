@@ -2,12 +2,10 @@
 
 import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
 import { BattleLogCreateNavigationSection } from "@/features/battlePreview/components/BattleLogCreateNavigationSection";
+import { BattlePreviewDetailAnalysisSection } from "@/features/battlePreview/components/BattlePreviewDetailAnalysisSection";
 import { BattlePreviewHeader } from "@/features/battlePreview/components/BattlePreviewHeader";
-import { DefensiveMatchupSection } from "@/features/battlePreview/components/DefensiveMatchupSection";
 import { MatchupSelectionSuggestionsSection } from "@/features/battlePreview/components/MatchupSelectionSuggestionsSection";
 import { NextBattleActionSuggestions } from "@/features/battlePreview/components/NextBattleActionSuggestions";
-import { OffensiveMatchupSection } from "@/features/battlePreview/components/OffensiveMatchupSection";
-import { OpponentPartyAnalysisSection } from "@/features/battlePreview/components/OpponentPartyAnalysisSection";
 import { OpponentPartyColumn } from "@/features/battlePreview/components/OpponentPartyColumn";
 import { OpponentPokemonSearchSection } from "@/features/battlePreview/components/OpponentPokemonSearchSection";
 import { OwnPartyColumn } from "@/features/battlePreview/components/OwnPartyColumn";
@@ -37,7 +35,6 @@ import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { OwnSelectionCandidatesSection } from "@/features/battlePreview/components/OwnSelectionCandidatesSection";
 
 type PokemonAbilityCandidate = PokemonAbilityWarning["abilities"][number];
 
@@ -629,57 +626,18 @@ export default function BattlePreviewPage() {
                         selectionPokemonLimit={ruleConfig.selectionPokemonLimit}
                     />
 
-                    <details className="rounded border bg-white p-3">
-                        <summary className="cursor-pointer text-sm font-bold">
-                            詳細分析を見る
-                        </summary>
-
-                        <div className="mt-6 space-y-8">
-                            <OpponentPartyAnalysisSection
-                                opponentPokemonCount={
-                                    opponentPokemonList.length
-                                }
-                                opponentAnalysis={opponentAnalysis}
-                                opponentWeaknessAnalysis={
-                                    opponentWeaknessAnalysis
-                                }
-                            />
-
-                            <OffensiveMatchupSection
-                                opponentPokemonCount={
-                                    opponentPokemonList.length
-                                }
-                                currentPokemonCount={currentPokemonList.length}
-                                offensiveMatchupResults={
-                                    offensiveMatchupResults
-                                }
-                                pokemonList={pokemonList}
-                            />
-
-                            <DefensiveMatchupSection
-                                opponentPokemonCount={
-                                    opponentPokemonList.length
-                                }
-                                currentPokemonCount={currentPokemonList.length}
-                                defensiveMatchupResults={
-                                    defensiveMatchupResults
-                                }
-                                pokemonList={pokemonList}
-                            />
-
-                            <OwnSelectionCandidatesSection
-                                savedSelectionTemplates={
-                                    savedSelectionTemplates
-                                }
-                                suggestedSelection={suggestedSelection}
-                                currentPokemonCount={currentPokemonList.length}
-                                selectionPokemonLimit={
-                                    ruleConfig.selectionPokemonLimit
-                                }
-                                pokemonList={pokemonList}
-                            />
-                        </div>
-                    </details>
+                    <BattlePreviewDetailAnalysisSection
+                        opponentPokemonCount={opponentPokemonList.length}
+                        currentPokemonCount={currentPokemonList.length}
+                        selectionPokemonLimit={ruleConfig.selectionPokemonLimit}
+                        opponentAnalysis={opponentAnalysis}
+                        opponentWeaknessAnalysis={opponentWeaknessAnalysis}
+                        offensiveMatchupResults={offensiveMatchupResults}
+                        defensiveMatchupResults={defensiveMatchupResults}
+                        savedSelectionTemplates={savedSelectionTemplates}
+                        suggestedSelection={suggestedSelection}
+                        pokemonList={pokemonList}
+                    />
                 </div>
 
                 <div className="xl:sticky xl:top-4">
