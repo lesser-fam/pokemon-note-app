@@ -94,6 +94,9 @@ export default function CreatePartyPokemonPage() {
         memo,
         setMemo,
 
+        effortValues,
+        moves,
+
         updateEffortValue,
         updateMove,
     } = usePartyPokemonForm();
@@ -411,38 +414,10 @@ export default function CreatePartyPokemonPage() {
                                     setNatureId(option.id);
                                     setSelectedNatureMaster(option);
                                 }}
-                                effortValues={{
-                                    h: evH,
-                                    a: evA,
-                                    b: evB,
-                                    c: evC,
-                                    d: evD,
-                                    s: evS,
-                                }}
+                                effortValues={effortValues}
                                 effortValueLimits={effortValueLimits}
                                 onChangeEffortValue={updateEffortValue}
-                                moves={[
-                                    {
-                                        name: move1,
-                                        id: move1Id,
-                                        type: move1Type,
-                                    },
-                                    {
-                                        name: move2,
-                                        id: move2Id,
-                                        type: move2Type,
-                                    },
-                                    {
-                                        name: move3,
-                                        id: move3Id,
-                                        type: move3Type,
-                                    },
-                                    {
-                                        name: move4,
-                                        id: move4Id,
-                                        type: move4Type,
-                                    },
-                                ]}
+                                moves={moves}
                                 onChangeMove={updateMove}
                                 memo={memo}
                                 onChangeMemo={setMemo}

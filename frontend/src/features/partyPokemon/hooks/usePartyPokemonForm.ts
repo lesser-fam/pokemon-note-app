@@ -1,6 +1,13 @@
 import { useState } from "react";
-
 import type { NatureMaster } from "@/types/battleMaster";
+
+type EditableMove = {
+    name: string;
+    id: number | null;
+    type: string;
+};
+
+type EditableMoves = [EditableMove, EditableMove, EditableMove, EditableMove];
 
 export const usePartyPokemonForm = () => {
     const [nickname, setNickname] = useState("");
@@ -104,6 +111,38 @@ export const usePartyPokemonForm = () => {
         setter.setType(move.type);
     };
 
+    const effortValues = {
+        h: evH,
+        a: evA,
+        b: evB,
+        c: evC,
+        d: evD,
+        s: evS,
+    };
+
+    const moves: EditableMoves = [
+        {
+            name: move1,
+            id: move1Id,
+            type: move1Type,
+        },
+        {
+            name: move2,
+            id: move2Id,
+            type: move2Type,
+        },
+        {
+            name: move3,
+            id: move3Id,
+            type: move3Type,
+        },
+        {
+            name: move4,
+            id: move4Id,
+            type: move4Type,
+        },
+    ];
+
     return {
         nickname,
         setNickname,
@@ -169,6 +208,9 @@ export const usePartyPokemonForm = () => {
 
         memo,
         setMemo,
+
+        effortValues,
+        moves,
 
         updateEffortValue,
         updateMove,
