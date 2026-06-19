@@ -8,8 +8,10 @@ import {
 } from "@/features/master/api/masterApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { createPartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
+import { PartyPokemonSearchSection } from "@/features/partyPokemon/components/PartyPokemonSearchSection";
 import { PokemonBuildEditor } from "@/features/partyPokemon/components/PokemonBuildEditor";
 import { SelectedPokemonPreviewCard } from "@/features/partyPokemon/components/SelectedPokemonPreviewCard";
+import { usePartyPokemonForm } from "@/features/partyPokemon/hooks/usePartyPokemonForm";
 import { toggleRoleTagId } from "@/features/partyPokemon/utils/toggleRoleTagId";
 import { validatePartyPokemonInput } from "@/features/partyPokemon/utils/validatePartyPokemonInput";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
@@ -17,14 +19,12 @@ import {
     getEffortValueLimits,
     getPartyRuleConfig,
 } from "@/features/pokemonRules/partyRuleConfig";
-import type { NatureMaster } from "@/types/battleMaster";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { RoleTag } from "@/types/roleTag";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { PartyPokemonSearchSection } from "@/features/partyPokemon/components/PartyPokemonSearchSection";
 
 export default function CreatePartyPokemonPage() {
     const router = useRouter();
@@ -44,44 +44,59 @@ export default function CreatePartyPokemonPage() {
     const [formKey, setFormKey] = useState("default");
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-    const [nickname, setNickname] = useState("");
-
-    const [item, setItem] = useState("");
-    const [itemId, setItemId] = useState<number | null>(null);
-
-    const [ability, setAbility] = useState("");
-    const [abilityId, setAbilityId] = useState<number | null>(null);
-
-    const [nature, setNature] = useState("");
-    const [natureId, setNatureId] = useState<number | null>(null);
-    const [selectedNatureMaster, setSelectedNatureMaster] =
-        useState<NatureMaster | null>(null);
-
-    const [evH, setEvH] = useState("0");
-    const [evA, setEvA] = useState("0");
-    const [evB, setEvB] = useState("0");
-    const [evC, setEvC] = useState("0");
-    const [evD, setEvD] = useState("0");
-    const [evS, setEvS] = useState("0");
-
-    const [move1, setMove1] = useState("");
-    const [move1Id, setMove1Id] = useState<number | null>(null);
-    const [move1Type, setMove1Type] = useState("");
-
-    const [move2, setMove2] = useState("");
-    const [move2Id, setMove2Id] = useState<number | null>(null);
-    const [move2Type, setMove2Type] = useState("");
-
-    const [move3, setMove3] = useState("");
-    const [move3Id, setMove3Id] = useState<number | null>(null);
-    const [move3Type, setMove3Type] = useState("");
-
-    const [move4, setMove4] = useState("");
-    const [move4Id, setMove4Id] = useState<number | null>(null);
-    const [move4Type, setMove4Type] = useState("");
-
-    const [memo, setMemo] = useState("");
     const [selectedRoleTagIds, setSelectedRoleTagIds] = useState<number[]>([]);
+
+    const {
+        nickname,
+        setNickname,
+
+        item,
+        setItem,
+        itemId,
+        setItemId,
+
+        ability,
+        setAbility,
+        abilityId,
+        setAbilityId,
+        resetAbility,
+
+        nature,
+        setNature,
+        natureId,
+        setNatureId,
+        selectedNatureMaster,
+        setSelectedNatureMaster,
+
+        evH,
+        evA,
+        evB,
+        evC,
+        evD,
+        evS,
+
+        move1,
+        move1Id,
+        move1Type,
+
+        move2,
+        move2Id,
+        move2Type,
+
+        move3,
+        move3Id,
+        move3Type,
+
+        move4,
+        move4Id,
+        move4Type,
+
+        memo,
+        setMemo,
+
+        updateEffortValue,
+        updateMove,
+    } = usePartyPokemonForm();
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,8 +131,7 @@ export default function CreatePartyPokemonPage() {
         setPokemonKey(pokemon.key);
         setFormKey(pokemon.form_key);
 
-        setAbility("");
-        setAbilityId(null);
+        resetAbility();
     };
 
     const handleToggleRoleTag = (roleTagId: number) => {
@@ -406,18 +420,7 @@ export default function CreatePartyPokemonPage() {
                                     s: evS,
                                 }}
                                 effortValueLimits={effortValueLimits}
-                                onChangeEffortValue={(statKey, value) => {
-                                    const setterMap = {
-                                        h: setEvH,
-                                        a: setEvA,
-                                        b: setEvB,
-                                        c: setEvC,
-                                        d: setEvD,
-                                        s: setEvS,
-                                    };
-
-                                    setterMap[statKey](value);
-                                }}
+                                onChangeEffortValue={updateEffortValue}
                                 moves={[
                                     {
                                         name: move1,
@@ -440,40 +443,7 @@ export default function CreatePartyPokemonPage() {
                                         type: move4Type,
                                     },
                                 ]}
-                                onChangeMove={(moveIndex, move) => {
-                                    const setterList = [
-                                        {
-                                            setName: setMove1,
-                                            setId: setMove1Id,
-                                            setType: setMove1Type,
-                                        },
-                                        {
-                                            setName: setMove2,
-                                            setId: setMove2Id,
-                                            setType: setMove2Type,
-                                        },
-                                        {
-                                            setName: setMove3,
-                                            setId: setMove3Id,
-                                            setType: setMove3Type,
-                                        },
-                                        {
-                                            setName: setMove4,
-                                            setId: setMove4Id,
-                                            setType: setMove4Type,
-                                        },
-                                    ];
-
-                                    const setter = setterList[moveIndex];
-
-                                    if (!setter) {
-                                        return;
-                                    }
-
-                                    setter.setName(move.name);
-                                    setter.setId(move.id);
-                                    setter.setType(move.type);
-                                }}
+                                onChangeMove={updateMove}
                                 memo={memo}
                                 onChangeMemo={setMemo}
                                 roleTags={roleTags}
