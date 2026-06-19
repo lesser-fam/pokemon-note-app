@@ -1,7 +1,6 @@
 "use client";
 
 import { AppHeader } from "@/components/AppHeader";
-import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import {
     fetchNatureList,
     fetchPokemonList,
@@ -9,15 +8,14 @@ import {
 } from "@/features/master/api/masterApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { fetchParty } from "@/features/parties/api/partyApi";
-import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
 import { createNewPartyVersion } from "@/features/partyVersions/api/partyVersionApi";
 import { EditablePokemonCardList } from "@/features/partyVersions/components/EditablePokemonCardList";
 import { EditablePokemonEditorSection } from "@/features/partyVersions/components/EditablePokemonEditorSection";
+import { EditablePokemonSearchSection } from "@/features/partyVersions/components/EditablePokemonSearchSection";
 import { useEditablePokemonList } from "@/features/partyVersions/hooks/useEditablePokemonList";
 import { usePartyVersionPokemonSelection } from "@/features/partyVersions/hooks/usePartyVersionPokemonSelection";
 import { convertPartyPokemonToEditablePokemon } from "@/features/partyVersions/utils/editablePokemon";
 import { validateEditablePokemonList } from "@/features/partyVersions/utils/validateEditablePokemonList";
-import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
 import {
     getEffortValueLimits,
@@ -481,88 +479,28 @@ export default function CreatePartyVersionPage() {
                             />
                         )}
 
-                        <div
-                            ref={pokemonSearchSectionRef}
-                            className="mt-8 scroll-mt-4 rounded bg-gray-50 p-4"
-                        >
-                            <div className="flex items-center justify-between gap-4">
-                                <div>
-                                    <h3 className="font-bold">
-                                        {replaceTargetIndex === null
-                                            ? "ポケモンを追加"
-                                            : `${replaceTargetIndex + 1}匹目を入れ替え`}
-                                    </h3>
-                                    <p className="mt-1 text-sm text-gray-600">
-                                        {replaceTargetIndex === null
-                                            ? `${ruleConfig.partyPokemonLimit}匹未満の場合、ここからポケモンを追加できます。`
-                                            : "選んだポケモンでこの枠を入れ替えます。"}
-                                    </p>
-                                </div>
+                        <EditablePokemonSearchSection
+                            sectionRef={pokemonSearchSectionRef}
+                            replaceTargetIndex={replaceTargetIndex}
+                            editablePokemonCount={editablePokemonList.length}
+                            partyPokemonLimit={ruleConfig.partyPokemonLimit}
+                            partyRule={party.rule}
+                            pokemonList={pokemonList}
+                            searchKeyword={searchKeyword}
+                            selectedTypes={selectedTypes}
+                            onChangeSearchKeyword={setSearchKeyword}
+                            onChangeSelectedTypes={setSelectedTypes}
+                            onCancelReplacingPokemon={cancelReplacingPokemon}
+                            isPokemonDisabled={isAlreadySelectedPokemon}
+                            onSelectPokemon={(pokemon) => {
+                                if (replaceTargetIndex === null) {
+                                    handleAddPokemon(pokemon);
+                                    return;
+                                }
 
-                                {replaceTargetIndex !== null && (
-                                    <button
-                                        type="button"
-                                        onClick={cancelReplacingPokemon}
-                                        className="text-sm text-blue-600"
-                                    >
-                                        入れ替えをやめる
-                                    </button>
-                                )}
-                            </div>
-
-                            {replaceTargetIndex === null &&
-                            editablePokemonList.length >=
-                                ruleConfig.partyPokemonLimit ? (
-                                <p className="mt-4 rounded bg-white p-4 text-sm text-gray-600">
-                                    すでに{ruleConfig.partyPokemonLimit}
-                                    匹そろっています。入れ替えたいポケモンを選択し、
-                                    「入れ替え」ボタンを押してください。
-                                </p>
-                            ) : (
-                                <div className="mt-4">
-                                    <PokemonSearchSelector
-                                        pokemonList={pokemonList}
-                                        searchKeyword={searchKeyword}
-                                        onChangeSearchKeyword={setSearchKeyword}
-                                        clearSearchKeywordOnSelect
-                                        selectedTypes={selectedTypes}
-                                        onChangeSelectedTypes={setSelectedTypes}
-                                        filterPokemon={(pokemon) =>
-                                            !isMegaForm(pokemon) &&
-                                            isPokemonAvailableForRule(
-                                                pokemon,
-                                                party.rule,
-                                            )
-                                        }
-                                        isPokemonDisabled={
-                                            isAlreadySelectedPokemon
-                                        }
-                                        getPokemonStatusLabel={(pokemon) =>
-                                            isAlreadySelectedPokemon(pokemon)
-                                                ? "選択済み"
-                                                : null
-                                        }
-                                        onSelectPokemon={(pokemon) => {
-                                            if (
-                                                isAlreadySelectedPokemon(
-                                                    pokemon,
-                                                )
-                                            ) {
-                                                return;
-                                            }
-
-                                            if (replaceTargetIndex === null) {
-                                                handleAddPokemon(pokemon);
-
-                                                return;
-                                            }
-
-                                            handleReplacePokemon(pokemon);
-                                        }}
-                                    />
-                                </div>
-                            )}
-                        </div>
+                                handleReplacePokemon(pokemon);
+                            }}
+                        />
                     </section>
 
                     {errorMessage && (
