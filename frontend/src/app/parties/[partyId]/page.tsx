@@ -7,6 +7,7 @@ import { summarizeBattleLogs } from "@/features/battleLogs/utils/summarizeBattle
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { deleteParty, fetchParty } from "@/features/parties/api/partyApi";
+import { BattleLogListSection } from "@/features/parties/components/BattleLogListSection";
 import { BattleLogSummarySection } from "@/features/parties/components/BattleLogSummarySection";
 import { PartyDetailHeader } from "@/features/parties/components/PartyDetailHeader";
 import { PartyDetailNavigationLinks } from "@/features/parties/components/PartyDetailNavigationLinks";
@@ -14,6 +15,7 @@ import { PartyVersionHistory } from "@/features/parties/components/PartyVersionH
 import { RegisteredPartyPokemonSection } from "@/features/parties/components/RegisteredPartyPokemonSection";
 import { SavedSelectionTemplatesSection } from "@/features/parties/components/SavedSelectionTemplatesSection";
 import { SuggestedSelectionSection } from "@/features/parties/components/SuggestedSelectionSection";
+import { canRemoveInitialPartyPokemon } from "@/features/parties/utils/canRemoveInitialPartyPokemon";
 import { deletePartyPokemon } from "@/features/partyPokemon/api/partyPokemonApi";
 import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
@@ -21,13 +23,12 @@ import {
     createSelectionTemplate,
     deleteSelectionTemplate,
 } from "@/features/selectionTemplates/api/selectionTemplateApi";
+import { createSuggestedSelectionTemplatePayload } from "@/features/selectionTemplates/utils/createSuggestedSelectionTemplatePayload";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BattleLogListSection } from "@/features/parties/components/BattleLogListSection";
-import { createSuggestedSelectionTemplatePayload } from "@/features/selectionTemplates/utils/createSuggestedSelectionTemplatePayload";
 
 export default function PartyDetailPage() {
     const router = useRouter();
@@ -103,12 +104,11 @@ export default function PartyDetailPage() {
     const battleLogs = party.current_version?.battle_logs ?? [];
     const battleLogSummary = summarizeBattleLogs(battleLogs);
 
-    const canRemoveInitialPokemon =
-        party.current_version?.is_current === true &&
-        party.current_version.version_number === 1 &&
-        currentPokemonList.length < ruleConfig.partyPokemonLimit &&
-        (party.current_version.selection_templates?.length ?? 0) === 0 &&
-        (party.current_version.battle_logs?.length ?? 0) === 0;
+    const canRemoveInitialPokemon = canRemoveInitialPartyPokemon({
+        currentVersion: party.current_version,
+        currentPokemonCount: currentPokemonList.length,
+        partyPokemonLimit: ruleConfig.partyPokemonLimit,
+    });
 
     const refreshParty = async () => {
         const refreshedParty = await fetchParty(party.id);
