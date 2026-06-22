@@ -11,7 +11,10 @@ import { OpponentPokemonSearchSection } from "@/features/battlePreview/component
 import { OwnPartyColumn } from "@/features/battlePreview/components/OwnPartyColumn";
 import { StatComparisonModeSection } from "@/features/battlePreview/components/StatComparisonModeSection";
 import { useActionOwnPokemon } from "@/features/battlePreview/hooks/useActionOwnPokemon";
+import { useBattlePreviewData } from "@/features/battlePreview/hooks/useBattlePreviewData";
+import { useOpponentPokemonBattleData } from "@/features/battlePreview/hooks/useOpponentPokemonBattleData";
 import { useOpponentPokemonList } from "@/features/battlePreview/hooks/useOpponentPokemonList";
+import { useOwnPokemonOverrides } from "@/features/battlePreview/hooks/useOwnPokemonOverrides";
 import { useSelectedPartyPokemonIds } from "@/features/battlePreview/hooks/useSelectedPartyPokemonIds";
 import { useStatComparisonMode } from "@/features/battlePreview/hooks/useStatComparisonMode";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
@@ -19,20 +22,15 @@ import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeO
 import { createBattleLogCreateNavigation } from "@/features/battlePreview/utils/createBattleLogCreateNavigation";
 import { createEffectivePartyPokemonList } from "@/features/battlePreview/utils/createEffectivePartyPokemonList";
 import { getHighlightedStatsByComparisonMode } from "@/features/battlePreview/utils/getHighlightedStatsByComparisonMode";
-import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
-import { fetchParty } from "@/features/parties/api/partyApi";
 import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
 import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
-import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useOwnPokemonOverrides } from "@/features/battlePreview/hooks/useOwnPokemonOverrides";
-import { useOpponentPokemonBattleData } from "@/features/battlePreview/hooks/useOpponentPokemonBattleData";
+import { useState } from "react";
 
 // Add Champions Pokemon
 // import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
@@ -42,8 +40,11 @@ export default function BattlePreviewPage() {
     const partyId = Number(params.partyId);
     const isInvalidPartyId = Number.isNaN(partyId);
 
-    const [party, setParty] = useState<Party | null>(null);
-    const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
+    const { party, pokemonList, isLoading, errorMessage } =
+        useBattlePreviewData({
+            partyId,
+            isInvalidPartyId,
+        });
 
     const ruleConfig = getPartyRuleConfig(party?.rule ?? "main_series");
 
@@ -80,34 +81,6 @@ export default function BattlePreviewPage() {
 
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-
-    const [isLoading, setIsLoading] = useState(true);
-    const [errorMessage, setErrorMessage] = useState("");
-
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                const [partyData, pokemonData] = await Promise.all([
-                    fetchParty(partyId),
-                    fetchPokemonList(),
-                ]);
-
-                setParty(partyData);
-                setPokemonList(pokemonData);
-            } catch (error) {
-                console.error(error);
-                setErrorMessage("必要なデータの取得に失敗しました。");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        if (isInvalidPartyId) {
-            return;
-        }
-
-        loadData();
-    }, [partyId, isInvalidPartyId]);
 
     // Add Champions Pokemon
     // useEffect(() => {
