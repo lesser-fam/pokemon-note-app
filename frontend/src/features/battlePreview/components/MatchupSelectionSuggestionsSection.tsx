@@ -49,7 +49,10 @@ export const MatchupSelectionSuggestionsSection = ({
     onSelectSuggestion,
 }: MatchupSelectionSuggestionsSectionProps) => {
     return (
-        <section className="rounded border bg-white p-3">
+        <section
+            id="matchup-selection-suggestions"
+            className="rounded border bg-white p-3"
+        >
             <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-bold">おすすめ選出β</h2>
 

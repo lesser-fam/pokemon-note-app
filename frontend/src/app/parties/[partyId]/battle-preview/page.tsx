@@ -31,6 +31,7 @@ import { suggestMatchupSelections } from "@/features/selections/utils/suggestMat
 import type { Pokemon } from "@/types/pokemon";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { BattlePreviewRecommendationNotice } from "@/features/battlePreview/components/BattlePreviewRecommendationNotice";
 
 // Add Champions Pokemon
 // import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
@@ -263,6 +264,11 @@ export default function BattlePreviewPage() {
 
                 <div className="min-w-0 space-y-3 xl:max-h-[calc(100vh-1rem)] xl:overflow-y-auto xl:pr-1">
                     <BattlePreviewHeader partyId={party.id} />
+
+                    <BattlePreviewRecommendationNotice
+                        opponentPokemonCount={opponentPokemonList.length}
+                        suggestionCount={matchupSelectionSuggestions.length}
+                    />
 
                     <OpponentPokemonSearchSection
                         partyRule={party.rule}
