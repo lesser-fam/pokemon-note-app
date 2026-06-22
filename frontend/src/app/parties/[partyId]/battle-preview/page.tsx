@@ -19,7 +19,6 @@ import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeO
 import { createBattleLogCreateNavigation } from "@/features/battlePreview/utils/createBattleLogCreateNavigation";
 import { createEffectivePartyPokemonList } from "@/features/battlePreview/utils/createEffectivePartyPokemonList";
 import { getHighlightedStatsByComparisonMode } from "@/features/battlePreview/utils/getHighlightedStatsByComparisonMode";
-import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
@@ -36,11 +35,10 @@ import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useOwnPokemonOverrides } from "@/features/battlePreview/hooks/useOwnPokemonOverrides";
 
 // Add Champions Pokemon
 // import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
-
-type PokemonAbilityCandidate = PokemonAbilityWarning["abilities"][number];
 
 export default function BattlePreviewPage() {
     const params = useParams<{ partyId: string }>();
@@ -84,12 +82,6 @@ export default function BattlePreviewPage() {
 
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-
-    const [ownPokemonFormOverrides, setOwnPokemonFormOverrides] = useState<
-        Record<number, string>
-    >({});
-    const [ownPokemonAbilityOverrides, setOwnPokemonAbilityOverrides] =
-        useState<Record<number, PokemonAbilityCandidate | null>>({});
 
     const [pokemonCommonMoves, setPokemonCommonMoves] = useState<
         PokemonCommonMove[]
@@ -190,102 +182,6 @@ export default function BattlePreviewPage() {
     //     console.log("matched", result.matched);
     // }, [pokemonList]);
 
-    const handleChangeOwnPokemonForm = async (
-        partyPokemonId: number,
-        nextPokemon: Pokemon,
-    ) => {
-        const originalPartyPokemon = currentPokemonList.find(
-            (partyPokemon) => partyPokemon.id === partyPokemonId,
-        );
-
-        if (!originalPartyPokemon) {
-            return;
-        }
-
-        const isNextMegaForm = isMegaForm(nextPokemon);
-
-        setOwnPokemonFormOverrides((currentOverrides) => {
-            const nextOverrides = {
-                ...currentOverrides,
-            };
-
-            if (isNextMegaForm) {
-                currentPokemonList.forEach((partyPokemon) => {
-                    if (partyPokemon.id === partyPokemonId) {
-                        return;
-                    }
-
-                    delete nextOverrides[partyPokemon.id];
-                });
-            }
-
-            if (nextPokemon.form_key === originalPartyPokemon.form_key) {
-                delete nextOverrides[partyPokemonId];
-
-                return nextOverrides;
-            }
-
-            nextOverrides[partyPokemonId] = nextPokemon.form_key;
-
-            return nextOverrides;
-        });
-
-        if (isNextMegaForm) {
-            setOwnPokemonAbilityOverrides((currentOverrides) => {
-                const nextOverrides = {
-                    ...currentOverrides,
-                };
-
-                currentPokemonList.forEach((partyPokemon) => {
-                    if (partyPokemon.id === partyPokemonId) {
-                        return;
-                    }
-
-                    delete nextOverrides[partyPokemon.id];
-                });
-
-                return nextOverrides;
-            });
-        }
-
-        if (nextPokemon.form_key === originalPartyPokemon.form_key) {
-            setOwnPokemonAbilityOverrides((currentOverrides) => {
-                const nextOverrides = {
-                    ...currentOverrides,
-                };
-
-                delete nextOverrides[partyPokemonId];
-
-                return nextOverrides;
-            });
-
-            return;
-        }
-
-        try {
-            const data = await fetchPokemonAbilityWarnings([
-                `${nextPokemon.key}:${nextPokemon.form_key}`,
-            ]);
-
-            const abilityCandidates = data[0]?.abilities ?? [];
-
-            const temporaryAbility =
-                abilityCandidates.length === 1 ? abilityCandidates[0] : null;
-
-            setOwnPokemonAbilityOverrides((currentOverrides) => ({
-                ...currentOverrides,
-                [partyPokemonId]: temporaryAbility,
-            }));
-        } catch (error) {
-            console.error(error);
-
-            setOwnPokemonAbilityOverrides((currentOverrides) => ({
-                ...currentOverrides,
-                [partyPokemonId]: null,
-            }));
-        }
-    };
-
     const { ownHighlightedStats, opponentHighlightedStats } =
         getHighlightedStatsByComparisonMode(comparisonMode);
 
@@ -304,6 +200,14 @@ export default function BattlePreviewPage() {
     };
 
     const currentPokemonList = party?.current_version?.pokemon ?? [];
+
+    const {
+        ownPokemonFormOverrides,
+        ownPokemonAbilityOverrides,
+        handleChangeOwnPokemonForm,
+    } = useOwnPokemonOverrides({
+        currentPokemonList,
+    });
 
     const effectiveCurrentPokemonList = createEffectivePartyPokemonList({
         currentPokemonList,
