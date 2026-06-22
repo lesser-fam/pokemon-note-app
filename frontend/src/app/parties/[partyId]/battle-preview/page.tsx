@@ -20,10 +20,8 @@ import { createBattleLogCreateNavigation } from "@/features/battlePreview/utils/
 import { createEffectivePartyPokemonList } from "@/features/battlePreview/utils/createEffectivePartyPokemonList";
 import { getHighlightedStatsByComparisonMode } from "@/features/battlePreview/utils/getHighlightedStatsByComparisonMode";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
-import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { fetchParty } from "@/features/parties/api/partyApi";
-import { fetchPokemonCommonMoves } from "@/features/pokemonCommonMoves/api/pokemonCommonMoveApi";
 import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
@@ -31,11 +29,10 @@ import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicS
 import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
-import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
-import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useOwnPokemonOverrides } from "@/features/battlePreview/hooks/useOwnPokemonOverrides";
+import { useOpponentPokemonBattleData } from "@/features/battlePreview/hooks/useOpponentPokemonBattleData";
 
 // Add Champions Pokemon
 // import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
@@ -76,16 +73,13 @@ export default function BattlePreviewPage() {
         partyPokemonLimit: ruleConfig.partyPokemonLimit,
     });
 
-    const [pokemonAbilityWarnings, setPokemonAbilityWarnings] = useState<
-        PokemonAbilityWarning[]
-    >([]);
+    const { pokemonAbilityWarnings, pokemonCommonMoves } =
+        useOpponentPokemonBattleData({
+            opponentPokemonList,
+        });
 
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-
-    const [pokemonCommonMoves, setPokemonCommonMoves] = useState<
-        PokemonCommonMove[]
-    >([]);
 
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
@@ -114,57 +108,6 @@ export default function BattlePreviewPage() {
 
         loadData();
     }, [partyId, isInvalidPartyId]);
-
-    useEffect(() => {
-        const loadPokemonAbilityWarnings = async () => {
-            if (opponentPokemonList.length === 0) {
-                setPokemonAbilityWarnings([]);
-                return;
-            }
-
-            try {
-                const pokemonKeys = opponentPokemonList.map(
-                    (pokemon) => `${pokemon.key}:${pokemon.form_key}`,
-                );
-
-                const data = await fetchPokemonAbilityWarnings(pokemonKeys);
-
-                setPokemonAbilityWarnings(data);
-            } catch (error) {
-                console.error(error);
-                setPokemonAbilityWarnings([]);
-            }
-        };
-
-        loadPokemonAbilityWarnings();
-    }, [opponentPokemonList]);
-
-    useEffect(() => {
-        const loadPokemonCommonMoves = async () => {
-            if (opponentPokemonList.length === 0) {
-                setPokemonCommonMoves([]);
-                return;
-            }
-
-            try {
-                const commonMovesList = await Promise.all(
-                    opponentPokemonList.map((pokemon) =>
-                        fetchPokemonCommonMoves({
-                            pokemonKey: pokemon.key,
-                            formKey: pokemon.form_key,
-                        }),
-                    ),
-                );
-
-                setPokemonCommonMoves(commonMovesList.flat());
-            } catch (error) {
-                console.error(error);
-                setPokemonCommonMoves([]);
-            }
-        };
-
-        loadPokemonCommonMoves();
-    }, [opponentPokemonList]);
 
     // Add Champions Pokemon
     // useEffect(() => {
