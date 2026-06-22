@@ -3,6 +3,7 @@
 import { pokemonTypes } from "@/constants/pokemonTypes";
 import type { Pokemon } from "@/types/pokemon";
 import { toHiragana } from "@/utils/kana";
+import { getPokemonTypeMeta } from "@/features/pokemonTypes/pokemonTypeMeta";
 
 type PokemonSearchSelectorProps = {
     pokemonList: Pokemon[];
@@ -129,19 +130,20 @@ export function PokemonSearchSelector({
                     <div className="mt-2 grid grid-cols-6 gap-1">
                         {pokemonTypes.map((type) => {
                             const isSelected = selectedTypes.includes(type);
+                            const typeMeta = getPokemonTypeMeta(type);
 
                             return (
                                 <button
                                     key={type}
                                     type="button"
                                     onClick={() => handleToggleType(type)}
-                                    className={`whitespace-nowrap rounded-full border px-0.5 py-1 text-[9px] leading-none ${
+                                    className={`whitespace-wrap rounded-full border px-0.5 py-1 text-xs leading-none ${
                                         isSelected
-                                            ? "border-black bg-black text-white"
-                                            : "hover:bg-gray-50"
+                                            ? `${typeMeta.className} ring-2 ring-black`
+                                            : `${typeMeta.className} opacity-80 hover:opacity-100`
                                     }`}
                                 >
-                                    {type}
+                                    {typeMeta.label}
                                 </button>
                             );
                         })}

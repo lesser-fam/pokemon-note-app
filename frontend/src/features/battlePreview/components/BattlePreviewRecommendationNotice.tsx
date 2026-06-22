@@ -51,11 +51,11 @@ export const BattlePreviewRecommendationNotice = ({
                 </a>
             </div>
 
-            {suggestionCount > 0 && (
+            {/* {suggestionCount > 0 && (
                 <p className="mt-2 text-xs text-blue-800">
                     現在 {suggestionCount} 件の候補があります。
                 </p>
-            )}
+            )} */}
         </section>
     );
 };
