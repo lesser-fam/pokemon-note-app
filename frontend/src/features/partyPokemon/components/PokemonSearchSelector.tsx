@@ -137,7 +137,7 @@ export function PokemonSearchSelector({
                                     key={type}
                                     type="button"
                                     onClick={() => handleToggleType(type)}
-                                    className={`whitespace-wrap rounded-full border px-0.5 py-1 text-xs leading-none ${
+                                    className={`whitespace-nowrap rounded-full border px-0.5 py-1 text-[10px] leading-none ${
                                         isSelected
                                             ? `${typeMeta.className} ring-2 ring-black`
                                             : `${typeMeta.className} opacity-80 hover:opacity-100`
@@ -269,15 +269,27 @@ export function PokemonSearchSelector({
                                                 {pokemon.kana}
                                             </p>
 
-                                            <p
-                                                className={`mt-0.5 truncate ${
-                                                    isCompactLayout
-                                                        ? "text-[10px]"
-                                                        : "text-[11px]"
-                                                }`}
-                                            >
-                                                {pokemon.types.join(" / ")}
-                                            </p>
+                                            <div className="mt-1 flex flex-wrap gap-1">
+                                                {pokemon.types.map((type) => {
+                                                    const typeMeta =
+                                                        getPokemonTypeMeta(
+                                                            type,
+                                                        );
+
+                                                    return (
+                                                        <span
+                                                            key={type}
+                                                            className={`rounded-full border px-1.5 py-0.5 font-semibold leading-none ${typeMeta.className} ${
+                                                                isCompactLayout
+                                                                    ? "text-[9px]"
+                                                                    : "text-[10px]"
+                                                            }`}
+                                                        >
+                                                            {typeMeta.label}
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
 
                                             {statusLabel && (
                                                 <p
