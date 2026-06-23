@@ -21,6 +21,7 @@ class AuthController extends Controller
             'name'      => $validated['name'],
             'email'     => $validated['email'],
             'password'  => Hash::make($validated['password']),
+            'is_admin'  => false,
         ]);
 
         Auth::login($user);
@@ -70,7 +71,7 @@ class AuthController extends Controller
                 'id'        => $user->id,
                 'name'      => $user->name,
                 'email'     => $user->email,
-                'is_admin'  => $user->is_admin,
+                'is_admin'  => (bool) $user->is_admin,
             ],
         ]);
     }
