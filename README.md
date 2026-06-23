@@ -12,17 +12,17 @@
 
 ## 画面イメージ
 
-現在準備中です。後で主要画面のキャプチャを追加します。
+| ログイン | パーティ一覧 |
+| --- | --- |
+| ![ログイン画面](docs/screenshots/01-login.png) | ![パーティ一覧](docs/screenshots/02-parties.png) |
 
-- ログイン画面
-- パーティ一覧
-- パーティ詳細
-- ポケモン登録
-- 新バージョン作成
-- 対戦前選出
-- 選出練習
-- 対戦ログ作成
-- 相手パーティテンプレート管理
+| パーティ詳細 | 対戦前選出 |
+| --- | --- |
+| ![パーティ詳細](docs/screenshots/03-party-detail.png) | ![対戦前選出](docs/screenshots/04-battle-preview.png) |
+
+| 選出練習 | 対戦ログ作成 |
+| --- | --- |
+| ![選出練習](docs/screenshots/05-selection-practice.png) | ![対戦ログ作成](docs/screenshots/06-battle-log-create.png) |
 
 ## 主な機能
 
@@ -429,18 +429,11 @@ erDiagram
 
 ## 要件定義・設計資料
 
-現在準備中です。後で以下の資料を追加します。
-
-- 要件定義書
-- 基本設計書
-- 画面設計
-- API設計
-- DB設計
+- [要件定義書](docs/requirements.md)
+- [設計書](docs/design.md)
 
 ## 今後の改善予定
 
-- READMEへの画面キャプチャ追加
-- 要件定義書、設計書の追加
 - 主要機能のテスト追加
 - 管理者向け機能の権限整理
 - UIの細部調整
