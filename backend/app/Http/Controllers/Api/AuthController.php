@@ -66,12 +66,12 @@ class AuthController extends Controller
         $user = $request->user();
 
         return response()->json([
-
-            'id'        => $user->id,
-            'name'      => $user->name,
-            'email'     => $user->email,
-            'is_admin'  => $user->is_admin,
-
+            'user' => [
+                'id'        => $user->id,
+                'name'      => $user->name,
+                'email'     => $user->email,
+                'is_admin'  => $user->is_admin,
+            ],
         ]);
     }
 }
