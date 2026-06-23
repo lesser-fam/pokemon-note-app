@@ -63,9 +63,16 @@ export default function PartyDetailPage() {
     const ruleConfig = party ? getPartyRuleConfig(party.rule) : null;
 
     const currentPokemonList = party?.current_version?.pokemon ?? [];
+    const allVersionPokemonList =
+        party?.versions?.flatMap((version) => version.pokemon ?? []) ??
+        currentPokemonList;
     const suggestedSelection = suggestBasicSelection(currentPokemonList);
-    const battleLogs = party?.current_version?.battle_logs ?? [];
-    const battleLogSummary = summarizeBattleLogs(battleLogs);
+    const currentBattleLogs = party?.current_version?.battle_logs ?? [];
+    const allBattleLogs =
+        party?.versions?.flatMap((version) => version.battle_logs ?? []) ??
+        currentBattleLogs;
+    const currentBattleLogSummary = summarizeBattleLogs(currentBattleLogs);
+    const allBattleLogSummary = summarizeBattleLogs(allBattleLogs);
 
     const {
         isSavingSelection,
@@ -162,15 +169,27 @@ export default function PartyDetailPage() {
                     />
                 </section>
 
-                <BattleLogSummarySection
-                    battleLogSummary={battleLogSummary}
-                    currentPokemonList={currentPokemonList}
-                    pokemonList={pokemonList}
-                />
+                <div className="grid gap-5 xl:grid-cols-2">
+                    <BattleLogSummarySection
+                        title="現在バージョンの対戦ログ集計"
+                        description="今のパーティ構築で保存した対戦ログの集計です。"
+                        battleLogSummary={currentBattleLogSummary}
+                        partyPokemonList={currentPokemonList}
+                        pokemonList={pokemonList}
+                    />
+
+                    <BattleLogSummarySection
+                        title="パーティ総合の対戦ログ集計"
+                        description="このパーティを管理し始めてから、全バージョンで保存した対戦ログの集計です。"
+                        battleLogSummary={allBattleLogSummary}
+                        partyPokemonList={allVersionPokemonList}
+                        pokemonList={pokemonList}
+                    />
+                </div>
 
                 <BattleLogListSection
                     partyId={party.id}
-                    battleLogs={battleLogs}
+                    battleLogs={currentBattleLogs}
                     pokemonList={pokemonList}
                     deletingBattleLogId={deletingBattleLogId}
                     onDeleteBattleLog={handleDeleteBattleLog}

@@ -99,18 +99,28 @@ class BattleLogController extends Controller
             $validated['selected_pokemon_1_id'] ?? null,
             $validated['selected_pokemon_2_id'] ?? null,
             $validated['selected_pokemon_3_id'] ?? null,
-            $validated['needed_pokemon_id'] ?? null,
         ])
+            ->filter()
+            ->values();
+
+        if ($selectedPokemonIds->unique()->count() !== $selectedPokemonIds->count()) {
+            return response()->json([
+                'message' => '同じ味方ポケモンを複数の選出枠へ登録することはできません。',
+            ], 422);
+        }
+
+        $ownedPokemonIds = $selectedPokemonIds
+            ->push($validated['needed_pokemon_id'] ?? null)
             ->filter()
             ->unique()
             ->values();
 
-        if ($selectedPokemonIds->isNotEmpty()) {
+        if ($ownedPokemonIds->isNotEmpty()) {
             $ownedPokemonCount = $partyVersion->pokemon()
-                ->whereIn('id', $selectedPokemonIds)
+                ->whereIn('id', $ownedPokemonIds)
                 ->count();
 
-            if ($ownedPokemonCount !== $selectedPokemonIds->count()) {
+            if ($ownedPokemonCount !== $ownedPokemonIds->count()) {
                 return response()->json([
                     'message' => '選択された味方ポケモンが、このパーティバージョンに存在しません。',
                 ], 422);

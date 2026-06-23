@@ -84,6 +84,10 @@ class PartyController extends Controller
             'versions.pokemon.itemMaster.effectRules',
             'versions.pokemon.abilityMaster.effectRules',
             'versions.pokemon.natureMaster',
+            'versions.battleLogs.selectedPokemon1.roleTags',
+            'versions.battleLogs.selectedPokemon2.roleTags',
+            'versions.battleLogs.selectedPokemon3.roleTags',
+            'versions.battleLogs.neededPokemon.roleTags',
         ]);
 
         return response()->json([

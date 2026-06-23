@@ -21,17 +21,21 @@ type BattleLogSummary = {
 
 type BattleLogSummarySectionProps = {
     battleLogSummary: BattleLogSummary;
-    currentPokemonList: PartyPokemon[];
+    partyPokemonList: PartyPokemon[];
     pokemonList: Pokemon[];
+    title?: string;
+    description?: string;
 };
 
 export const BattleLogSummarySection = ({
     battleLogSummary,
-    currentPokemonList,
+    partyPokemonList,
     pokemonList,
+    title = "対戦ログ集計",
+    description = "保存した対戦ログから、勝率やよく出る反省ポイントを確認できます。",
 }: BattleLogSummarySectionProps) => {
     const findPartyPokemonBySummaryKey = (item: BattleLogSummaryCountItem) => {
-        return currentPokemonList.find(
+        return partyPokemonList.find(
             (partyPokemon) => String(partyPokemon.id) === item.key,
         );
     };
@@ -163,11 +167,9 @@ export const BattleLogSummarySection = ({
 
     return (
         <section className="mt-8 rounded border bg-white p-5">
-            <h2 className="text-lg font-bold">対戦ログ集計</h2>
+            <h2 className="text-lg font-bold">{title}</h2>
 
-            <p className="mt-1 text-xs text-gray-600">
-                保存した対戦ログから、勝率やよく出る反省ポイントを確認できます。
-            </p>
+            <p className="mt-1 text-xs text-gray-600">{description}</p>
 
             {battleLogSummary.totalBattles === 0 ? (
                 <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
