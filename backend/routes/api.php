@@ -17,8 +17,6 @@ Route::get('/role-tags', [RoleTagController::class, 'index']);
 
 Route::get('/moves', [MoveController::class, 'index']);
 Route::get('/pokemon-common-moves', [PokemonCommonMoveController::class, 'index']);
-Route::post('/pokemon-common-moves', [PokemonCommonMoveController::class, 'store']);
-Route::delete('/pokemon-common-moves/{pokemonCommonMove}', [PokemonCommonMoveController::class, 'destroy']);
 
 Route::get('/abilities', [AbilityController::class, 'index']);
 Route::get('/items', [ItemController::class, 'index']);
@@ -27,7 +25,3 @@ Route::get('/natures', [NatureController::class, 'index']);
 Route::get('/pokemon-ability-warnings', [PokemonAbilityWarningController::class, 'index']);
 
 Route::get('/opponent-party-templates', [OpponentPartyTemplateController::class, 'index']);
-Route::middleware('admin')->group(function () {
-    Route::post('/opponent-party-templates', [OpponentPartyTemplateController::class, 'store']);
-    Route::delete('/opponent-party-templates/{opponentPartyTemplate}', [OpponentPartyTemplateController::class, 'destroy']);
-});

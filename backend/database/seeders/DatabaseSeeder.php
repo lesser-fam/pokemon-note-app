@@ -9,10 +9,20 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'テストユーザー',
+        User::query()->updateOrCreate([
             'email' => 'test@example.com',
+        ], [
+            'name' => 'テストユーザー',
             'password' => 'password',
+            'is_admin' => false,
+        ]);
+
+        User::query()->updateOrCreate([
+            'email' => 'admin@example.com',
+        ], [
+            'name' => '管理者ユーザー',
+            'password' => 'password',
+            'is_admin' => true,
         ]);
 
         $this->call([

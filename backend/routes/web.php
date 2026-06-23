@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BattleLogController;
+use App\Http\Controllers\Api\OpponentPartyTemplateController;
 use App\Http\Controllers\Api\PartyController;
 use App\Http\Controllers\Api\PartyPokemonController;
 use App\Http\Controllers\Api\PartyVersionController;
+use App\Http\Controllers\Api\PokemonCommonMoveController;
 use App\Http\Controllers\Api\SelectionTemplateController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,4 +35,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/api/party-versions/{partyVersion}/battle-logs', [BattleLogController::class, 'store']);
     Route::put('/api/battle-logs/{battleLog}', [BattleLogController::class, 'update']);
     Route::delete('/api/battle-logs/{battleLog}', [BattleLogController::class, 'destroy']);
+
+    Route::middleware('admin')->group(function () {
+        Route::post('/api/pokemon-common-moves', [PokemonCommonMoveController::class, 'store']);
+        Route::delete('/api/pokemon-common-moves/{pokemonCommonMove}', [PokemonCommonMoveController::class, 'destroy']);
+
+        Route::post('/api/opponent-party-templates', [OpponentPartyTemplateController::class, 'store']);
+        Route::delete('/api/opponent-party-templates/{opponentPartyTemplate}', [OpponentPartyTemplateController::class, 'destroy']);
+    });
 });
