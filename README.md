@@ -216,21 +216,216 @@ composer test
 
 ## ER図
 
-現在準備中です。後でER図を追加します。
+GitHub上で表示できるMermaid形式のER図です。
 
-主な関係は以下です。
+```mermaid
+erDiagram
+    users ||--o{ parties : owns
+    parties ||--o{ party_versions : has
+    party_versions ||--o{ party_pokemon : contains
+    party_versions ||--o{ selection_templates : has
+    party_versions ||--o{ battle_logs : records
 
-```text
-users
-  └── parties
-        └── party_versions
-              ├── party_pokemon
-              ├── selection_templates
-              └── battle_logs
+    party_pokemon ||--o{ party_pokemon_role_tags : has
+    role_tags ||--o{ party_pokemon_role_tags : labels
 
-opponent_party_templates
-  └── opponent_party_template_pokemon
+    party_pokemon ||--o{ selection_templates : lead
+    party_pokemon ||--o{ selection_templates : switch
+    party_pokemon ||--o{ selection_templates : finisher
+
+    party_pokemon ||--o{ battle_logs : selected_1
+    party_pokemon ||--o{ battle_logs : selected_2
+    party_pokemon ||--o{ battle_logs : selected_3
+    party_pokemon ||--o{ battle_logs : needed
+
+    items ||--o{ party_pokemon : held_item
+    abilities ||--o{ party_pokemon : ability
+    natures ||--o{ party_pokemon : nature
+    moves ||--o{ party_pokemon : move_1
+    moves ||--o{ party_pokemon : move_2
+    moves ||--o{ party_pokemon : move_3
+    moves ||--o{ party_pokemon : move_4
+
+    abilities ||--o{ ability_effect_rules : has
+    items ||--o{ item_effect_rules : has
+    abilities ||--o{ pokemon_abilities : assigned
+    moves ||--o{ pokemon_common_moves : used_by
+
+    opponent_party_templates ||--o{ opponent_party_template_pokemon : contains
+
+    users {
+        bigint id PK
+        string name
+        string email UK
+        string password
+        boolean is_admin
+    }
+
+    parties {
+        bigint id PK
+        bigint user_id FK
+        string name
+        string rule
+        text concept
+        text memo
+    }
+
+    party_versions {
+        bigint id PK
+        bigint party_id FK
+        int version_number
+        text change_note
+        boolean is_current
+    }
+
+    party_pokemon {
+        bigint id PK
+        bigint party_version_id FK
+        string pokemon_key
+        string form_key
+        string nickname
+        bigint item_id FK
+        bigint ability_id FK
+        bigint nature_id FK
+        bigint move_1_id FK
+        bigint move_2_id FK
+        bigint move_3_id FK
+        bigint move_4_id FK
+        int ev_h
+        int ev_a
+        int ev_b
+        int ev_c
+        int ev_d
+        int ev_s
+        text memo
+    }
+
+    role_tags {
+        bigint id PK
+        string key UK
+        string name
+        text description
+        int lead_score
+        int switch_score
+        int finisher_score
+    }
+
+    party_pokemon_role_tags {
+        bigint id PK
+        bigint party_pokemon_id FK
+        bigint role_tag_id FK
+    }
+
+    selection_templates {
+        bigint id PK
+        bigint party_version_id FK
+        string name
+        bigint lead_pokemon_id FK
+        bigint switch_pokemon_id FK
+        bigint finisher_pokemon_id FK
+        text memo
+    }
+
+    battle_logs {
+        bigint id PK
+        bigint party_version_id FK
+        string result
+        bigint selected_pokemon_1_id FK
+        bigint selected_pokemon_2_id FK
+        bigint selected_pokemon_3_id FK
+        string heavy_opponent_key
+        string heavy_opponent_form
+        bigint needed_pokemon_id FK
+        json loss_tags
+        text reflection
+        text next_note
+    }
+
+    moves {
+        bigint id PK
+        string key UK
+        string name
+        string type
+        string damage_class
+        int power
+        boolean is_scoring_target
+    }
+
+    abilities {
+        bigint id PK
+        string key UK
+        string name
+        text description
+    }
+
+    items {
+        bigint id PK
+        string key UK
+        string name
+        text description
+    }
+
+    natures {
+        bigint id PK
+        string key UK
+        string name UK
+        string increased_stat
+        string decreased_stat
+    }
+
+    ability_effect_rules {
+        bigint id PK
+        bigint ability_id FK
+        string key UK
+        string effect_type
+        string target_type
+        decimal value
+        string condition
+    }
+
+    item_effect_rules {
+        bigint id PK
+        bigint item_id FK
+        string key UK
+        string effect_type
+        string target_type
+        decimal value
+        string condition
+    }
+
+    pokemon_abilities {
+        bigint id PK
+        string pokemon_key
+        string form_key
+        bigint ability_id FK
+        boolean is_hidden
+    }
+
+    pokemon_common_moves {
+        bigint id PK
+        string pokemon_key
+        string form_key
+        bigint move_id FK
+        int usage_rank
+        string memo
+    }
+
+    opponent_party_templates {
+        bigint id PK
+        string rule
+        string memo
+    }
+
+    opponent_party_template_pokemon {
+        bigint id PK
+        bigint opponent_party_template_id FK
+        string pokemon_key
+        string form_key
+        int display_order
+    }
 ```
+
+`pokemon_key` と `form_key` は、DB上の外部キーではなくポケモンマスタデータを参照するための識別子として使用しています。
 
 ## 要件定義・設計資料
 
@@ -245,7 +440,6 @@ opponent_party_templates
 ## 今後の改善予定
 
 - READMEへの画面キャプチャ追加
-- ER図の追加
 - 要件定義書、設計書の追加
 - 主要機能のテスト追加
 - 管理者向け機能の権限整理

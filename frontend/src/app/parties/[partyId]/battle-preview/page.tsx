@@ -4,13 +4,12 @@ import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
 import { BattleLogCreateNavigationSection } from "@/features/battlePreview/components/BattleLogCreateNavigationSection";
 import { BattlePreviewDetailAnalysisSection } from "@/features/battlePreview/components/BattlePreviewDetailAnalysisSection";
 import { BattlePreviewHeader } from "@/features/battlePreview/components/BattlePreviewHeader";
+import { BattlePreviewRecommendationNotice } from "@/features/battlePreview/components/BattlePreviewRecommendationNotice";
 import { MatchupSelectionSuggestionsSection } from "@/features/battlePreview/components/MatchupSelectionSuggestionsSection";
-import { NextBattleActionSuggestions } from "@/features/battlePreview/components/NextBattleActionSuggestions";
 import { OpponentPartyColumn } from "@/features/battlePreview/components/OpponentPartyColumn";
 import { OpponentPokemonSearchSection } from "@/features/battlePreview/components/OpponentPokemonSearchSection";
 import { OwnPartyColumn } from "@/features/battlePreview/components/OwnPartyColumn";
 import { StatComparisonModeSection } from "@/features/battlePreview/components/StatComparisonModeSection";
-import { useActionOwnPokemon } from "@/features/battlePreview/hooks/useActionOwnPokemon";
 import { useBattlePreviewData } from "@/features/battlePreview/hooks/useBattlePreviewData";
 import { useOpponentPokemonBattleData } from "@/features/battlePreview/hooks/useOpponentPokemonBattleData";
 import { useOpponentPokemonList } from "@/features/battlePreview/hooks/useOpponentPokemonList";
@@ -31,7 +30,6 @@ import { suggestMatchupSelections } from "@/features/selections/utils/suggestMat
 import type { Pokemon } from "@/types/pokemon";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { BattlePreviewRecommendationNotice } from "@/features/battlePreview/components/BattlePreviewRecommendationNotice";
 
 // Add Champions Pokemon
 // import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
@@ -57,28 +55,22 @@ export default function BattlePreviewPage() {
         selectionPokemonLimit: ruleConfig.selectionPokemonLimit,
     });
 
-    const { actionOwnPokemonId, handleToggleActionOwnPokemon } =
-        useActionOwnPokemon();
-
     const { comparisonMode, handleToggleComparisonMode } =
         useStatComparisonMode();
 
     const {
         opponentPokemonList,
-        actionOpponentPokemonKey,
         handleAddOpponentPokemon,
         handleRemoveOpponentPokemon,
         handleChangeOpponentPokemonForm,
-        handleToggleActionOpponentPokemon,
     } = useOpponentPokemonList({
         pokemonList,
         partyPokemonLimit: ruleConfig.partyPokemonLimit,
     });
 
-    const { pokemonAbilityWarnings, pokemonCommonMoves } =
-        useOpponentPokemonBattleData({
-            opponentPokemonList,
-        });
+    const { pokemonAbilityWarnings } = useOpponentPokemonBattleData({
+        opponentPokemonList,
+    });
 
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -221,24 +213,6 @@ export default function BattlePreviewPage() {
             selectionPokemonLimit: ruleConfig.selectionPokemonLimit,
         });
 
-    const actionOwnPartyPokemon =
-        effectiveCurrentPokemonList.find(
-            (partyPokemon) => partyPokemon.id === actionOwnPokemonId,
-        ) ?? null;
-
-    const actionOwnPokemonMaster = actionOwnPartyPokemon
-        ? (findPokemonMaster({
-              pokemonList,
-              pokemonKey: actionOwnPartyPokemon.pokemon_key,
-              formKey: actionOwnPartyPokemon.form_key,
-          }) ?? null)
-        : null;
-
-    const actionOpponentPokemon =
-        opponentPokemonList.find(
-            (pokemon) => pokemon.key === actionOpponentPokemonKey,
-        ) ?? null;
-
     return (
         <main className="mx-auto max-w-450 p-6">
             <div className="grid items-start gap-4 xl:grid-cols-[minmax(19rem,1fr)_minmax(0,1.35fr)_minmax(19rem,1fr)]">
@@ -257,8 +231,6 @@ export default function BattlePreviewPage() {
                         }
                         onToggleSelection={handleTogglePartyPokemonSelection}
                         onChangeForm={handleChangeOwnPokemonForm}
-                        actionTargetPartyPokemonId={actionOwnPokemonId}
-                        onSelectActionTarget={handleToggleActionOwnPokemon}
                     />
                 </div>
 
@@ -298,16 +270,6 @@ export default function BattlePreviewPage() {
                         onToggleComparisonMode={handleToggleComparisonMode}
                     />
 
-                    <NextBattleActionSuggestions
-                        ownPartyPokemon={actionOwnPartyPokemon}
-                        ownPokemonMaster={actionOwnPokemonMaster}
-                        opponentPokemon={actionOpponentPokemon}
-                        partyPokemonList={effectiveCurrentPokemonList}
-                        pokemonMasterList={pokemonList}
-                        selectedPartyPokemonIds={selectedPartyPokemonIds}
-                        pokemonCommonMoves={pokemonCommonMoves}
-                    />
-
                     <BattleLogCreateNavigationSection
                         battleLogCreateHref={battleLogCreateHref}
                         canCreateBattleLog={canCreateBattleLog}
@@ -338,8 +300,6 @@ export default function BattlePreviewPage() {
                         getPokemonAbilities={getPokemonAbilities}
                         onRemove={handleRemoveOpponentPokemon}
                         onChangeForm={handleChangeOpponentPokemonForm}
-                        actionTargetPokemonKey={actionOpponentPokemonKey}
-                        onSelectActionTarget={handleToggleActionOpponentPokemon}
                     />
                 </div>
             </div>
