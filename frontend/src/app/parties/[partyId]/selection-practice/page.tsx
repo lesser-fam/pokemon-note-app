@@ -372,7 +372,6 @@ export default function SelectionPracticePage() {
 
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-    const [practiceMemo, setPracticeMemo] = useState("");
 
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
@@ -432,9 +431,12 @@ export default function SelectionPracticePage() {
     const currentPokemonList = party?.current_version?.pokemon ?? [];
     const savedSelectionTemplates =
         party?.current_version?.selection_templates ?? [];
-    const battleLogs = party?.current_version?.battle_logs ?? [];
+    const currentBattleLogs = party?.current_version?.battle_logs ?? [];
+    const allBattleLogs =
+        party?.versions?.flatMap((version) => version.battle_logs ?? []) ??
+        currentBattleLogs;
     const availableBattleLogs = getAvailableBattleLogs({
-        battleLogs,
+        battleLogs: allBattleLogs,
         pokemonList,
     });
 
@@ -653,7 +655,6 @@ export default function SelectionPracticePage() {
     const handleClearOpponentPokemon = () => {
         setOpponentPokemonList([]);
         setSelectedPartyPokemonIds([]);
-        setPracticeMemo("");
         setSearchKeyword("");
         setSelectedTypes([]);
         setErrorMessage("");
@@ -681,7 +682,7 @@ export default function SelectionPracticePage() {
         pokemonMasterList: pokemonList,
         opponentPokemonList,
         savedSelectionTemplates,
-        battleLogs,
+        battleLogs: currentBattleLogs,
         limit: null,
     });
 
@@ -735,15 +736,6 @@ export default function SelectionPracticePage() {
         selectedPartyPokemonIds.length === ruleConfig.selectionPokemonLimit &&
         topSuggestion !== null;
 
-    const handleUseTopSuggestion = () => {
-        if (!topSuggestion) {
-            return;
-        }
-
-        setSelectedPartyPokemonIds(topSuggestedPartyPokemonIds);
-        setIsAnswerVisible(true);
-    };
-
     const generateRandomOpponentParty = () => {
         if (!party) {
             return;
@@ -770,7 +762,6 @@ export default function SelectionPracticePage() {
 
         setOpponentPokemonList(generatedOpponentParty);
         setSelectedPartyPokemonIds([]);
-        setPracticeMemo("");
         setSearchKeyword("");
         setSelectedTypes([]);
         setIsAnswerVisible(false);
@@ -792,7 +783,6 @@ export default function SelectionPracticePage() {
 
         setOpponentPokemonList(selectedLog.opponentPokemonList);
         setSelectedPartyPokemonIds([]);
-        setPracticeMemo("");
         setSearchKeyword("");
         setSelectedTypes([]);
         setIsAnswerVisible(false);
@@ -830,7 +820,6 @@ export default function SelectionPracticePage() {
 
         setOpponentPokemonList(selectedTemplate.opponentPokemonList);
         setSelectedPartyPokemonIds([]);
-        setPracticeMemo("");
         setSearchKeyword("");
         setSelectedTypes([]);
         setIsAnswerVisible(false);
@@ -1303,32 +1292,34 @@ export default function SelectionPracticePage() {
                             </p>
                         ) : (
                             <div className="mt-4 space-y-4">
-                                <div className="rounded bg-gray-50 p-4">
-                                    <div className="flex items-end justify-between gap-3">
-                                        <div>
-                                            <p className="text-sm font-bold">
-                                                あなたの選出点
-                                            </p>
+                                {isAnswerVisible && (
+                                    <div className="rounded bg-gray-50 p-4">
+                                        <div className="flex items-end justify-between gap-3">
+                                            <div>
+                                                <p className="text-sm font-bold">
+                                                    あなたの選出点
+                                                </p>
 
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                選んだ順番を「初手・引き先・勝ち筋」として採点しています。
+                                                <p className="mt-1 text-xs text-gray-500">
+                                                    選んだ順番を「初手・引き先・勝ち筋」として採点しています。
+                                                </p>
+                                            </div>
+
+                                            <p className="text-3xl font-bold">
+                                                {selectedSelectionScore ?? "-"}
+                                                <span className="ml-1 text-sm text-gray-500">
+                                                    点
+                                                </span>
                                             </p>
                                         </div>
 
-                                        <p className="text-3xl font-bold">
-                                            {selectedSelectionScore ?? "-"}
-                                            <span className="ml-1 text-sm text-gray-500">
-                                                点
-                                            </span>
+                                        <p className="mt-3 text-sm text-gray-600">
+                                            {getSelectedScoreMessage(
+                                                selectedSelectionScore,
+                                            )}
                                         </p>
                                     </div>
-
-                                    <p className="mt-3 text-sm text-gray-600">
-                                        {getSelectedScoreMessage(
-                                            selectedSelectionScore,
-                                        )}
-                                    </p>
-                                </div>
+                                )}
 
                                 <div className="rounded border p-4">
                                     <p className="text-sm font-bold">
@@ -1478,14 +1469,6 @@ export default function SelectionPracticePage() {
                                     )}
                                 </div>
 
-                                <button
-                                    type="button"
-                                    onClick={handleUseTopSuggestion}
-                                    className="w-full rounded border px-3 py-2 text-sm hover:bg-gray-50"
-                                >
-                                    おすすめ選出を試す
-                                </button>
-
                                 {topSuggestion.reasons.length > 0 && (
                                     <div className="rounded border p-4">
                                         <p className="text-sm font-bold">
@@ -1511,23 +1494,7 @@ export default function SelectionPracticePage() {
                         )}
                     </section>
 
-                    <section className="rounded border bg-white p-4">
-                        <h2 className="text-lg font-bold">練習メモ</h2>
 
-                        <p className="mt-1 text-sm text-gray-600">
-                            なぜその3匹にしたか、重そうな相手、初手の狙いなどをメモします。まだ保存はしません。
-                        </p>
-
-                        <textarea
-                            value={practiceMemo}
-                            onChange={(event) =>
-                                setPracticeMemo(event.target.value)
-                            }
-                            rows={5}
-                            placeholder="例：初手ガブリアスでステロ。ブリジュラスが重いのでミミロップを選出。水ロトムは物理受けとして残す。"
-                            className="mt-4 w-full rounded border px-3 py-2 text-sm"
-                        />
-                    </section>
                 </div>
 
                 <div className="xl:sticky xl:top-4">

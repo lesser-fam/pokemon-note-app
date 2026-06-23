@@ -33,7 +33,7 @@ export function AppHeader() {
         <header className="border-b bg-white">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
                 <Link href="/parties" className="text-lg font-bold">
-                    自分育成ノート
+                    Matchup Note
                 </Link>
 
                 <nav className="flex items-center gap-4 text-sm">

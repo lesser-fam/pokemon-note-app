@@ -58,6 +58,7 @@ export const OpponentPokemonSearchSection = ({
             <div className="mt-4">
                 <PokemonSearchSelector
                     layout="compact"
+                    typeFilterColumnCount={6}
                     pokemonList={pokemonList}
                     searchKeyword={searchKeyword}
                     onChangeSearchKeyword={onChangeSearchKeyword}

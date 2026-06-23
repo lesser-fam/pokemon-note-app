@@ -57,7 +57,7 @@ export const BattleLogSummarySection = ({
             <div
                 className={
                     layout === "row"
-                        ? "mt-3 flex flex-wrap gap-2"
+                        ? "mt-3 grid grid-cols-3 gap-2"
                         : "mt-3 space-y-1.5"
                 }
             >
@@ -72,10 +72,17 @@ export const BattleLogSummarySection = ({
                           })
                         : undefined;
 
+                    const displayName =
+                        partyPokemon?.nickname ||
+                        pokemonMaster?.name ||
+                        item.label ||
+                        item.key;
+
                     return (
                         <div
                             key={item.key}
                             className="flex min-w-0 items-center gap-2 rounded bg-white px-2 py-1.5"
+                            title={displayName}
                         >
                             {pokemonMaster?.image_url ? (
                                 <img
@@ -90,16 +97,21 @@ export const BattleLogSummarySection = ({
                             )}
 
                             <div className="min-w-0">
-                                <p className="max-w-28 truncate text-xs font-semibold">
-                                    {partyPokemon?.nickname ||
-                                        pokemonMaster?.name ||
-                                        item.label ||
-                                        item.key}
-                                </p>
+                                <div
+                                    className={
+                                        layout === "row"
+                                            ? "min-w-0"
+                                            : "flex min-w-0 items-baseline gap-1"
+                                    }
+                                >
+                                    <p className="truncate text-xs font-semibold">
+                                        {displayName}
+                                    </p>
 
-                                <p className="text-[10px] text-gray-500">
-                                    {item.count}回
-                                </p>
+                                    <p className="shrink-0 text-[10px] text-gray-500">
+                                        {item.count}回
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     );
@@ -177,26 +189,26 @@ export const BattleLogSummarySection = ({
                 </p>
             ) : (
                 <div className="mt-4 space-y-6">
-                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,1.2fr)]">
+                    <div className="space-y-4">
                         <div className="grid grid-cols-3 gap-2">
-                            <div className="rounded bg-gray-50 p-3">
+                            <div className="min-w-0 rounded bg-gray-50 p-3">
                                 <p className="text-xs text-gray-500">対戦数</p>
-                                <p className="mt-1 text-3xl font-bold">
+                                <p className="mt-1 truncate text-2xl font-bold sm:text-3xl">
                                     {battleLogSummary.totalBattles}
                                 </p>
                             </div>
 
-                            <div className="rounded bg-gray-50 p-3">
+                            <div className="min-w-0 rounded bg-gray-50 p-3">
                                 <p className="text-xs text-gray-500">勝敗</p>
-                                <p className="mt-1 whitespace-nowrap text-2xl font-bold">
+                                <p className="mt-1 truncate text-xl font-bold sm:text-2xl">
                                     {battleLogSummary.winCount}勝 /{" "}
                                     {battleLogSummary.loseCount}敗
                                 </p>
                             </div>
 
-                            <div className="rounded bg-gray-50 p-3">
+                            <div className="min-w-0 rounded bg-gray-50 p-3">
                                 <p className="text-xs text-gray-500">勝率</p>
-                                <p className="mt-1 text-3xl font-bold">
+                                <p className="mt-1 truncate text-2xl font-bold sm:text-3xl">
                                     {battleLogSummary.winRate}%
                                 </p>
                             </div>
@@ -215,7 +227,7 @@ export const BattleLogSummarySection = ({
                         </div>
                     </div>
 
-                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]">
+                    <div className="grid gap-4 lg:grid-cols-3">
                         <div className="rounded bg-gray-50 p-3">
                             <h3 className="text-sm font-bold">
                                 よく重かった相手
@@ -227,7 +239,7 @@ export const BattleLogSummarySection = ({
                         </div>
 
                         <div className="rounded bg-gray-50 p-3">
-                            <h3 className="text-sm font-bold">
+                            <h3 className="whitespace-nowrap text-sm font-bold">
                                 よく必要だった味方
                             </h3>
 
@@ -250,6 +262,7 @@ export const BattleLogSummarySection = ({
                                             <div
                                                 key={item.key}
                                                 className="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-sm"
+                                                title={item.label}
                                             >
                                                 <span className="truncate">
                                                     {item.label}

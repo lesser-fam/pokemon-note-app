@@ -348,8 +348,8 @@ function OpponentPartyTemplatesContent() {
                                         }}
                                         className={`rounded border px-3 py-2 text-sm font-semibold ${
                                             selectedRule === "main_series"
-                                                ? "border-black bg-gray-50"
-                                                : "bg-white hover:bg-gray-50"
+                                                ? "border-black bg-white ring-2 ring-black"
+                                                : "border-gray-200 bg-white hover:bg-gray-50"
                                         }`}
                                     >
                                         本編ルール
@@ -365,8 +365,8 @@ function OpponentPartyTemplatesContent() {
                                         }}
                                         className={`rounded border px-3 py-2 text-sm font-semibold ${
                                             selectedRule === "champions"
-                                                ? "border-black bg-gray-50"
-                                                : "bg-white hover:bg-gray-50"
+                                                ? "border-black bg-white ring-2 ring-black"
+                                                : "border-gray-200 bg-white hover:bg-gray-50"
                                         }`}
                                     >
                                         チャンピオンズ

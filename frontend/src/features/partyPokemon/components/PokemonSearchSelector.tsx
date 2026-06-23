@@ -29,6 +29,7 @@ type PokemonSearchSelectorProps = {
     initialLimit?: number;
 
     layout?: "wide" | "compact";
+    typeFilterColumnCount?: 4 | 6;
 };
 
 export function PokemonSearchSelector({
@@ -45,6 +46,7 @@ export function PokemonSearchSelector({
     clearSearchKeywordOnSelect = false,
     initialLimit = 30,
     layout = "wide",
+    typeFilterColumnCount = 4,
 }: PokemonSearchSelectorProps) {
     const handleToggleType = (type: string) => {
         if (selectedTypes.includes(type)) {
@@ -95,6 +97,8 @@ export function PokemonSearchSelector({
         : filteredPokemonList.slice(0, initialLimit);
 
     const isCompactLayout = layout === "compact";
+    const typeFilterGridClass =
+        typeFilterColumnCount === 6 ? "grid-cols-6" : "grid-cols-4";
 
     return (
         <div
@@ -127,7 +131,7 @@ export function PokemonSearchSelector({
                         2つ選ぶと、両方のタイプを持つポケモンを表示します。
                     </p>
 
-                    <div className="mt-2 grid grid-cols-6 gap-1">
+                    <div className={`mt-2 grid gap-1 ${typeFilterGridClass}`}>
                         {pokemonTypes.map((type) => {
                             const isSelected = selectedTypes.includes(type);
                             const typeMeta = getPokemonTypeMeta(type);
@@ -137,7 +141,7 @@ export function PokemonSearchSelector({
                                     key={type}
                                     type="button"
                                     onClick={() => handleToggleType(type)}
-                                    className={`whitespace-nowrap rounded-full border px-0.5 py-1 text-[10px] leading-none ${
+                                    className={`min-w-0 whitespace-nowrap rounded-full border px-1 py-1 text-[10px] leading-none ${
                                         isSelected
                                             ? `${typeMeta.className} ring-2 ring-black`
                                             : `${typeMeta.className} opacity-80 hover:opacity-100`
