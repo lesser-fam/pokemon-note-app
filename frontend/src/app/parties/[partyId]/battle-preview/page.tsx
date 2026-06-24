@@ -239,7 +239,6 @@ export default function BattlePreviewPage() {
 
                     <BattlePreviewRecommendationNotice
                         opponentPokemonCount={opponentPokemonList.length}
-                        suggestionCount={matchupSelectionSuggestions.length}
                     />
 
                     <OpponentPokemonSearchSection

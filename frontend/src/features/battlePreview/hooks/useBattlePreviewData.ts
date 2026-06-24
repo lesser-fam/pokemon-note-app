@@ -37,7 +37,6 @@ export const useBattlePreviewData = ({
         };
 
         if (isInvalidPartyId) {
-            setIsLoading(false);
             return;
         }
 

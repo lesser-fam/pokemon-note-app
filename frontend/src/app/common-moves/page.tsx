@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchCurrentUser } from "@/features/auth/api/authApi";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
@@ -11,6 +12,7 @@ import {
 import type { MoveMaster } from "@/types/battleMaster";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
+import type { User } from "@/types/user";
 import { useEffect, useState } from "react";
 
 const getMoveClassLabel = (damageClass: MoveMaster["damage_class"]) => {
@@ -31,6 +33,7 @@ export default function CommonMovesPage() {
         null,
     );
     const [commonMoves, setCommonMoves] = useState<PokemonCommonMove[]>([]);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
 
     const [pokemonSearchKeyword, setPokemonSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -40,22 +43,29 @@ export default function CommonMovesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+
+    const isAdmin = currentUser?.is_admin === true;
 
     useEffect(() => {
-        const loadPokemonList = async () => {
+        const loadInitialData = async () => {
             try {
-                const data = await fetchPokemonList();
+                const [pokemonData, currentUserData] = await Promise.all([
+                    fetchPokemonList(),
+                    fetchCurrentUser(),
+                ]);
 
-                setPokemonList(data);
+                setPokemonList(pokemonData);
+                setCurrentUser(currentUserData);
             } catch (error) {
                 console.error(error);
-                setErrorMessage("ポケモン一覧の取得に失敗しました。");
+                setErrorMessage("必要なデータの取得に失敗しました。");
             } finally {
                 setIsLoading(false);
             }
         };
 
-        loadPokemonList();
+        loadInitialData();
     }, []);
 
     useEffect(() => {
@@ -88,9 +98,15 @@ export default function CommonMovesPage() {
         setMemo("");
         setMoveSearchKeyword("");
         setErrorMessage("");
+        setSuccessMessage("");
     };
 
     const handleSelectMove = async (move: MoveMaster) => {
+        if (!isAdmin) {
+            setErrorMessage("よく使う技を登録できるのは管理者のみです。");
+            return;
+        }
+
         if (!selectedPokemon || isSaving) {
             return;
         }
@@ -106,6 +122,7 @@ export default function CommonMovesPage() {
 
         setIsSaving(true);
         setErrorMessage("");
+        setSuccessMessage("");
 
         try {
             const createdCommonMove = await createPokemonCommonMove({
@@ -122,6 +139,7 @@ export default function CommonMovesPage() {
 
             setMemo("");
             setMoveSearchKeyword("");
+            setSuccessMessage("よく使う技を登録しました。");
         } catch (error) {
             console.error(error);
             setErrorMessage("よく使う技の登録に失敗しました。");
@@ -131,7 +149,13 @@ export default function CommonMovesPage() {
     };
 
     const handleDelete = async (commonMoveId: number) => {
+        if (!isAdmin) {
+            setErrorMessage("よく使う技を削除できるのは管理者のみです。");
+            return;
+        }
+
         setErrorMessage("");
+        setSuccessMessage("");
 
         try {
             await deletePokemonCommonMove(commonMoveId);
@@ -141,6 +165,7 @@ export default function CommonMovesPage() {
                     (commonMove) => commonMove.id !== commonMoveId,
                 ),
             );
+            setSuccessMessage("よく使う技を削除しました。");
         } catch (error) {
             console.error(error);
             setErrorMessage("よく使う技の削除に失敗しました。");
@@ -158,10 +183,18 @@ export default function CommonMovesPage() {
     return (
         <main className="mx-auto max-w-6xl p-6">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold">よく使う技登録</h1>
+                <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-2xl font-bold">よく使う技</h1>
+
+                    {isAdmin && (
+                        <span className="rounded bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">
+                            管理者
+                        </span>
+                    )}
+                </div>
 
                 <p className="mt-2 text-sm text-gray-600">
-                    相手ポケモンごとによく使われる技を登録します。
+                    相手ポケモンごとによく使われる技を確認できます。
                     登録した技は、今後おすすめ選択肢の交代候補評価に使います。
                 </p>
             </div>
@@ -169,6 +202,12 @@ export default function CommonMovesPage() {
             {errorMessage && (
                 <p className="mb-4 rounded bg-red-100 p-3 text-sm text-red-700">
                     {errorMessage}
+                </p>
+            )}
+
+            {successMessage && (
+                <p className="mb-4 rounded bg-green-100 p-3 text-sm text-green-700">
+                    {successMessage}
                 </p>
             )}
 
@@ -181,7 +220,7 @@ export default function CommonMovesPage() {
                             </h2>
 
                             <p className="mt-1 text-sm text-gray-600">
-                                よく使う技を登録したいポケモンを選択してください。
+                                よく使う技を確認したいポケモンを選択してください。
                             </p>
                         </div>
                     </div>
@@ -256,51 +295,62 @@ export default function CommonMovesPage() {
                 </aside>
             </div>
 
-            <section className="mt-6 rounded border bg-white p-4">
-                <h2 className="text-lg font-bold">技を追加する</h2>
+            {isAdmin ? (
+                <section className="mt-6 rounded border bg-white p-4">
+                    <h2 className="text-lg font-bold">技を追加する</h2>
 
-                {selectedPokemon ? (
-                    <>
-                        <p className="mt-1 text-sm text-gray-600">
-                            {selectedPokemon.name}
-                            がよく使う技を検索して追加します。
+                    {selectedPokemon ? (
+                        <>
+                            <p className="mt-1 text-sm text-gray-600">
+                                {selectedPokemon.name}
+                                がよく使う技を検索して追加します。
+                            </p>
+
+                            <div className="mt-4 max-w-xl">
+                                <label className="text-sm font-semibold">
+                                    メモ 任意
+                                </label>
+
+                                <input
+                                    value={memo}
+                                    onChange={(event) =>
+                                        setMemo(event.target.value)
+                                    }
+                                    placeholder="例：採用率高め、サブウェポン、警戒枠など"
+                                    className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                                />
+                            </div>
+
+                            <div className="mt-4 max-w-xl">
+                                <MoveSelector
+                                    value={moveSearchKeyword}
+                                    onChangeText={setMoveSearchKeyword}
+                                    onSelect={handleSelectMove}
+                                />
+
+                                {isSaving && (
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        登録中...
+                                    </p>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                            先にポケモンを選択してください。
                         </p>
+                    )}
+                </section>
+            ) : (
+                <section className="mt-6 rounded border bg-white p-4">
+                    <h2 className="text-lg font-bold">共通技データ</h2>
 
-                        <div className="mt-4 max-w-xl">
-                            <label className="text-sm font-semibold">
-                                メモ 任意
-                            </label>
-
-                            <input
-                                value={memo}
-                                onChange={(event) =>
-                                    setMemo(event.target.value)
-                                }
-                                placeholder="例：採用率高め、サブウェポン、警戒枠など"
-                                className="mt-1 w-full rounded border px-3 py-2 text-sm"
-                            />
-                        </div>
-
-                        <div className="mt-4 max-w-xl">
-                            <MoveSelector
-                                value={moveSearchKeyword}
-                                onChangeText={setMoveSearchKeyword}
-                                onSelect={handleSelectMove}
-                            />
-
-                            {isSaving && (
-                                <p className="mt-2 text-xs text-gray-500">
-                                    登録中...
-                                </p>
-                            )}
-                        </div>
-                    </>
-                ) : (
-                    <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                        先にポケモンを選択してください。
+                    <p className="mt-2 text-sm text-gray-600">
+                        登録と削除は管理者のみ行えます。
+                        ポケモンを選択すると、登録済みの技を確認できます。
                     </p>
-                )}
-            </section>
+                </section>
+            )}
 
             <section className="mt-6 rounded border bg-white p-4">
                 <div className="flex items-center justify-between gap-3">
@@ -338,7 +388,9 @@ export default function CommonMovesPage() {
                                     <th className="px-3 py-2">分類</th>
                                     <th className="px-3 py-2">威力</th>
                                     <th className="px-3 py-2">メモ</th>
-                                    <th className="px-3 py-2"></th>
+                                    {isAdmin && (
+                                        <th className="px-3 py-2"></th>
+                                    )}
                                 </tr>
                             </thead>
 
@@ -376,17 +428,21 @@ export default function CommonMovesPage() {
                                             {commonMove.memo || "-"}
                                         </td>
 
-                                        <td className="px-3 py-2 text-right">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    handleDelete(commonMove.id)
-                                                }
-                                                className="rounded border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-                                            >
-                                                削除
-                                            </button>
-                                        </td>
+                                        {isAdmin && (
+                                            <td className="px-3 py-2 text-right">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleDelete(
+                                                            commonMove.id,
+                                                        )
+                                                    }
+                                                    className="rounded border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                                                >
+                                                    削除
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>

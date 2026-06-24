@@ -1,11 +1,9 @@
 type BattlePreviewRecommendationNoticeProps = {
     opponentPokemonCount: number;
-    suggestionCount: number;
 };
 
 export const BattlePreviewRecommendationNotice = ({
     opponentPokemonCount,
-    suggestionCount,
 }: BattlePreviewRecommendationNoticeProps) => {
     if (opponentPokemonCount === 0) {
         return (
