@@ -237,6 +237,12 @@ export default function CommonMovesPage() {
                         相手ポケモンごとによく使われる技を確認できます。
                         登録した技は、今後おすすめ選択肢の交代候補評価に使います。
                     </p>
+
+                    <p className="mt-3 inline-flex rounded bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700">
+                        {isAdmin
+                            ? "管理者はよく使われる技を登録・削除できます。"
+                            : "登録と削除は管理者のみ行えます。"}
+                    </p>
                 </div>
 
                 {errorMessage && (
@@ -287,30 +293,34 @@ export default function CommonMovesPage() {
                     </div>
                 </section>
 
-                <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]">
+                <div
+                    className={`mt-6 grid gap-4 ${
+                        isAdmin ? "lg:grid-cols-[20rem_minmax(0,1fr)]" : "lg:grid-cols-[20rem]"
+                    }`}
+                >
                     <section className="rounded border bg-white p-4">
                         <h2 className="text-lg font-bold">選択中</h2>
 
                         {selectedPokemon ? (
-                            <div className="mt-4 flex flex-wrap items-center gap-4 rounded bg-gray-50 p-4">
+                            <div className="mt-4 flex items-center gap-3 rounded bg-gray-50 p-3">
                                 {selectedPokemon.image_url ? (
                                     <img
                                         src={selectedPokemon.image_url}
                                         alt={selectedPokemon.name}
-                                        className="h-20 w-20 shrink-0 object-contain"
+                                        className="h-16 w-16 shrink-0 object-contain"
                                     />
                                 ) : (
-                                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded bg-white text-gray-400">
+                                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded bg-white text-gray-400">
                                         ?
                                     </div>
                                 )}
 
                                 <div className="min-w-0">
-                                    <p className="text-lg font-bold">
+                                    <p className="truncate font-bold">
                                         {selectedPokemon.name}
                                     </p>
 
-                                    <p className="mt-1 text-sm text-gray-600">
+                                    <p className="mt-1 truncate text-xs text-gray-600">
                                         {selectedPokemon.kana}
                                     </p>
 
@@ -333,65 +343,54 @@ export default function CommonMovesPage() {
                         )}
                     </section>
 
-                    <section className="rounded border bg-white p-4">
-                        <h2 className="text-lg font-bold">共通技データ</h2>
+                    {isAdmin && (
+                        <section className="rounded border bg-white p-4">
+                            <h2 className="text-lg font-bold">技を追加する</h2>
 
-                        <p className="mt-2 text-sm text-gray-600">
-                            {isAdmin
-                                ? "管理者はよく使われる技を登録・削除できます。"
-                                : "登録と削除は管理者のみ行えます。"}
-                            ポケモンを選択すると、登録済みの技を確認できます。
-                        </p>
-                    </section>
-                </div>
+                            {selectedPokemon ? (
+                                <>
+                                    <p className="mt-1 text-sm text-gray-600">
+                                        {selectedPokemon.name}
+                                        がよく使う技を検索して追加します。
+                                    </p>
 
-                {isAdmin && (
-                    <section className="mt-6 rounded border bg-white p-4">
-                        <h2 className="text-lg font-bold">技を追加する</h2>
+                                    <div className="mt-4 max-w-xl">
+                                        <label className="text-sm font-semibold">
+                                            メモ 任意
+                                        </label>
 
-                        {selectedPokemon ? (
-                            <>
-                                <p className="mt-1 text-sm text-gray-600">
-                                    {selectedPokemon.name}
-                                    がよく使う技を検索して追加します。
+                                        <input
+                                            value={memo}
+                                            onChange={(event) =>
+                                                setMemo(event.target.value)
+                                            }
+                                            placeholder="例：採用率高め、サブウェポン、警戒枠など"
+                                            className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                                        />
+                                    </div>
+
+                                    <div className="mt-4 max-w-xl">
+                                        <MoveSelector
+                                            value={moveSearchKeyword}
+                                            onChangeText={setMoveSearchKeyword}
+                                            onSelect={handleSelectMove}
+                                        />
+
+                                        {isSaving && (
+                                            <p className="mt-2 text-xs text-gray-500">
+                                                登録中...
+                                            </p>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
+                                    先にポケモンを選択してください。
                                 </p>
-
-                                <div className="mt-4 max-w-xl">
-                                    <label className="text-sm font-semibold">
-                                        メモ 任意
-                                    </label>
-
-                                    <input
-                                        value={memo}
-                                        onChange={(event) =>
-                                            setMemo(event.target.value)
-                                        }
-                                        placeholder="例：採用率高め、サブウェポン、警戒枠など"
-                                        className="mt-1 w-full rounded border px-3 py-2 text-sm"
-                                    />
-                                </div>
-
-                                <div className="mt-4 max-w-xl">
-                                    <MoveSelector
-                                        value={moveSearchKeyword}
-                                        onChangeText={setMoveSearchKeyword}
-                                        onSelect={handleSelectMove}
-                                    />
-
-                                    {isSaving && (
-                                        <p className="mt-2 text-xs text-gray-500">
-                                            登録中...
-                                        </p>
-                                    )}
-                                </div>
-                            </>
-                        ) : (
-                            <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                                先にポケモンを選択してください。
-                            </p>
-                        )}
-                    </section>
-                )}
+                            )}
+                        </section>
+                    )}
+                </div>
 
                 <section className="mt-6 rounded border bg-white p-4">
                     <div className="flex items-center justify-between gap-3">
