@@ -9,27 +9,65 @@ type BattleLog = NonNullable<
 
 type BattleLogListSectionProps = {
     partyId: number;
+    title: string;
+    description: string;
     battleLogs: BattleLog[];
     pokemonList: Pokemon[];
     deletingBattleLogId: number | null;
     onDeleteBattleLog: (battleLogId: number) => void;
 };
 
+const selectionOrderLabels = ["➊", "➋", "➌"];
+
 export const BattleLogListSection = ({
     partyId,
+    title,
+    description,
     battleLogs,
     pokemonList,
     deletingBattleLogId,
     onDeleteBattleLog,
 }: BattleLogListSectionProps) => {
-    const getPokemonMasterName = (pokemonKey: string, formKey = "default") => {
-        const pokemonMaster = findPokemonMaster({
+    const getPokemonMaster = (pokemonKey: string, formKey = "default") => {
+        return findPokemonMaster({
             pokemonList,
             pokemonKey,
             formKey,
         });
+    };
 
-        return pokemonMaster?.name || pokemonKey;
+    const getPokemonMasterName = (pokemonKey: string, formKey = "default") => {
+        return getPokemonMaster(pokemonKey, formKey)?.name || pokemonKey;
+    };
+
+    const renderPokemonImage = ({
+        imageUrl,
+        name,
+        className = "h-8 w-8",
+    }: {
+        imageUrl?: string | null;
+        name: string;
+        className?: string;
+    }) => {
+        if (imageUrl) {
+            return (
+                <img
+                    src={imageUrl}
+                    alt={name}
+                    title={name}
+                    className={`${className} shrink-0 object-contain`}
+                />
+            );
+        }
+
+        return (
+            <div
+                title={name}
+                className={`${className} flex shrink-0 items-center justify-center rounded bg-gray-100 text-xs text-gray-400`}
+            >
+                ?
+            </div>
+        );
     };
 
     const renderOpponentPokemonList = (battleLog: BattleLog) => {
@@ -61,12 +99,11 @@ export const BattleLogListSection = ({
             <div className="flex flex-wrap gap-1.5">
                 {opponents.map(([pokemonKey, formKey]) => {
                     const normalizedFormKey = (formKey as string) || "default";
-
-                    const pokemonMaster = findPokemonMaster({
-                        pokemonList,
-                        pokemonKey: pokemonKey as string,
-                        formKey: normalizedFormKey,
-                    });
+                    const pokemonMaster = getPokemonMaster(
+                        pokemonKey as string,
+                        normalizedFormKey,
+                    );
+                    const pokemonName = pokemonMaster?.name || pokemonKey;
 
                     const selectedIndex = selectedOpponents.findIndex(
                         ([selectedPokemonKey, selectedFormKey]) =>
@@ -80,28 +117,25 @@ export const BattleLogListSection = ({
 
                     return (
                         <div
-                            key={`${pokemonKey}-${formKey}`}
-                            className={`flex items-center gap-1 rounded border px-2 py-1 text-xs ${
+                            key={`${pokemonKey}-${normalizedFormKey}`}
+                            title={pokemonName as string}
+                            className={`relative flex h-11 w-11 items-center justify-center rounded border bg-white ${
                                 selectionOrder
-                                    ? "border-black bg-blue-50"
-                                    : "border-transparent bg-white"
+                                    ? "border-black ring-1 ring-black"
+                                    : "border-gray-100"
                             }`}
                         >
                             {selectionOrder && (
-                                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-black text-[10px] font-semibold text-white">
-                                    {selectionOrder}
+                                <span className="absolute -left-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black text-[11px] font-semibold leading-none text-white">
+                                    {selectionOrderLabels[selectionOrder - 1]}
                                 </span>
                             )}
 
-                            {pokemonMaster?.image_url && (
-                                <img
-                                    src={pokemonMaster.image_url}
-                                    alt={pokemonMaster.name}
-                                    className="h-7 w-7 object-contain"
-                                />
-                            )}
-
-                            <span>{pokemonMaster?.name || pokemonKey}</span>
+                            {renderPokemonImage({
+                                imageUrl: pokemonMaster?.image_url,
+                                name: pokemonName as string,
+                                className: "h-8 w-8",
+                            })}
                         </div>
                     );
                 })}
@@ -119,38 +153,30 @@ export const BattleLogListSection = ({
         return (
             <div className="flex flex-wrap gap-2">
                 {selectedPokemonList.map((partyPokemon, index) => {
-                    const pokemonMaster = findPokemonMaster({
-                        pokemonList,
-                        pokemonKey: partyPokemon!.pokemon_key,
-                        formKey: partyPokemon!.form_key,
-                    });
+                    const pokemonMaster = getPokemonMaster(
+                        partyPokemon!.pokemon_key,
+                        partyPokemon!.form_key,
+                    );
+                    const pokemonName =
+                        partyPokemon!.nickname ||
+                        pokemonMaster?.name ||
+                        partyPokemon!.pokemon_key;
 
                     return (
                         <div
                             key={partyPokemon!.id}
-                            className="flex items-center gap-2 rounded bg-white px-2 py-1.5"
+                            title={pokemonName}
+                            className="relative flex h-11 w-11 items-center justify-center rounded border border-gray-100 bg-white"
                         >
-                            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-black text-[10px] font-semibold text-white">
-                                {index + 1}
+                            <span className="absolute -left-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black text-[11px] font-semibold leading-none text-white">
+                                {selectionOrderLabels[index]}
                             </span>
 
-                            {pokemonMaster?.image_url ? (
-                                <img
-                                    src={pokemonMaster.image_url}
-                                    alt={pokemonMaster.name}
-                                    className="h-8 w-8 shrink-0 object-contain"
-                                />
-                            ) : (
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">
-                                    ?
-                                </div>
-                            )}
-
-                            <span className="max-w-28 truncate text-xs font-semibold">
-                                {partyPokemon!.nickname ||
-                                    pokemonMaster?.name ||
-                                    partyPokemon!.pokemon_key}
-                            </span>
+                            {renderPokemonImage({
+                                imageUrl: pokemonMaster?.image_url,
+                                name: pokemonName,
+                                className: "h-8 w-8",
+                            })}
                         </div>
                     );
                 })}
@@ -163,47 +189,43 @@ export const BattleLogListSection = ({
             return null;
         }
 
-        const pokemonMaster = findPokemonMaster({
-            pokemonList,
-            pokemonKey: battleLog.needed_pokemon.pokemon_key,
-            formKey: battleLog.needed_pokemon.form_key,
-        });
+        const pokemonMaster = getPokemonMaster(
+            battleLog.needed_pokemon.pokemon_key,
+            battleLog.needed_pokemon.form_key,
+        );
+        const pokemonName =
+            battleLog.needed_pokemon.nickname ||
+            pokemonMaster?.name ||
+            battleLog.needed_pokemon.pokemon_key;
 
         return (
             <div className="shrink-0">
                 <p className="text-sm font-semibold">必要だった味方</p>
 
-                <div className="mt-2 flex items-center gap-2 rounded bg-white px-2 py-1.5">
-                    {pokemonMaster?.image_url ? (
-                        <img
-                            src={pokemonMaster.image_url}
-                            alt={pokemonMaster.name}
-                            className="h-8 w-8 shrink-0 object-contain"
-                        />
-                    ) : (
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">
-                            ?
-                        </div>
-                    )}
-
-                    <span className="max-w-28 truncate text-xs font-semibold">
-                        {battleLog.needed_pokemon.nickname ||
-                            pokemonMaster?.name ||
-                            battleLog.needed_pokemon.pokemon_key}
-                    </span>
+                <div className="mt-2 flex flex-wrap gap-2">
+                    <div
+                        title={pokemonName}
+                        className="flex h-11 w-11 items-center justify-center rounded border border-gray-100 bg-white"
+                    >
+                        {renderPokemonImage({
+                            imageUrl: pokemonMaster?.image_url,
+                            name: pokemonName,
+                            className: "h-8 w-8",
+                        })}
+                    </div>
                 </div>
             </div>
         );
     };
 
     return (
-        <section className="mt-8 rounded border bg-white p-5">
+        <section className="rounded border bg-white p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h2 className="text-lg font-bold">対戦ログ</h2>
+                    <h2 className="text-lg font-bold">{title}</h2>
 
                     <p className="mt-1 text-xs text-gray-600">
-                        保存した対戦結果と反省メモを確認できます。
+                        {description}
                     </p>
                 </div>
 
@@ -237,7 +259,7 @@ export const BattleLogListSection = ({
                                 >
                                     <summary className="cursor-pointer list-none">
                                         <div className="flex flex-wrap items-start justify-between gap-3">
-                                            <div>
+                                            <div className="min-w-0">
                                                 <div className="flex flex-wrap items-center gap-2">
                                                     <span
                                                         className={`rounded px-2 py-1 text-xs font-semibold ${

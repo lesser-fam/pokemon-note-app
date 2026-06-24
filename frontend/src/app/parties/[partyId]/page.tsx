@@ -187,13 +187,27 @@ export default function PartyDetailPage() {
                     />
                 </div>
 
-                <BattleLogListSection
-                    partyId={party.id}
-                    battleLogs={currentBattleLogs}
-                    pokemonList={pokemonList}
-                    deletingBattleLogId={deletingBattleLogId}
-                    onDeleteBattleLog={handleDeleteBattleLog}
-                />
+                <div className="mt-8 grid gap-5 xl:grid-cols-2">
+                    <BattleLogListSection
+                        partyId={party.id}
+                        title="現在バージョンの対戦ログ"
+                        description="今のパーティ構築で保存した対戦ログです。"
+                        battleLogs={currentBattleLogs}
+                        pokemonList={pokemonList}
+                        deletingBattleLogId={deletingBattleLogId}
+                        onDeleteBattleLog={handleDeleteBattleLog}
+                    />
+
+                    <BattleLogListSection
+                        partyId={party.id}
+                        title="パーティ総合の対戦ログ"
+                        description="このパーティを管理し始めてから、全バージョンで保存した対戦ログです。"
+                        battleLogs={allBattleLogs}
+                        pokemonList={pokemonList}
+                        deletingBattleLogId={deletingBattleLogId}
+                        onDeleteBattleLog={handleDeleteBattleLog}
+                    />
+                </div>
 
                 <PartyVersionHistory
                     versions={party.versions ?? []}

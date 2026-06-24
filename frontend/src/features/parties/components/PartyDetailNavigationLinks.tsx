@@ -29,6 +29,13 @@ export const PartyDetailNavigationLinks = ({
             >
                 相手パーティテンプレート
             </Link>
+
+            <Link
+                href={`/common-moves?partyId=${partyId}`}
+                className="rounded border px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-white"
+            >
+                よく使われる技
+            </Link>
         </div>
     );
 };
