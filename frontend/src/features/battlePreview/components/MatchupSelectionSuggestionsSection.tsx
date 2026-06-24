@@ -54,7 +54,7 @@ export const MatchupSelectionSuggestionsSection = ({
             className="rounded border bg-white p-3"
         >
             <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-bold">おすすめ選出β</h2>
+                <h2 className="text-base font-bold">おすすめ選出</h2>
 
                 <span className="text-[10px] text-gray-400">
                     相手の型は未確定

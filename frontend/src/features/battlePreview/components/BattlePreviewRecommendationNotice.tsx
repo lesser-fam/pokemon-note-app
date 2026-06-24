@@ -11,7 +11,7 @@ export const BattlePreviewRecommendationNotice = ({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <h2 className="text-sm font-bold text-blue-900">
-                            相手を入力すると、おすすめ選出βが出ます
+                            相手を入力すると、おすすめ選出が出ます
                         </h2>
 
                         <p className="mt-1 text-xs text-blue-800">
@@ -32,7 +32,7 @@ export const BattlePreviewRecommendationNotice = ({
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                     <h2 className="text-sm font-bold text-blue-900">
-                        おすすめ選出βを確認できます
+                        おすすめ選出を確認できます
                     </h2>
 
                     {/* <p className="mt-1 text-xs text-blue-800">

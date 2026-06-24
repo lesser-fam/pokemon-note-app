@@ -1124,7 +1124,7 @@ export default function SelectionPracticePage() {
                             <p className="text-xs text-gray-500">
                                 相手6匹を見て、自分で
                                 {ruleConfig.selectionPokemonLimit}
-                                匹を選びます。答え合わせでおすすめ選出βと比較できます。
+                                匹を選びます。答え合わせでおすすめ選出と比較できます。
                             </p>
                         </div>
                     </section>
@@ -1401,7 +1401,7 @@ export default function SelectionPracticePage() {
 
                         {!isAnswerVisible ? (
                             <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                                自分の選出を決めてから「答え合わせする」を押すと、おすすめ選出βを表示します。
+                                自分の選出を決めてから「答え合わせする」を押すと、おすすめ選出を表示します。
                             </p>
                         ) : topSuggestion ? (
                             <div className="mt-4 space-y-4">
