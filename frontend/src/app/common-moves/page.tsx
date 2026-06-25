@@ -9,8 +9,10 @@ import {
     createPokemonCommonMove,
     deletePokemonCommonMove,
     fetchPokemonCommonMoves,
+    importPokemonCommonMoves,
 } from "@/features/pokemonCommonMoves/api/pokemonCommonMoveApi";
 import type { MoveMaster } from "@/types/battleMaster";
+import type { PartyRule } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
 import type { User } from "@/types/user";
@@ -61,9 +63,13 @@ export default function CommonMovesPage() {
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
     const [memo, setMemo] = useState("");
     const [moveSearchKeyword, setMoveSearchKeyword] = useState("");
+    const [selectedRule, setSelectedRule] = useState<PartyRule>("main_series");
+    const [csvFile, setCsvFile] = useState<File | null>(null);
+    const [importErrors, setImportErrors] = useState<string[]>([]);
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
 
@@ -99,6 +105,7 @@ export default function CommonMovesPage() {
 
             try {
                 const data = await fetchPokemonCommonMoves({
+                    rule: selectedRule,
                     pokemonKey: selectedPokemon.key,
                     formKey: selectedPokemon.form_key,
                 });
@@ -111,7 +118,7 @@ export default function CommonMovesPage() {
         };
 
         loadCommonMoves();
-    }, [selectedPokemon]);
+    }, [selectedPokemon, selectedRule]);
 
     const handleSelectPokemon = (pokemon: Pokemon) => {
         setSelectedPokemon(pokemon);
@@ -121,6 +128,7 @@ export default function CommonMovesPage() {
         setMoveSearchKeyword("");
         setErrorMessage("");
         setSuccessMessage("");
+        setImportErrors([]);
     };
 
     const handleSelectMove = async (move: MoveMaster) => {
@@ -148,6 +156,7 @@ export default function CommonMovesPage() {
 
         try {
             const createdCommonMove = await createPokemonCommonMove({
+                rule: selectedRule,
                 pokemon_key: selectedPokemon.key,
                 form_key: selectedPokemon.form_key,
                 move_id: move.id,
@@ -193,6 +202,55 @@ export default function CommonMovesPage() {
             setErrorMessage("よく使う技の削除に失敗しました。");
         }
     };
+
+    const handleChangeRule = (rule: PartyRule) => {
+        setSelectedRule(rule);
+        setErrorMessage("");
+        setSuccessMessage("");
+        setImportErrors([]);
+    };
+
+    const handleImportCsv = async () => {
+        if (!isAdmin) {
+            setErrorMessage("CSVインポートできるのは管理者のみです。");
+            return;
+        }
+
+        if (!csvFile || isImporting) {
+            return;
+        }
+
+        setIsImporting(true);
+        setErrorMessage("");
+        setSuccessMessage("");
+        setImportErrors([]);
+
+        try {
+            const result = await importPokemonCommonMoves(csvFile);
+
+            setImportErrors(result.errors);
+            setSuccessMessage(
+                `CSVインポートが完了しました。新規${result.imported_count}件、更新${result.updated_count}件、エラー${result.error_count}件`,
+            );
+            setCsvFile(null);
+
+            if (selectedPokemon) {
+                const data = await fetchPokemonCommonMoves({
+                    rule: selectedRule,
+                    pokemonKey: selectedPokemon.key,
+                    formKey: selectedPokemon.form_key,
+                });
+
+                setCommonMoves(data);
+            }
+        } catch (error) {
+            console.error(error);
+            setErrorMessage("CSVインポートに失敗しました。ヘッダーや技名を確認してください。");
+        } finally {
+            setIsImporting(false);
+        }
+    };
+
 
     if (isLoading) {
         return (
@@ -243,6 +301,32 @@ export default function CommonMovesPage() {
                             ? "管理者はよく使われる技を登録・削除できます。"
                             : "登録と削除は管理者のみ行えます。"}
                     </p>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                            type="button"
+                            onClick={() => handleChangeRule("main_series")}
+                            className={`rounded border px-3 py-2 text-sm font-semibold ${
+                                selectedRule === "main_series"
+                                    ? "border-black bg-white ring-2 ring-black"
+                                    : "border-gray-200 bg-white hover:bg-gray-50"
+                            }`}
+                        >
+                            本編ルール
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleChangeRule("champions")}
+                            className={`rounded border px-3 py-2 text-sm font-semibold ${
+                                selectedRule === "champions"
+                                    ? "border-black bg-white ring-2 ring-black"
+                                    : "border-gray-200 bg-white hover:bg-gray-50"
+                            }`}
+                        >
+                            チャンピオンズ
+                        </button>
+                    </div>
                 </div>
 
                 {errorMessage && (
@@ -255,6 +339,47 @@ export default function CommonMovesPage() {
                     <p className="mb-4 rounded bg-green-100 p-3 text-sm text-green-700">
                         {successMessage}
                     </p>
+                )}
+
+                {importErrors.length > 0 && (
+                    <div className="mb-4 rounded bg-yellow-50 p-3 text-sm text-yellow-800">
+                        <p className="font-semibold">CSVインポートの確認事項</p>
+                        <ul className="mt-2 list-disc space-y-1 pl-5">
+                            {importErrors.map((importError) => (
+                                <li key={importError}>{importError}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {isAdmin && (
+                    <section className="mb-6 rounded border bg-white p-4">
+                        <h2 className="text-lg font-bold">CSVインポート</h2>
+
+                        <p className="mt-1 text-sm text-gray-600">
+                            CSV形式: rule,pokemon_key,form_key,move_name,memo
+                        </p>
+
+                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                            <input
+                                type="file"
+                                accept=".csv,text/csv"
+                                onChange={(event) =>
+                                    setCsvFile(event.target.files?.[0] ?? null)
+                                }
+                                className="text-sm"
+                            />
+
+                            <button
+                                type="button"
+                                onClick={handleImportCsv}
+                                disabled={!csvFile || isImporting}
+                                className="rounded bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:bg-gray-400"
+                            >
+                                {isImporting ? "インポート中..." : "CSVをインポート"}
+                            </button>
+                        </div>
+                    </section>
                 )}
 
                 <section className="rounded border bg-white p-4">

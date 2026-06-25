@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('admin')->group(function () {
         Route::post('/api/pokemon-common-moves', [PokemonCommonMoveController::class, 'store']);
+        Route::post('/api/pokemon-common-moves/import', [PokemonCommonMoveController::class, 'import']);
         Route::delete('/api/pokemon-common-moves/{pokemonCommonMove}', [PokemonCommonMoveController::class, 'destroy']);
 
         Route::post('/api/opponent-party-templates', [OpponentPartyTemplateController::class, 'store']);

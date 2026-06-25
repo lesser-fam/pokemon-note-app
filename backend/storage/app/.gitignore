@@ -6,3 +6,4 @@
 data/*
 !data/pokemon.csv
 !data/pokemon_abilities.csv
+!data/pokemon_common_moves_champions.csv

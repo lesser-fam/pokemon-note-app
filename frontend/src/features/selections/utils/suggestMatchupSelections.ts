@@ -1,7 +1,12 @@
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
 import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calculateOffensiveMatchupScore";
+import {
+    createCommonMoveAttackTypeMap,
+    type CommonMoveAttackTypeMap,
+} from "@/features/selections/utils/createCommonMoveAttackTypeMap";
 import type { BattleLog, PartyPokemon, SelectionTemplate } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
+import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
 
 type SelectionRole = "lead" | "switch" | "finisher";
 
@@ -32,6 +37,7 @@ type SuggestMatchupSelectionsParams = {
     opponentPokemonList: Pokemon[];
     savedSelectionTemplates: SelectionTemplate[];
     battleLogs: BattleLog[];
+    pokemonCommonMoves?: PokemonCommonMove[];
     limit?: number | null;
 };
 
@@ -131,6 +137,7 @@ const getPokemonScore = (
     pokemonMasterList: Pokemon[],
     opponentPokemonList: Pokemon[],
     battleLogs: BattleLog[],
+    commonMoveAttackTypeMap: CommonMoveAttackTypeMap,
 ): PokemonScoreBreakdown => {
     const pokemonMaster = pokemonMasterList.find(
         (pokemon) =>
@@ -155,6 +162,7 @@ const getPokemonScore = (
         opponentPokemonList,
         abilityEffectRules: partyPokemon.ability_master?.effect_rules ?? [],
         itemEffectRules: partyPokemon.item_master?.effect_rules ?? [],
+        commonMoveAttackTypeMap,
     });
 
     const roleTagScore = getRoleTagScore(partyPokemon, role);
@@ -240,6 +248,7 @@ export const suggestMatchupSelections = ({
     opponentPokemonList,
     savedSelectionTemplates,
     battleLogs,
+    pokemonCommonMoves = [],
     limit = 3,
 }: SuggestMatchupSelectionsParams): MatchupSelectionSuggestion[] => {
     if (partyPokemonList.length < 3 || opponentPokemonList.length === 0) {
@@ -247,6 +256,8 @@ export const suggestMatchupSelections = ({
     }
 
     const suggestions: MatchupSelectionSuggestion[] = [];
+    const commonMoveAttackTypeMap =
+        createCommonMoveAttackTypeMap(pokemonCommonMoves);
 
     partyPokemonList.forEach((leadPokemon) => {
         partyPokemonList.forEach((switchPokemon) => {
@@ -268,6 +279,7 @@ export const suggestMatchupSelections = ({
                     pokemonMasterList,
                     opponentPokemonList,
                     battleLogs,
+                    commonMoveAttackTypeMap,
                 );
 
                 const switchBreakdown = getPokemonScore(
@@ -276,6 +288,7 @@ export const suggestMatchupSelections = ({
                     pokemonMasterList,
                     opponentPokemonList,
                     battleLogs,
+                    commonMoveAttackTypeMap,
                 );
 
                 const finisherBreakdown = getPokemonScore(
@@ -284,6 +297,7 @@ export const suggestMatchupSelections = ({
                     pokemonMasterList,
                     opponentPokemonList,
                     battleLogs,
+                    commonMoveAttackTypeMap,
                 );
 
                 const savedTemplateBonus = getSavedTemplateBonus(

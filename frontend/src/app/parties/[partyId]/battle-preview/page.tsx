@@ -68,9 +68,11 @@ export default function BattlePreviewPage() {
         partyPokemonLimit: ruleConfig.partyPokemonLimit,
     });
 
-    const { pokemonAbilityWarnings } = useOpponentPokemonBattleData({
-        opponentPokemonList,
-    });
+    const { pokemonAbilityWarnings, pokemonCommonMoves } =
+        useOpponentPokemonBattleData({
+            opponentPokemonList,
+            partyRule: party?.rule ?? "main_series",
+        });
 
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -181,6 +183,7 @@ export default function BattlePreviewPage() {
         opponentPokemonList,
         savedSelectionTemplates,
         battleLogs,
+        pokemonCommonMoves,
     });
 
     if (isInvalidPartyId) {

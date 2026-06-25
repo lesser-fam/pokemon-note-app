@@ -11,6 +11,7 @@ class PokemonCommonMoveResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'rule' => $this->rule,
             'pokemon_key' => $this->pokemon_key,
             'form_key' => $this->form_key,
             'move_id' => $this->move_id,

@@ -1,5 +1,6 @@
 import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
 import { fetchPokemonCommonMoves } from "@/features/pokemonCommonMoves/api/pokemonCommonMoveApi";
+import type { PartyRule } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
 import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
@@ -7,10 +8,12 @@ import { useEffect, useState } from "react";
 
 type UseOpponentPokemonBattleDataParams = {
     opponentPokemonList: Pokemon[];
+    partyRule: PartyRule;
 };
 
 export const useOpponentPokemonBattleData = ({
     opponentPokemonList,
+    partyRule,
 }: UseOpponentPokemonBattleDataParams) => {
     const [pokemonAbilityWarnings, setPokemonAbilityWarnings] = useState<
         PokemonAbilityWarning[]
@@ -55,6 +58,7 @@ export const useOpponentPokemonBattleData = ({
                 const commonMovesList = await Promise.all(
                     opponentPokemonList.map((pokemon) =>
                         fetchPokemonCommonMoves({
+                            rule: partyRule,
                             pokemonKey: pokemon.key,
                             formKey: pokemon.form_key,
                         }),
@@ -69,7 +73,7 @@ export const useOpponentPokemonBattleData = ({
         };
 
         loadPokemonCommonMoves();
-    }, [opponentPokemonList]);
+    }, [opponentPokemonList, partyRule]);
 
     return {
         pokemonAbilityWarnings,
