@@ -47,6 +47,12 @@ class DatabaseSeeder extends Seeder
              * 持ち物による相性補正を登録する。
              */
             ItemEffectRuleSeeder::class,
+
+            /*
+             * チャンピオンズ向けのよく使われる技CSVを登録する。
+             */
+            PokemonCommonMoveSeeder::class,
         ]);
     }
 }
+
