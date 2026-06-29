@@ -144,10 +144,46 @@ SANCTUM_STATEFUL_DOMAINS=localhost:3000,127.0.0.1:3000
 SESSION_DOMAIN=localhost
 ```
 
-マイグレーションとシーディングを実行します。
+マイグレーションを実行します。
 
 ```bash
-php artisan migrate --seed
+php artisan migrate
+```
+
+続けて、アプリで参照するマスターデータを作成・登録します。
+
+```bash
+php artisan app:setup-master-data
+```
+
+このコマンドでは、以下の処理をまとめて実行します。
+
+- PokéAPIからポケモンの基本情報を取得し、`storage/app/data/pokemon.csv` を生成
+- PokéAPIから技、特性、持ち物のマスターデータを取得し、DBへ登録
+- `pokemon.csv` に含まれるポケモンと特性の紐付けを取得し、`storage/app/data/pokemon_abilities.csv` を生成
+- シーダーを実行し、ユーザー、役割タグ、性格、特性補正、持ち物補正、ポケモンごとの特性、チャンピオンズ用のよく使われる技を登録
+
+PokéAPIへ多数のリクエストを送るため、初回実行には時間がかかります。Laravel Sailを使用する場合は、以下のように `sail artisan` で実行します。
+
+```bash
+./vendor/bin/sail artisan migrate
+./vendor/bin/sail artisan app:setup-master-data
+```
+
+マスターデータ取得処理を個別に実行したい場合は、以下のコマンドも使用できます。
+
+```bash
+# ポケモン一覧CSVを生成
+php artisan pokemon:export-csv --from=1 --to=1025 --output=pokemon.csv
+
+# 技、特性、持ち物をDBへ登録
+php artisan app:import-battle-master-data all
+
+# ポケモンと特性の紐付けCSVを生成
+php artisan pokemon:export-abilities-csv --output=pokemon_abilities.csv
+
+# CSVや固定値をもとに初期データを登録
+php artisan db:seed
 ```
 
 ### 3. フロントエンドのセットアップ
