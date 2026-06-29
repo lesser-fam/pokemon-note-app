@@ -5,6 +5,7 @@ import { fetchCurrentUser } from "@/features/auth/api/authApi";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { MoveSelector } from "@/features/master/components/MoveSelector";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
+import { isPokemonAvailableForRule } from "@/features/pokemonRules/isPokemonAvailableForRule";
 import {
     createPokemonCommonMove,
     deletePokemonCommonMove,
@@ -63,7 +64,7 @@ export default function CommonMovesPage() {
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
     const [memo, setMemo] = useState("");
     const [moveSearchKeyword, setMoveSearchKeyword] = useState("");
-    const [selectedRule, setSelectedRule] = useState<PartyRule>("main_series");
+    const [selectedRule, setSelectedRule] = useState<PartyRule>("champions");
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const [importErrors, setImportErrors] = useState<string[]>([]);
 
@@ -205,6 +206,15 @@ export default function CommonMovesPage() {
 
     const handleChangeRule = (rule: PartyRule) => {
         setSelectedRule(rule);
+
+        if (
+            selectedPokemon &&
+            !isPokemonAvailableForRule(selectedPokemon, rule)
+        ) {
+            setSelectedPokemon(null);
+            setCommonMoves([]);
+        }
+
         setErrorMessage("");
         setSuccessMessage("");
         setImportErrors([]);
@@ -397,8 +407,15 @@ export default function CommonMovesPage() {
                             searchKeyword={pokemonSearchKeyword}
                             onChangeSearchKeyword={setPokemonSearchKeyword}
                             clearSearchKeywordOnSelect
+                            resultPanelWidth="fixed"
                             selectedTypes={selectedTypes}
                             onChangeSelectedTypes={setSelectedTypes}
+                            filterPokemon={(pokemon) =>
+                                isPokemonAvailableForRule(
+                                    pokemon,
+                                    selectedRule,
+                                )
+                            }
                             isPokemonSelected={(pokemon) =>
                                 selectedPokemon
                                     ? selectedPokemon.key === pokemon.key &&

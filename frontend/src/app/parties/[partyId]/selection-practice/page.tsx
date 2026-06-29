@@ -1239,6 +1239,7 @@ export default function SelectionPracticePage() {
                         <div className="mt-4">
                             <PokemonSearchSelector
                                 layout="compact"
+                                typeFilterColumnCount={6}
                                 pokemonList={pokemonList}
                                 searchKeyword={searchKeyword}
                                 onChangeSearchKeyword={setSearchKeyword}

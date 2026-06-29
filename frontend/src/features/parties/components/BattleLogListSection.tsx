@@ -126,7 +126,7 @@ export const BattleLogListSection = ({
                             }`}
                         >
                             {selectionOrder && (
-                                <span className="absolute -left-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black text-[11px] font-semibold leading-none text-white">
+                                <span className="absolute -left-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-black text-xs font-semibold leading-none text-white">
                                     {selectionOrderLabels[selectionOrder - 1]}
                                 </span>
                             )}
@@ -168,7 +168,7 @@ export const BattleLogListSection = ({
                             title={pokemonName}
                             className="relative flex h-11 w-11 items-center justify-center rounded border border-gray-100 bg-white"
                         >
-                            <span className="absolute -left-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black text-[11px] font-semibold leading-none text-white">
+                            <span className="absolute -left-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-black text-xs font-semibold leading-none text-white">
                                 {selectionOrderLabels[index]}
                             </span>
 

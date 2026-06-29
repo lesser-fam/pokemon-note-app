@@ -29,6 +29,7 @@ type PokemonSearchSelectorProps = {
     initialLimit?: number;
 
     layout?: "wide" | "compact";
+    resultPanelWidth?: "fluid" | "fixed";
     typeFilterColumnCount?: 4 | 6;
 };
 
@@ -46,6 +47,7 @@ export function PokemonSearchSelector({
     clearSearchKeywordOnSelect = false,
     initialLimit = 30,
     layout = "wide",
+    resultPanelWidth = "fluid",
     typeFilterColumnCount = 4,
 }: PokemonSearchSelectorProps) {
     const handleToggleType = (type: string) => {
@@ -97,15 +99,17 @@ export function PokemonSearchSelector({
         : filteredPokemonList.slice(0, initialLimit);
 
     const isCompactLayout = layout === "compact";
+    const wideLayoutGridClass =
+        resultPanelWidth === "fixed"
+            ? "grid min-w-0 gap-5 lg:grid-cols-[19rem_42rem]"
+            : "grid min-w-0 gap-5 lg:grid-cols-[19rem_minmax(0,1fr)]";
     const typeFilterGridClass =
         typeFilterColumnCount === 6 ? "grid-cols-6" : "grid-cols-4";
 
     return (
         <div
             className={
-                isCompactLayout
-                    ? "min-w-0 space-y-4"
-                    : "grid min-w-0 gap-5 lg:grid-cols-[19rem_minmax(0,1fr)]"
+                isCompactLayout ? "min-w-0 space-y-4" : wideLayoutGridClass
             }
         >
             <div>
@@ -187,7 +191,9 @@ export function PokemonSearchSelector({
             <div className="min-w-0">
                 <div
                     className={`min-w-0 overflow-x-hidden overflow-y-auto rounded border bg-gray-50 ${
-                        isCompactLayout ? "max-h-72 p-2" : "max-h-112 p-3"
+                        isCompactLayout
+                            ? "h-72 p-2"
+                            : "min-h-112 max-h-112 p-3"
                     }`}
                 >
                     <div
