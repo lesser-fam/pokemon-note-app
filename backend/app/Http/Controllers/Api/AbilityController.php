@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ability;
+use App\Support\KanaSearch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,21 +18,32 @@ class AbilityController extends Controller
             100,
         );
 
-        $abilities = Ability::query()
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($query) use ($search) {
-                    $query
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('key', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('name')
-            ->limit($limit)
-            ->get([
-                'id',
-                'key',
-                'name',
-            ]);
+        $query = Ability::query()
+            ->orderBy('name');
+
+        if ($search === '') {
+            $abilities = $query
+                ->limit($limit)
+                ->get([
+                    'id',
+                    'key',
+                    'name',
+                ]);
+        } else {
+            $abilities = $query
+                ->get([
+                    'id',
+                    'key',
+                    'name',
+                ])
+                ->filter(
+                    fn ($ability): bool =>
+                    KanaSearch::matches($ability->name, $search)
+                    || KanaSearch::matches($ability->key, $search),
+                )
+                ->take($limit)
+                ->values();
+        }
 
         return response()->json([
             'data' => $abilities,

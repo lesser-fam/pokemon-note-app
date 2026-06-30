@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Item;
+use App\Support\KanaSearch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,22 +18,34 @@ class ItemController extends Controller
             100,
         );
 
-        $items = Item::query()
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($query) use ($search) {
-                    $query
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('key', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('name')
-            ->limit($limit)
-            ->get([
-                'id',
-                'key',
-                'name',
-                'description',
-            ]);
+        $query = Item::query()
+            ->orderBy('name');
+
+        if ($search === '') {
+            $items = $query
+                ->limit($limit)
+                ->get([
+                    'id',
+                    'key',
+                    'name',
+                    'description',
+                ]);
+        } else {
+            $items = $query
+                ->get([
+                    'id',
+                    'key',
+                    'name',
+                    'description',
+                ])
+                ->filter(
+                    fn ($item): bool =>
+                    KanaSearch::matches($item->name, $search)
+                    || KanaSearch::matches($item->key, $search),
+                )
+                ->take($limit)
+                ->values();
+        }
 
         return response()->json([
             'data' => $items,

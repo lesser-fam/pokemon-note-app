@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Move;
+use App\Support\KanaSearch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,25 +18,40 @@ class MoveController extends Controller
             100,
         );
 
-        $moves = Move::query()
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($query) use ($search) {
-                    $query
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('key', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('name')
-            ->limit($limit)
-            ->get([
-                'id',
-                'key',
-                'name',
-                'type',
-                'damage_class',
-                'power',
-                'is_scoring_target',
-            ]);
+        $query = Move::query()
+            ->orderBy('name');
+
+        if ($search === '') {
+            $moves = $query
+                ->limit($limit)
+                ->get([
+                    'id',
+                    'key',
+                    'name',
+                    'type',
+                    'damage_class',
+                    'power',
+                    'is_scoring_target',
+                ]);
+        } else {
+            $moves = $query
+                ->get([
+                    'id',
+                    'key',
+                    'name',
+                    'type',
+                    'damage_class',
+                    'power',
+                    'is_scoring_target',
+                ])
+                ->filter(
+                    fn ($move): bool =>
+                    KanaSearch::matches($move->name, $search)
+                    || KanaSearch::matches($move->key, $search),
+                )
+                ->take($limit)
+                ->values();
+        }
 
         return response()->json([
             'data' => $moves,

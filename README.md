@@ -67,7 +67,7 @@
 
 | 技術 | 用途 |
 | --- | --- |
-| PHP 8.3 | バックエンド実装 |
+| PHP 8.4 | バックエンド実装 |
 | Laravel 13 | API実装 |
 | Laravel Sanctum | Cookieベースの認証 |
 | SQLite | 開発環境のデータベース |
@@ -116,6 +116,14 @@ cd pokemon-note-app
 
 ### 2. バックエンドのセットアップ
 
+以下の環境を前提としています。
+
+- PHP 8.4以上
+- Composer
+- PHP拡張: `intl`, `dom`, `xml`, `mbstring`
+
+`composer install` が成功して `vendor/` が作成されてから、`php artisan` や `./vendor/bin/sail` を実行してください。
+
 ```bash
 cd backend
 composer install
@@ -163,7 +171,7 @@ php artisan app:setup-master-data
 - `pokemon.csv` に含まれるポケモンと特性の紐付けを取得し、`storage/app/data/pokemon_abilities.csv` を生成
 - シーダーを実行し、ユーザー、役割タグ、性格、特性補正、持ち物補正、ポケモンごとの特性、チャンピオンズ用のよく使われる技を登録
 
-PokéAPIへ多数のリクエストを送るため、初回実行には時間がかかります。Laravel Sailを使用する場合は、以下のように `sail artisan` で実行します。
+PokéAPIへ多数のリクエストを送るため、初回実行には時間がかかります。実際に全件取得した際は数十分かかる場合があります。Laravel Sailを使用する場合は、以下のように `sail artisan` で実行します。
 
 ```bash
 ./vendor/bin/sail artisan migrate
