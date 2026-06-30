@@ -1,10 +1,10 @@
 "use client";
 
 import { api, getCsrfCookie } from "@/lib/api";
+import { getApiErrorMessage, getApiValidationErrors } from "@/utils/apiError";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { getApiErrorMessage } from "@/utils/apiError";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -12,9 +12,13 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        setMessage("");
+        setFieldErrors({});
 
         try {
             await getCsrfCookie();
@@ -32,6 +36,7 @@ export default function LoginPage() {
         } catch (error) {
             console.error(error);
 
+            setFieldErrors(getApiValidationErrors(error));
             setMessage(getApiErrorMessage(error, "ログインに失敗しました。"));
         }
     };
@@ -59,7 +64,13 @@ export default function LoginPage() {
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
                             autoComplete="email"
+                            aria-invalid={Boolean(fieldErrors.email)}
                         />
+                        {fieldErrors.email && (
+                            <p className="mt-1 text-sm text-red-600">
+                                {fieldErrors.email}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -74,7 +85,13 @@ export default function LoginPage() {
                                 setPassword(event.target.value)
                             }
                             autoComplete="current-password"
+                            aria-invalid={Boolean(fieldErrors.password)}
                         />
+                        {fieldErrors.password && (
+                            <p className="mt-1 text-sm text-red-600">
+                                {fieldErrors.password}
+                            </p>
+                        )}
                     </div>
 
                     {message && (

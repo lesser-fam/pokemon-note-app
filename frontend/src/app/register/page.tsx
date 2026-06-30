@@ -1,7 +1,7 @@
 "use client";
 
 import { api, getCsrfCookie } from "@/lib/api";
-import { getApiErrorMessage } from "@/utils/apiError";
+import { getApiErrorMessage, getApiValidationErrors } from "@/utils/apiError";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -16,12 +16,14 @@ export default function RegisterPage() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     const handleRegister = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         setIsSubmitting(true);
         setErrorMessage("");
+        setFieldErrors({});
 
         try {
             await getCsrfCookie();
@@ -37,6 +39,7 @@ export default function RegisterPage() {
         } catch (error) {
             console.error(error);
 
+            setFieldErrors(getApiValidationErrors(error));
             setErrorMessage(
                 getApiErrorMessage(error, "ユーザー登録に失敗しました。"),
             );
@@ -73,7 +76,13 @@ export default function RegisterPage() {
                             value={name}
                             onChange={(event) => setName(event.target.value)}
                             autoComplete="name"
+                            aria-invalid={Boolean(fieldErrors.name)}
                         />
+                        {fieldErrors.name && (
+                            <p className="mt-1 text-sm text-red-600">
+                                {fieldErrors.name}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -87,7 +96,13 @@ export default function RegisterPage() {
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
                             autoComplete="email"
+                            aria-invalid={Boolean(fieldErrors.email)}
                         />
+                        {fieldErrors.email && (
+                            <p className="mt-1 text-sm text-red-600">
+                                {fieldErrors.email}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -103,11 +118,18 @@ export default function RegisterPage() {
                                 setPassword(event.target.value)
                             }
                             autoComplete="new-password"
+                            aria-invalid={Boolean(fieldErrors.password)}
                         />
 
-                        <p className="mt-1 text-xs text-gray-500">
-                            8文字以上で入力してください。
-                        </p>
+                        {fieldErrors.password ? (
+                            <p className="mt-1 text-sm text-red-600">
+                                {fieldErrors.password}
+                            </p>
+                        ) : (
+                            <p className="mt-1 text-xs text-gray-500">
+                                8文字以上で入力してください。
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -123,7 +145,15 @@ export default function RegisterPage() {
                                 setPasswordConfirmation(event.target.value)
                             }
                             autoComplete="new-password"
+                            aria-invalid={Boolean(
+                                fieldErrors.password_confirmation,
+                            )}
                         />
+                        {fieldErrors.password_confirmation && (
+                            <p className="mt-1 text-sm text-red-600">
+                                {fieldErrors.password_confirmation}
+                            </p>
+                        )}
                     </div>
 
                     {errorMessage && (

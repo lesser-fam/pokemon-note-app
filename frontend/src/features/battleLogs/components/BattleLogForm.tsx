@@ -3,6 +3,7 @@
 import type { StoreBattleLogPayload } from "@/features/battleLogs/api/battleLogApi";
 import type { Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
+import { getApiErrorMessage } from "@/utils/apiError";
 import { FormEvent, useState } from "react";
 
 const lossTagOptions = [
@@ -237,7 +238,9 @@ export function BattleLogForm({
         } catch (error) {
             console.error(error);
 
-            setErrorMessage("対戦ログの保存に失敗しました。");
+            setErrorMessage(
+                getApiErrorMessage(error, "対戦ログの保存に失敗しました。"),
+            );
 
             setIsSubmitting(false);
         }

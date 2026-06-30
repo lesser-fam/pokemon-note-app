@@ -3,6 +3,7 @@
 import { AppHeader } from "@/components/AppHeader";
 import { fetchParty, updateParty } from "@/features/parties/api/partyApi";
 import type { Party } from "@/types/party";
+import { getApiErrorMessage, getApiValidationErrors } from "@/utils/apiError";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -22,6 +23,7 @@ export default function EditPartyPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         const loadParty = async () => {
@@ -57,12 +59,14 @@ export default function EditPartyPage() {
         }
 
         if (!name.trim()) {
+            setFieldErrors({ name: "パーティ名を入力してください。" });
             setErrorMessage("パーティ名を入力してください。");
             return;
         }
 
         setIsSubmitting(true);
         setErrorMessage("");
+        setFieldErrors({});
 
         try {
             const updatedParty = await updateParty(party.id, {
@@ -75,7 +79,10 @@ export default function EditPartyPage() {
             router.push(`/parties/${updatedParty.id}`);
         } catch (error) {
             console.error(error);
-            setErrorMessage("パーティの更新に失敗しました。");
+            setFieldErrors(getApiValidationErrors(error));
+            setErrorMessage(
+                getApiErrorMessage(error, "パーティの更新に失敗しました。"),
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -145,7 +152,11 @@ export default function EditPartyPage() {
                         </p>
                     )}
 
-                    <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+                    <form
+                        onSubmit={handleSubmit}
+                        className="mt-6 space-y-6"
+                        noValidate
+                    >
                         <div>
                             <label className="block text-sm font-medium">
                                 パーティ名
@@ -156,7 +167,13 @@ export default function EditPartyPage() {
                                 onChange={(event) =>
                                     setName(event.target.value)
                                 }
+                                aria-invalid={Boolean(fieldErrors.name)}
                             />
+                            {fieldErrors.name && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {fieldErrors.name}
+                                </p>
+                            )}
                         </div>
 
                         <div>
@@ -170,12 +187,18 @@ export default function EditPartyPage() {
                                 onChange={(event) =>
                                     setRule(event.target.value)
                                 }
+                                aria-invalid={Boolean(fieldErrors.rule)}
                             >
                                 <option value="main_series">本編ルール</option>
                                 <option value="champions">
                                     チャンピオンズ
                                 </option>
                             </select>
+                            {fieldErrors.rule && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {fieldErrors.rule}
+                                </p>
+                            )}
 
                             <p className="mt-2 text-xs text-gray-500">
                                 ルールを変更すると、努力値上限の判定も変わります。
@@ -185,6 +208,9 @@ export default function EditPartyPage() {
                         <div>
                             <label className="block text-sm font-medium">
                                 コンセプト
+                                <span className="ml-1 text-xs text-gray-500">
+                                    任意
+                                </span>
                             </label>
                             <textarea
                                 className="mt-1 w-full rounded border p-3"
@@ -193,12 +219,21 @@ export default function EditPartyPage() {
                                     setConcept(event.target.value)
                                 }
                                 rows={4}
+                                aria-invalid={Boolean(fieldErrors.concept)}
                             />
+                            {fieldErrors.concept && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {fieldErrors.concept}
+                                </p>
+                            )}
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium">
                                 メモ
+                                <span className="ml-1 text-xs text-gray-500">
+                                    任意
+                                </span>
                             </label>
                             <textarea
                                 className="mt-1 w-full rounded border p-3"
@@ -207,7 +242,13 @@ export default function EditPartyPage() {
                                     setMemo(event.target.value)
                                 }
                                 rows={4}
+                                aria-invalid={Boolean(fieldErrors.memo)}
                             />
+                            {fieldErrors.memo && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {fieldErrors.memo}
+                                </p>
+                            )}
                         </div>
 
                         <div className="flex flex-wrap gap-3">

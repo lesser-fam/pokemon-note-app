@@ -8,17 +8,22 @@ export const getApiErrorMessage = (
         return fallbackMessage;
     }
 
-    const errors = error.response?.data?.errors;
+    const responseData = error.response?.data;
+    const errors = responseData?.errors;
 
-    if (!errors || typeof errors !== "object") {
-        return fallbackMessage;
+    if (errors && typeof errors === "object") {
+        const firstMessage = Object.values(errors)
+            .flat()
+            .find((message) => typeof message === "string");
+
+        if (typeof firstMessage === "string") {
+            return firstMessage;
+        }
     }
 
-    const firstMessage = Object.values(errors)
-        .flat()
-        .find((message) => typeof message === "string");
-
-    return typeof firstMessage === "string" ? firstMessage : fallbackMessage;
+    return typeof responseData?.message === "string"
+        ? responseData.message
+        : fallbackMessage;
 };
 
 export const getApiValidationErrors = (
