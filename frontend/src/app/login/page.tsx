@@ -40,7 +40,9 @@ export default function LoginPage() {
         <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
             <div className="w-full max-w-md rounded bg-white p-8 shadow">
                 <div className="mb-8 text-center">
-                    <h1 className="text-2xl font-bold">Matchup Note</h1>
+                    <Link href="/" className="inline-block text-2xl font-bold">
+                        Matchup Note
+                    </Link>
                     <p className="mt-2 text-sm text-gray-600">
                         ポケモン対戦の選出と反省を記録する学習支援アプリ
                     </p>

@@ -70,6 +70,7 @@ sequenceDiagram
 
 | 画面 | パス | 主な役割 |
 | --- | --- | --- |
+| トップ | `/` | アプリ概要、使い方、新規登録・ログイン導線 |
 | ログイン | `/login` | ログイン |
 | ユーザー登録 | `/register` | 新規ユーザー登録 |
 | パーティ一覧 | `/parties` | 自分のパーティ一覧表示 |
@@ -83,12 +84,15 @@ sequenceDiagram
 | 対戦ログ作成 | `/parties/[partyId]/battle-logs/create` | 対戦ログ新規作成 |
 | 対戦ログ編集 | `/parties/[partyId]/battle-logs/[battleLogId]/edit` | 対戦ログ編集 |
 | 相手パーティテンプレート | `/opponent-party-templates` | 相手パーティテンプレート管理 |
-| よく使われる技管理 | `/common-moves` | 管理者向けの技データ管理 |
+| よく使われる技管理 | `/common-moves` | よく使われる技の確認、管理者向けの登録・削除・CSVインポート |
+| ヘルプ | `/help` | アプリの基本的な使い方を案内 |
 
 ## 5. 画面遷移
 
 ```mermaid
 flowchart TD
+    top[トップ] --> login[ログイン]
+    top --> register[ユーザー登録]
     login[ログイン] --> parties[パーティ一覧]
     register[ユーザー登録] --> parties
     parties --> partyCreate[パーティ作成]
@@ -103,6 +107,8 @@ flowchart TD
     partyDetail --> battleLogEdit[対戦ログ編集]
     partyDetail --> selectionTemplateEdit[基本選出編集]
     parties --> opponentTemplates[相手パーティテンプレート]
+    parties --> commonMoves[よく使われる技]
+    parties --> help[ヘルプ]
 ```
 
 ## 6. API設計
@@ -160,8 +166,10 @@ flowchart TD
 | GET | `/api/abilities` | 特性一覧取得 |
 | GET | `/api/items` | 持ち物一覧取得 |
 | GET | `/api/natures` | 性格一覧取得 |
+| GET | `/api/pokemon-ability-warnings` | ポケモンごとの特性候補取得 |
 | GET | `/api/pokemon-common-moves` | よく使われる技取得 |
 | POST | `/api/pokemon-common-moves` | よく使われる技登録 管理者のみ |
+| POST | `/api/pokemon-common-moves/import` | よく使われる技CSVインポート 管理者のみ |
 | DELETE | `/api/pokemon-common-moves/{pokemonCommonMove}` | よく使われる技削除 管理者のみ |
 | GET | `/api/opponent-party-templates` | 相手パーティテンプレート一覧取得 |
 | POST | `/api/opponent-party-templates` | 相手パーティテンプレート登録 管理者のみ |
@@ -179,6 +187,8 @@ flowchart TD
 - パーティ変更時は新しい `party_versions` を作成し、過去バージョンのログを保持する
 - `battle_logs` は自分の選出、相手パーティ、相手選出、反省情報を保存する
 - `pokemon_key` と `form_key` はDB外のポケモンマスタ識別子として扱う
+- ポケモン一覧は `storage/app/data/pokemon.csv` を参照し、技・特性・持ち物はPokéAPIからDBへ取り込む
+- よく使われる技は `pokemon_common_moves` にルール別で保存し、チャンピオンズ用CSVからSeederで登録する
 
 ## 8. バリデーション・制約
 
@@ -192,6 +202,7 @@ flowchart TD
 | 対戦ログ | 別パーティバージョンのポケモンを登録不可 |
 | 対戦ログ | 相手選出は相手パーティに存在するポケモンのみ登録可能 |
 | 管理者API | `is_admin` が true のユーザーのみ実行可能 |
+| マスタ検索 | 技、特性、持ち物はひらがな・カタカナの入力揺れを吸収して検索可能 |
 
 ## 9. テスト設計
 
@@ -205,11 +216,13 @@ Feature Testで以下を確認しています。
 - 別パーティバージョンのポケモン利用拒否
 - 一般ユーザーの管理者API利用拒否
 - 管理者ユーザーの相手パーティテンプレート登録
+- よく使われる技のルール別取得、CSVインポート権限
+- 技、特性、持ち物のカナ揺れ検索
 
 ## 10. 今後の設計改善
 
 - 対戦前選出のおすすめ選出ロジックの精度改善
-- 主要APIのFeature Test追加
+- フロントエンドの画面単位テスト追加
 - 画面単位のE2Eテスト追加
 - デプロイ構成の設計
 - 本番運用時のログ・監視設計
