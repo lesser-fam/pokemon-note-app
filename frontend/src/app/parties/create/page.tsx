@@ -5,6 +5,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createParty } from "@/features/parties/api/partyApi";
 import { AppHeader } from "@/components/AppHeader";
+import { getApiErrorMessage, getApiValidationErrors } from "@/utils/apiError";
 
 export default function CreatePartyPage() {
     const router = useRouter();
@@ -14,12 +15,14 @@ export default function CreatePartyPage() {
     const [concept, setConcept] = useState("");
     const [memo, setMemo] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         setErrorMessage("");
+        setFieldErrors({});
         setIsSubmitting(true);
 
         try {
@@ -33,7 +36,10 @@ export default function CreatePartyPage() {
             router.push(`/parties/${party.id}`);
         } catch (error) {
             console.error(error);
-            setErrorMessage("パーティ作成に失敗しました。");
+            setFieldErrors(getApiValidationErrors(error));
+            setErrorMessage(
+                getApiErrorMessage(error, "パーティ作成に失敗しました。"),
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -69,7 +75,13 @@ export default function CreatePartyPage() {
                             value={name}
                             onChange={(event) => setName(event.target.value)}
                             placeholder="例：メガゲンガー軸"
+                            aria-invalid={Boolean(fieldErrors.name)}
                         />
+                        {fieldErrors.name && (
+                            <p className="mt-1 text-sm text-red-600">
+                                {fieldErrors.name}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -94,6 +106,9 @@ export default function CreatePartyPage() {
                     <div>
                         <label className="block text-sm font-medium">
                             コンセプト
+                            <span className="ml-1 text-xs text-gray-500">
+                                任意
+                            </span>
                         </label>
                         <textarea
                             className="mt-1 w-full rounded border p-3"
@@ -107,6 +122,9 @@ export default function CreatePartyPage() {
                     <div>
                         <label className="block text-sm font-medium">
                             メモ
+                            <span className="ml-1 text-xs text-gray-500">
+                                任意
+                            </span>
                         </label>
                         <textarea
                             className="mt-1 w-full rounded border p-3"
