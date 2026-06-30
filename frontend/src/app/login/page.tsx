@@ -9,8 +9,8 @@ import { getApiErrorMessage } from "@/utils/apiError";
 export default function LoginPage() {
     const router = useRouter();
 
-    const [email, setEmail] = useState("test@example.com");
-    const [password, setPassword] = useState("password");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
 
     const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
