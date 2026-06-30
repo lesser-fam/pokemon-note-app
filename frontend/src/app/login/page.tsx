@@ -36,8 +36,14 @@ export default function LoginPage() {
         } catch (error) {
             console.error(error);
 
-            setFieldErrors(getApiValidationErrors(error));
-            setMessage(getApiErrorMessage(error, "ログインに失敗しました。"));
+            const validationErrors = getApiValidationErrors(error);
+
+            setFieldErrors(validationErrors);
+            setMessage(
+                Object.keys(validationErrors).length > 0
+                    ? ""
+                    : getApiErrorMessage(error, "ログインに失敗しました。"),
+            );
         }
     };
 

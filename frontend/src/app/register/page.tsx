@@ -39,9 +39,13 @@ export default function RegisterPage() {
         } catch (error) {
             console.error(error);
 
-            setFieldErrors(getApiValidationErrors(error));
+            const validationErrors = getApiValidationErrors(error);
+
+            setFieldErrors(validationErrors);
             setErrorMessage(
-                getApiErrorMessage(error, "ユーザー登録に失敗しました。"),
+                Object.keys(validationErrors).length > 0
+                    ? ""
+                    : getApiErrorMessage(error, "ユーザー登録に失敗しました。"),
             );
         } finally {
             setIsSubmitting(false);

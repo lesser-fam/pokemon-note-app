@@ -60,7 +60,7 @@ export default function EditPartyPage() {
 
         if (!name.trim()) {
             setFieldErrors({ name: "パーティ名を入力してください。" });
-            setErrorMessage("パーティ名を入力してください。");
+            setErrorMessage("");
             return;
         }
 
@@ -79,9 +79,17 @@ export default function EditPartyPage() {
             router.push(`/parties/${updatedParty.id}`);
         } catch (error) {
             console.error(error);
-            setFieldErrors(getApiValidationErrors(error));
+
+            const validationErrors = getApiValidationErrors(error);
+
+            setFieldErrors(validationErrors);
             setErrorMessage(
-                getApiErrorMessage(error, "パーティの更新に失敗しました。"),
+                Object.keys(validationErrors).length > 0
+                    ? ""
+                    : getApiErrorMessage(
+                          error,
+                          "パーティの更新に失敗しました。",
+                      ),
             );
         } finally {
             setIsSubmitting(false);

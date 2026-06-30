@@ -36,9 +36,17 @@ export default function CreatePartyPage() {
             router.push(`/parties/${party.id}`);
         } catch (error) {
             console.error(error);
-            setFieldErrors(getApiValidationErrors(error));
+
+            const validationErrors = getApiValidationErrors(error);
+
+            setFieldErrors(validationErrors);
             setErrorMessage(
-                getApiErrorMessage(error, "パーティ作成に失敗しました。"),
+                Object.keys(validationErrors).length > 0
+                    ? ""
+                    : getApiErrorMessage(
+                          error,
+                          "パーティ作成に失敗しました。",
+                      ),
             );
         } finally {
             setIsSubmitting(false);
