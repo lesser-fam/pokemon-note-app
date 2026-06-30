@@ -326,7 +326,7 @@ function OpponentPartyTemplatesContent() {
 
                 {isAdmin ? (
                     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
-                        <section className="rounded border bg-white p-4">
+                        <section className="min-w-0 rounded border bg-white p-4">
                             <div className="flex items-center justify-between gap-3">
                                 <div>
                                     <h2 className="text-lg font-bold">

@@ -131,6 +131,12 @@ cp .env.example .env
 php artisan key:generate
 ```
 
+`composer install` でPHPバージョンエラーが出る場合は、Composerが古いPHPを参照している可能性があります。`php -v` でPHP 8.4以上が表示されていることを確認したうえで、以下のように現在のPHPでComposerを実行してください。
+
+```bash
+php $(which composer) install
+```
+
 SQLiteを使用するため、必要に応じてデータベースファイルを作成します。
 
 ```bash
@@ -205,9 +211,17 @@ npm install
 
 `frontend/.env.local` を作成し、APIの接続先を設定します。
 
+```bash
+echo 'NEXT_PUBLIC_API_BASE_URL=http://localhost:8000' > .env.local
+```
+
+作成後、内容が以下になっていることを確認します。
+
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
+
+`.env.local` はNext.js起動時に読み込まれるため、作成・変更した場合は `npm run dev` を再起動してください。
 
 ## 起動方法
 

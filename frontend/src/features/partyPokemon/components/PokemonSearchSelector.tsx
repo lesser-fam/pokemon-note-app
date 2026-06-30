@@ -109,7 +109,9 @@ export function PokemonSearchSelector({
     return (
         <div
             className={
-                isCompactLayout ? "min-w-0 space-y-4" : wideLayoutGridClass
+                isCompactLayout
+                    ? "w-full min-w-0 space-y-4"
+                    : wideLayoutGridClass
             }
         >
             <div>
@@ -188,9 +190,9 @@ export function PokemonSearchSelector({
                 </div>
             </div>
 
-            <div className="min-w-0">
+            <div className="w-full min-w-0">
                 <div
-                    className={`min-w-0 overflow-x-hidden overflow-y-auto rounded border bg-gray-50 ${
+                    className={`w-full min-w-0 overflow-x-hidden overflow-y-auto rounded border bg-gray-50 ${
                         isCompactLayout
                             ? "h-72 p-2"
                             : "min-h-112 max-h-112 p-3"
