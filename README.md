@@ -243,6 +243,58 @@ npm run dev
 
 デフォルトでは `http://localhost:3000` で起動します。
 
+## マスターデータの更新
+
+PokéAPI由来のマスターデータや、ルール・シーズンに応じて変わる「よく使われる技」は、必要に応じて更新できます。
+
+### 1. 更新前バックアップ
+
+SQLiteのDBファイルをバックアップします。
+
+```bash
+cd backend
+cp database/database.sqlite database/database_backup_$(date +%Y%m%d_%H%M%S).sqlite
+```
+
+### 2. 必要なデータだけ部分更新
+
+技、特性、持ち物を更新します。
+
+```bash
+php artisan app:import-battle-master-data all
+```
+
+ポケモンと特性の紐付けを更新します。
+
+```bash
+php artisan pokemon:export-abilities-csv --output=pokemon_abilities.csv
+php artisan db:seed --class=PokemonAbilitySeeder
+```
+
+新ポケモンや新フォームが追加された場合は、ポケモン一覧CSVも更新します。
+
+```bash
+php artisan pokemon:export-csv --from=1 --to=1025 --output=pokemon.csv
+```
+
+`--to` は必要に応じて最新の全国図鑑番号へ変更してください。
+
+よく使われる技を更新する場合は、CSVを更新したうえでSeederを再実行します。
+
+```bash
+php artisan db:seed --class=PokemonCommonMoveSeeder
+```
+
+### 3. まとめて再構築
+
+開発環境でマスターデータをまとめて再構築したい場合は、以下のコマンドも使用できます。
+
+```bash
+php artisan app:setup-master-data
+```
+
+このコマンドはPokéAPIへ多数のリクエストを送るため、実行に時間がかかる場合があります。
+
 ## デモアカウント
 
 シーダーを実行すると、以下のテストユーザーが作成されます。
