@@ -257,6 +257,12 @@ npm run dev
 パスワード: password
 ```
 
+## テスト
+
+バックエンドではFeature Testを用意し、認証、認可、パーティ作成、ポケモン登録、新バージョン作成、対戦ログ作成、管理者API、マスタデータ検索などの主要なAPI動作を確認しています。
+
+テスト設計の詳細は [docs/design.md](docs/design.md) に記載しています。
+
 ## 確認コマンド
 
 ### フロントエンド
@@ -271,7 +277,7 @@ npx tsc --noEmit
 
 ```bash
 cd backend
-composer test
+php artisan test
 ```
 
 ## ER図
