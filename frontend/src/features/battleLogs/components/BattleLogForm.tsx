@@ -161,6 +161,12 @@ export function BattleLogForm({
             return;
         }
 
+        if (selectedOpponentPokemonKeys.length < 1) {
+            setErrorMessage("実際に選出された相手ポケモンを1匹以上選んでください。");
+
+            return;
+        }
+
         const selectedOpponentPokemonPairs = selectedOpponentPokemonKeys.map(
             (value) => {
                 const [key, formKey] = value.split(":");
@@ -258,7 +264,7 @@ export function BattleLogForm({
                 <h2 className="text-lg font-bold">相手パーティ</h2>
 
                 <p className="mt-1 text-sm text-gray-600">
-                    実際に選出された相手を、順番に3匹まで選べます。
+                    実際に選出された相手を、見えた範囲で1匹以上、順番に3匹まで選べます。
                 </p>
 
                 <div className="mt-4 grid gap-2 sm:grid-cols-3 md:grid-cols-6">
@@ -332,7 +338,7 @@ export function BattleLogForm({
 
                 <p className="mt-3 text-sm text-gray-600">
                     相手の実選出：
-                    {selectedOpponentPokemonKeys.length} / 3
+                    {selectedOpponentPokemonKeys.length} / 3（1匹以上必須）
                 </p>
             </section>
 
@@ -572,7 +578,11 @@ export function BattleLogForm({
 
             <button
                 type="submit"
-                disabled={isSubmitting || selectedPokemonIds.length !== 3}
+                disabled={
+                    isSubmitting ||
+                    selectedPokemonIds.length !== 3 ||
+                    selectedOpponentPokemonKeys.length < 1
+                }
                 className="rounded bg-black px-5 py-3 text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
                 {isSubmitting ? submittingLabel : submitLabel}

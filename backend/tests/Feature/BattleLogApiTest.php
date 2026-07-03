@@ -58,6 +58,64 @@ class BattleLogApiTest extends TestCase
         ]);
     }
 
+    public function test_user_can_create_battle_log_with_one_selected_opponent_pokemon(): void
+    {
+        [$user, $partyVersion, $pokemon] = $this->createPartyVersionWithPokemon();
+
+        $response = $this->actingAs($user)->postJson(
+            "/api/party-versions/{$partyVersion->id}/battle-logs",
+            $this->validBattleLogPayload([
+                'selected_pokemon_1_id' => $pokemon[0]->id,
+                'selected_pokemon_2_id' => $pokemon[1]->id,
+                'selected_pokemon_3_id' => $pokemon[2]->id,
+                'selected_opponent_pokemon_1' => 'dragonite',
+                'selected_opponent_form_1' => 'default',
+                'selected_opponent_pokemon_2' => null,
+                'selected_opponent_form_2' => null,
+                'selected_opponent_pokemon_3' => null,
+                'selected_opponent_form_3' => null,
+            ]),
+        );
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('data.selected_opponent_pokemon_1', 'dragonite')
+            ->assertJsonPath('data.selected_opponent_pokemon_2', null)
+            ->assertJsonPath('data.selected_opponent_pokemon_3', null);
+
+        $this->assertDatabaseHas('battle_logs', [
+            'party_version_id' => $partyVersion->id,
+            'selected_opponent_pokemon_1' => 'dragonite',
+            'selected_opponent_pokemon_2' => null,
+            'selected_opponent_pokemon_3' => null,
+        ]);
+    }
+
+    public function test_selected_opponent_pokemon_is_required(): void
+    {
+        [$user, $partyVersion, $pokemon] = $this->createPartyVersionWithPokemon();
+
+        $this->actingAs($user)
+            ->postJson(
+                "/api/party-versions/{$partyVersion->id}/battle-logs",
+                $this->validBattleLogPayload([
+                    'selected_pokemon_1_id' => $pokemon[0]->id,
+                    'selected_pokemon_2_id' => $pokemon[1]->id,
+                    'selected_pokemon_3_id' => $pokemon[2]->id,
+                    'selected_opponent_pokemon_1' => null,
+                    'selected_opponent_form_1' => null,
+                    'selected_opponent_pokemon_2' => null,
+                    'selected_opponent_form_2' => null,
+                    'selected_opponent_pokemon_3' => null,
+                    'selected_opponent_form_3' => null,
+                ]),
+            )
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('selected_opponent_pokemon_1');
+
+        $this->assertDatabaseCount('battle_logs', 0);
+    }
+
     public function test_duplicate_selected_own_pokemon_is_rejected(): void
     {
         [$user, $partyVersion, $pokemon] = $this->createPartyVersionWithPokemon();
