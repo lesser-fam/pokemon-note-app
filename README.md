@@ -293,7 +293,29 @@ php artisan pokemon:export-csv --from=1 --to=1025 --output=pokemon.csv
 php artisan db:seed --class=PokemonCommonMoveSeeder
 ```
 
-### 3. まとめて再構築
+### 3. チャンピオンズ使用可能ポケモンの更新
+
+チャンピオンズで使用可能なポケモンが追加・変更された場合は、現時点ではフロントエンドの定数を更新します。
+
+主な更新対象は以下です。
+
+```text
+frontend/src/features/pokemonRules/championsAllowedPokemon.ts
+frontend/src/features/pokemonRules/tmp/convertChampionsPokemon.ts
+```
+
+更新の流れは以下です。
+
+1. 公式情報や参照元を確認し、追加・変更されたポケモンの全国図鑑No.を整理する
+2. `convertChampionsPokemon.ts` の `championsNationalDexNumbers` に対象の全国図鑑No.を追加する
+3. 変換補助関数 `convertChampionsDexNumbersToIdentifiers` で、対象ポケモンの `pokemon_key:form_key` を確認する
+4. `championsAllowedPokemon.ts` の `championsSearchablePokemonIdentifiers` に `pokemon_key:form_key` 形式で追加する
+5. フォーム違い、リージョンフォーム、特殊フォームがあるポケモンは、画面の検索結果や表示名を確認する
+6. `npm run lint` と `npx tsc --noEmit` を実行し、型や構文の問題がないことを確認する
+
+現時点では、チャンピオンズ使用可能ポケモンはコード上の定数として管理しています。今後の改善として、シーズンやルールごとに使用可能ポケモンをDBで管理し、管理者画面やCSVインポートから更新できるようにする予定です。
+
+### 4. まとめて再構築
 
 開発環境でマスターデータをまとめて再構築したい場合は、以下のコマンドも使用できます。
 
