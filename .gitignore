@@ -17,3 +17,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Personal notes
+docs/interview-notes.md
+docs/project-structure.md
