@@ -1,7 +1,7 @@
 import type { PartyPokemon } from "@/types/party";
-import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import type { PokemonAbilityGroup } from "@/types/pokemonAbility";
 
-type PokemonAbilityCandidate = PokemonAbilityWarning["abilities"][number];
+type PokemonAbilityCandidate = PokemonAbilityGroup["abilities"][number];
 
 type CreateEffectivePartyPokemonListParams = {
     currentPokemonList: PartyPokemon[];

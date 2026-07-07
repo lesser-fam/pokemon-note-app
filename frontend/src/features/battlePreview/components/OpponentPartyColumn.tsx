@@ -1,11 +1,11 @@
 import { BattlePokemonCard } from "@/features/battlePreview/components/BattlePokemonCard";
 import type { Pokemon } from "@/types/pokemon";
-import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import type { PokemonAbilityGroup } from "@/types/pokemonAbility";
 import { AbilityTooltip } from "./AbilityTooltip";
 import { MegaFormToggle } from "./MegaFormToggle";
 import type { PokemonStatKey } from "./PokemonStatLabels";
 
-type OpponentAbility = PokemonAbilityWarning["abilities"][number];
+type OpponentAbility = PokemonAbilityGroup["abilities"][number];
 
 type OpponentPartyColumnProps = {
     opponentPokemonList: Pokemon[];

@@ -1,14 +1,14 @@
 import { api } from "@/lib/api";
-import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import type { PokemonAbilityGroup } from "@/types/pokemonAbility";
 
-export const fetchPokemonAbilityWarnings = async (
+export const fetchPokemonAbilitiesByPokemon = async (
     pokemonKeys: string[],
-): Promise<PokemonAbilityWarning[]> => {
+): Promise<PokemonAbilityGroup[]> => {
     if (pokemonKeys.length === 0) {
         return [];
     }
 
-    const response = await api.get<{ data: PokemonAbilityWarning[] }>(
+    const response = await api.get<{ data: PokemonAbilityGroup[] }>(
         "/api/pokemon-ability-warnings",
         {
             params: {

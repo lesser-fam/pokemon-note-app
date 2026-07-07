@@ -2,10 +2,10 @@ import { BattleMasterTextSelector } from "@/features/master/components/BattleMas
 import { NatureSelector } from "@/features/master/components/NatureSelector";
 import { PokemonAbilitySelector } from "@/features/master/components/PokemonAbilitySelector";
 import type { NatureMaster } from "@/types/battleMaster";
-import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import type { PokemonAbilityGroup } from "@/types/pokemonAbility";
 
 export type PokemonAbilityCandidate =
-    PokemonAbilityWarning["abilities"][number];
+    PokemonAbilityGroup["abilities"][number];
 
 export type BattleMasterOption = {
     id: number;

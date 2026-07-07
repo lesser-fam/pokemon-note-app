@@ -1,11 +1,11 @@
-import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
+import { fetchPokemonAbilitiesByPokemon } from "@/features/master/api/pokemonAbilityApi";
 import { isMegaForm } from "@/features/battlePreview/utils/megaEvolution";
 import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
-import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import type { PokemonAbilityGroup } from "@/types/pokemonAbility";
 import { useState } from "react";
 
-type PokemonAbilityCandidate = PokemonAbilityWarning["abilities"][number];
+type PokemonAbilityCandidate = PokemonAbilityGroup["abilities"][number];
 
 type UseOwnPokemonOverridesParams = {
     currentPokemonList: PartyPokemon[];
@@ -94,7 +94,7 @@ export const useOwnPokemonOverrides = ({
         }
 
         try {
-            const data = await fetchPokemonAbilityWarnings([
+            const data = await fetchPokemonAbilitiesByPokemon([
                 `${nextPokemon.key}:${nextPokemon.form_key}`,
             ]);
 

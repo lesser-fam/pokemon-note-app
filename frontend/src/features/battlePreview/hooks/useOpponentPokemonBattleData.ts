@@ -1,8 +1,8 @@
-import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
+import { fetchPokemonAbilitiesByPokemon } from "@/features/master/api/pokemonAbilityApi";
 import { fetchPokemonCommonMoves } from "@/features/pokemonCommonMoves/api/pokemonCommonMoveApi";
 import type { PartyRule } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
-import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import type { PokemonAbilityGroup } from "@/types/pokemonAbility";
 import type { PokemonCommonMove } from "@/types/pokemonCommonMove";
 import { useEffect, useState } from "react";
 
@@ -15,8 +15,8 @@ export const useOpponentPokemonBattleData = ({
     opponentPokemonList,
     partyRule,
 }: UseOpponentPokemonBattleDataParams) => {
-    const [pokemonAbilityWarnings, setPokemonAbilityWarnings] = useState<
-        PokemonAbilityWarning[]
+    const [pokemonAbilityGroups, setPokemonAbilityGroups] = useState<
+        PokemonAbilityGroup[]
     >([]);
 
     const [pokemonCommonMoves, setPokemonCommonMoves] = useState<
@@ -24,9 +24,9 @@ export const useOpponentPokemonBattleData = ({
     >([]);
 
     useEffect(() => {
-        const loadPokemonAbilityWarnings = async () => {
+        const loadPokemonAbilityGroups = async () => {
             if (opponentPokemonList.length === 0) {
-                setPokemonAbilityWarnings([]);
+                setPokemonAbilityGroups([]);
                 return;
             }
 
@@ -35,16 +35,16 @@ export const useOpponentPokemonBattleData = ({
                     (pokemon) => `${pokemon.key}:${pokemon.form_key}`,
                 );
 
-                const data = await fetchPokemonAbilityWarnings(pokemonKeys);
+                const data = await fetchPokemonAbilitiesByPokemon(pokemonKeys);
 
-                setPokemonAbilityWarnings(data);
+                setPokemonAbilityGroups(data);
             } catch (error) {
                 console.error(error);
-                setPokemonAbilityWarnings([]);
+                setPokemonAbilityGroups([]);
             }
         };
 
-        loadPokemonAbilityWarnings();
+        loadPokemonAbilityGroups();
     }, [opponentPokemonList]);
 
     useEffect(() => {
@@ -76,7 +76,7 @@ export const useOpponentPokemonBattleData = ({
     }, [opponentPokemonList, partyRule]);
 
     return {
-        pokemonAbilityWarnings,
+        pokemonAbilityGroups,
         pokemonCommonMoves,
     };
 };

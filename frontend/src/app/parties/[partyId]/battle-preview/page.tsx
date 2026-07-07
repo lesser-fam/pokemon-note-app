@@ -68,7 +68,7 @@ export default function BattlePreviewPage() {
         partyPokemonLimit: ruleConfig.partyPokemonLimit,
     });
 
-    const { pokemonAbilityWarnings, pokemonCommonMoves } =
+    const { pokemonAbilityGroups, pokemonCommonMoves } =
         useOpponentPokemonBattleData({
             opponentPokemonList,
             partyRule: party?.rule ?? "main_series",
@@ -101,7 +101,7 @@ export default function BattlePreviewPage() {
         analyzeOpponentWeakness(opponentPokemonList);
 
     const getPokemonAbilities = (pokemon: Pokemon) => {
-        const pokemonAbilityData = pokemonAbilityWarnings.find(
+        const pokemonAbilityData = pokemonAbilityGroups.find(
             (item) =>
                 item.pokemon_key === pokemon.key &&
                 item.form_key === pokemon.form_key,

@@ -1,6 +1,6 @@
 import type { MatchupEffectRule } from "./battleMaster";
 
-export type PokemonAbilityWarningAbility = {
+export type PokemonAbilityOption = {
     id: number;
     key: string;
     name: string;
@@ -9,8 +9,8 @@ export type PokemonAbilityWarningAbility = {
     effect_rules: MatchupEffectRule[];
 };
 
-export type PokemonAbilityWarning = {
+export type PokemonAbilityGroup = {
     pokemon_key: string;
     form_key: string;
-    abilities: PokemonAbilityWarningAbility[];
+    abilities: PokemonAbilityOption[];
 };

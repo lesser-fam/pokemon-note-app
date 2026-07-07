@@ -10,7 +10,7 @@ import {
     isMegaForm,
 } from "@/features/battlePreview/utils/megaEvolution";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
-import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
+import { fetchPokemonAbilitiesByPokemon } from "@/features/master/api/pokemonAbilityApi";
 import { fetchOpponentPartyTemplates } from "@/features/opponentPartyTemplates/api/opponentPartyTemplateApi";
 import { fetchParty } from "@/features/parties/api/partyApi";
 import { PokemonSearchSelector } from "@/features/partyPokemon/components/PokemonSearchSelector";
@@ -20,7 +20,7 @@ import { suggestMatchupSelections } from "@/features/selections/utils/suggestMat
 import type { OpponentPartyTemplate } from "@/types/opponentPartyTemplate";
 import type { BattleLog, Party, PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
-import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import type { PokemonAbilityGroup } from "@/types/pokemonAbility";
 import { getPokemonTypeClassName } from "@/utils/pokemonTypeStyle";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -28,7 +28,7 @@ import { useEffect, useState } from "react";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 
 type OpponentGenerationMode = "random" | "battle_log" | "template";
-type PokemonAbilityCandidate = PokemonAbilityWarning["abilities"][number];
+type PokemonAbilityCandidate = PokemonAbilityGroup["abilities"][number];
 type SelectionMatchResult = {
     memberMatchCount: number;
     isLeadMatch: boolean;
@@ -352,8 +352,8 @@ export default function SelectionPracticePage() {
     >([]);
     const ruleConfig = getPartyRuleConfig(party?.rule ?? "main_series");
 
-    const [pokemonAbilityWarnings, setPokemonAbilityWarnings] = useState<
-        PokemonAbilityWarning[]
+    const [pokemonAbilityGroups, setPokemonAbilityGroups] = useState<
+        PokemonAbilityGroup[]
     >([]);
 
     const [ownPokemonFormOverrides, setOwnPokemonFormOverrides] = useState<
@@ -405,9 +405,9 @@ export default function SelectionPracticePage() {
     }, [partyId, isInvalidPartyId]);
 
     useEffect(() => {
-        const loadPokemonAbilityWarnings = async () => {
+        const loadPokemonAbilityGroups = async () => {
             if (opponentPokemonList.length === 0) {
-                setPokemonAbilityWarnings([]);
+                setPokemonAbilityGroups([]);
                 return;
             }
 
@@ -416,16 +416,16 @@ export default function SelectionPracticePage() {
                     (pokemon) => `${pokemon.key}:${pokemon.form_key}`,
                 );
 
-                const data = await fetchPokemonAbilityWarnings(pokemonKeys);
+                const data = await fetchPokemonAbilitiesByPokemon(pokemonKeys);
 
-                setPokemonAbilityWarnings(data);
+                setPokemonAbilityGroups(data);
             } catch (error) {
                 console.error(error);
-                setPokemonAbilityWarnings([]);
+                setPokemonAbilityGroups([]);
             }
         };
 
-        loadPokemonAbilityWarnings();
+        loadPokemonAbilityGroups();
     }, [opponentPokemonList]);
 
     const currentPokemonList = party?.current_version?.pokemon ?? [];
@@ -562,7 +562,7 @@ export default function SelectionPracticePage() {
         }
 
         try {
-            const data = await fetchPokemonAbilityWarnings([
+            const data = await fetchPokemonAbilitiesByPokemon([
                 `${nextPokemon.key}:${nextPokemon.form_key}`,
             ]);
 
@@ -604,7 +604,7 @@ export default function SelectionPracticePage() {
     };
 
     const getPokemonAbilities = (pokemon: Pokemon) => {
-        const pokemonAbilityData = pokemonAbilityWarnings.find(
+        const pokemonAbilityData = pokemonAbilityGroups.find(
             (item) =>
                 item.pokemon_key === pokemon.key &&
                 item.form_key === pokemon.form_key,

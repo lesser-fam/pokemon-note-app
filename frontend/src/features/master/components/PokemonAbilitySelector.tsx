@@ -1,10 +1,10 @@
 "use client";
 
-import { fetchPokemonAbilityWarnings } from "@/features/master/api/pokemonAbilityWarningApi";
-import type { PokemonAbilityWarning } from "@/types/pokemonAbilityWarning";
+import { fetchPokemonAbilitiesByPokemon } from "@/features/master/api/pokemonAbilityApi";
+import type { PokemonAbilityGroup } from "@/types/pokemonAbility";
 import { useEffect, useState } from "react";
 
-type PokemonAbility = PokemonAbilityWarning["abilities"][number];
+type PokemonAbility = PokemonAbilityGroup["abilities"][number];
 
 type PokemonAbilitySelectorProps = {
     pokemonKey: string;
@@ -37,7 +37,7 @@ export function PokemonAbilitySelector({
             setErrorMessage("");
 
             try {
-                const data = await fetchPokemonAbilityWarnings([
+                const data = await fetchPokemonAbilitiesByPokemon([
                     `${pokemonKey}:${formKey}`,
                 ]);
 
