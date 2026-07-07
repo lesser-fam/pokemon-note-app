@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Ability;
 use App\Models\Item;
+use App\Models\PokemonAbility;
 use App\Models\Move;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -50,5 +51,28 @@ class BattleMasterSearchApiTest extends TestCase
         $this->getJson('/api/abilities?search=まるちすけいる')
             ->assertOk()
             ->assertJsonPath('data.0.name', 'マルチスケイル');
+    }
+
+    public function test_pokemon_abilities_can_be_fetched_by_pokemon_identifier(): void
+    {
+        $ability = Ability::create([
+            'key' => 'rough-skin',
+            'name' => 'さめはだ',
+            'description' => '接触した相手にダメージを与える。',
+        ]);
+
+        PokemonAbility::create([
+            'pokemon_key' => 'garchomp',
+            'form_key' => 'default',
+            'ability_id' => $ability->id,
+            'is_hidden' => true,
+        ]);
+
+        $this->getJson('/api/pokemon-abilities?pokemon[]=garchomp:default')
+            ->assertOk()
+            ->assertJsonPath('data.0.pokemon_key', 'garchomp')
+            ->assertJsonPath('data.0.form_key', 'default')
+            ->assertJsonPath('data.0.abilities.0.name', 'さめはだ')
+            ->assertJsonPath('data.0.abilities.0.is_hidden', true);
     }
 }

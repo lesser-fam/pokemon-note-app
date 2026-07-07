@@ -7,7 +7,7 @@ use App\Models\PokemonAbility;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class PokemonAbilityWarningController extends Controller
+class PokemonAbilityController extends Controller
 {
     public function index(Request $request): JsonResponse
     {

@@ -9,7 +9,7 @@ export const fetchPokemonAbilitiesByPokemon = async (
     }
 
     const response = await api.get<{ data: PokemonAbilityGroup[] }>(
-        "/api/pokemon-ability-warnings",
+        "/api/pokemon-abilities",
         {
             params: {
                 pokemon: pokemonKeys,
