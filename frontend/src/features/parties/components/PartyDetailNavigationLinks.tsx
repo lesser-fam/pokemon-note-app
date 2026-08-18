@@ -24,6 +24,20 @@ export const PartyDetailNavigationLinks = ({
             </Link>
 
             <Link
+                href={`/parties/${partyId}/quizzes/type-matchup`}
+                className="rounded border border-blue-300 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+            >
+                タイプ相性クイズ
+            </Link>
+
+            <Link
+                href={`/parties/${partyId}/quizzes/base-stats`}
+                className="rounded border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+            >
+                種族値感覚クイズ
+            </Link>
+
+            <Link
                 href={`/opponent-party-templates?partyId=${partyId}`}
                 className="rounded border px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-white"
             >
