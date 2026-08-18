@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBattleLogRequest;
+use App\Http\Requests\StoreQuickBattleLogRequest;
 use App\Http\Requests\UpdateBattleLogRequest;
 use App\Models\BattleLog;
 use App\Models\PartyVersion;
@@ -12,6 +13,35 @@ use Illuminate\Http\Request;
 
 class BattleLogController extends Controller
 {
+    public function storeQuick(
+        StoreQuickBattleLogRequest $request,
+        PartyVersion $partyVersion
+    ): JsonResponse {
+        if ($partyVersion->party->user_id !== $request->user()->id) {
+            abort(404);
+        }
+
+        $validated = $request->validated();
+
+        $validationErrorResponse = $this->validateBattleLogPayload(
+            $partyVersion,
+            $validated,
+        );
+
+        if ($validationErrorResponse) {
+            return $validationErrorResponse;
+        }
+
+        $battleLog = $partyVersion->battleLogs()->create($validated);
+
+        $this->loadRelations($battleLog);
+
+        return response()->json([
+            'message' => '対戦ログを保存しました。',
+            'data' => $battleLog,
+        ], 201);
+    }
+
     public function store(
         StoreBattleLogRequest $request,
         PartyVersion $partyVersion

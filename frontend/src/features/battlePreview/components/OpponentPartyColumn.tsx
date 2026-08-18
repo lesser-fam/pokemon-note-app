@@ -6,6 +6,44 @@ import { MegaFormToggle } from "./MegaFormToggle";
 import type { PokemonStatKey } from "./PokemonStatLabels";
 
 type OpponentAbility = PokemonAbilityGroup["abilities"][number];
+const opponentSelectionLimit = 3;
+
+type OpponentSelectionButtonProps = {
+    pokemon: Pokemon;
+    selectedOpponentPokemonKeys: string[];
+    onToggle: (pokemon: Pokemon) => void;
+};
+
+const OpponentSelectionButton = ({
+    pokemon,
+    selectedOpponentPokemonKeys,
+    onToggle,
+}: OpponentSelectionButtonProps) => {
+    const pokemonIdentifier = `${pokemon.key}:${pokemon.form_key}`;
+    const selectionIndex =
+        selectedOpponentPokemonKeys.indexOf(pokemonIdentifier);
+    const isSelected = selectionIndex >= 0;
+    const isDisabled =
+        !isSelected &&
+        selectedOpponentPokemonKeys.length >= opponentSelectionLimit;
+
+    return (
+        <button
+            type="button"
+            onClick={() => onToggle(pokemon)}
+            disabled={isDisabled}
+            aria-pressed={isSelected}
+            title={isDisabled ? "相手選出は3匹までです" : undefined}
+            className={`min-h-7 whitespace-nowrap rounded border px-2 py-1 text-xs font-semibold leading-none transition-colors ${
+                isSelected
+                    ? "border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
+                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
+            }`}
+        >
+            {isSelected ? `選出中 ${selectionIndex + 1}` : "選出"}
+        </button>
+    );
+};
 
 type OpponentPartyColumnProps = {
     opponentPokemonList: Pokemon[];
@@ -16,6 +54,8 @@ type OpponentPartyColumnProps = {
     onChangeForm: (currentPokemon: Pokemon, nextPokemon: Pokemon) => void;
     actionTargetPokemonKey?: string | null;
     onSelectActionTarget?: (pokemon: Pokemon) => void;
+    selectedOpponentPokemonKeys?: string[];
+    onToggleOpponentSelection?: (pokemon: Pokemon) => void;
 };
 
 export function OpponentPartyColumn({
@@ -27,15 +67,25 @@ export function OpponentPartyColumn({
     onChangeForm,
     actionTargetPokemonKey = null,
     onSelectActionTarget,
+    selectedOpponentPokemonKeys = [],
+    onToggleOpponentSelection,
 }: OpponentPartyColumnProps) {
     return (
         <aside className="rounded border bg-white p-3">
             <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-bold">相手パーティ</h2>
 
-                <p className="text-sm font-medium text-gray-600">
-                    {opponentPokemonList.length} / 6
-                </p>
+                <div className="text-right">
+                    <p className="text-sm font-medium text-gray-600">
+                        {opponentPokemonList.length} / 6
+                    </p>
+
+                    {onToggleOpponentSelection && (
+                        <p className="text-[11px] font-medium text-blue-700">
+                            実選出 {selectedOpponentPokemonKeys.length} / 3
+                        </p>
+                    )}
+                </div>
             </div>
 
             {opponentPokemonList.length === 0 ? (
@@ -56,13 +106,30 @@ export function OpponentPartyColumn({
                                 pokemon={pokemon}
                                 highlightedStats={highlightedStats}
                                 headerAction={
-                                    <MegaFormToggle
-                                        pokemon={pokemon}
-                                        pokemonList={pokemonList}
-                                        onChange={(nextPokemon) =>
-                                            onChangeForm(pokemon, nextPokemon)
-                                        }
-                                    />
+                                    <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-start">
+                                        <MegaFormToggle
+                                            pokemon={pokemon}
+                                            pokemonList={pokemonList}
+                                            onChange={(nextPokemon) =>
+                                                onChangeForm(
+                                                    pokemon,
+                                                    nextPokemon,
+                                                )
+                                            }
+                                        />
+
+                                        {onToggleOpponentSelection && (
+                                            <OpponentSelectionButton
+                                                pokemon={pokemon}
+                                                selectedOpponentPokemonKeys={
+                                                    selectedOpponentPokemonKeys
+                                                }
+                                                onToggle={
+                                                    onToggleOpponentSelection
+                                                }
+                                            />
+                                        )}
+                                    </div>
                                 }
                                 imageAction={
                                     <button

@@ -14,6 +14,7 @@ import { useBattlePreviewData } from "@/features/battlePreview/hooks/useBattlePr
 import { useOpponentPokemonBattleData } from "@/features/battlePreview/hooks/useOpponentPokemonBattleData";
 import { useOpponentPokemonList } from "@/features/battlePreview/hooks/useOpponentPokemonList";
 import { useOwnPokemonOverrides } from "@/features/battlePreview/hooks/useOwnPokemonOverrides";
+import { useSelectedOpponentPokemonKeys } from "@/features/battlePreview/hooks/useSelectedOpponentPokemonKeys";
 import { useSelectedPartyPokemonIds } from "@/features/battlePreview/hooks/useSelectedPartyPokemonIds";
 import { useStatComparisonMode } from "@/features/battlePreview/hooks/useStatComparisonMode";
 import { analyzeOpponentParty } from "@/features/battlePreview/utils/analyzeOpponentParty";
@@ -21,6 +22,7 @@ import { analyzeOpponentWeakness } from "@/features/battlePreview/utils/analyzeO
 import { createBattleLogCreateNavigation } from "@/features/battlePreview/utils/createBattleLogCreateNavigation";
 import { createEffectivePartyPokemonList } from "@/features/battlePreview/utils/createEffectivePartyPokemonList";
 import { getHighlightedStatsByComparisonMode } from "@/features/battlePreview/utils/getHighlightedStatsByComparisonMode";
+import { createQuickBattleLog } from "@/features/battleLogs/api/battleLogApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { getPartyRuleConfig } from "@/features/pokemonRules/partyRuleConfig";
 import { calculateDefensiveMatchupScore } from "@/features/selections/utils/calculateDefensiveMatchupScore";
@@ -28,13 +30,15 @@ import { calculateOffensiveMatchupScore } from "@/features/selections/utils/calc
 import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicSelection";
 import { suggestMatchupSelections } from "@/features/selections/utils/suggestMatchupSelections";
 import type { Pokemon } from "@/types/pokemon";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { getApiErrorMessage } from "@/utils/apiError";
+import { useParams, useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 
 // Add Champions Pokemon
 // import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
 
 export default function BattlePreviewPage() {
+    const router = useRouter();
     const params = useParams<{ partyId: string }>();
     const partyId = Number(params.partyId);
     const isInvalidPartyId = Number.isNaN(partyId);
@@ -68,6 +72,29 @@ export default function BattlePreviewPage() {
         partyPokemonLimit: ruleConfig.partyPokemonLimit,
     });
 
+    const {
+        selectedOpponentPokemonKeys,
+        handleToggleSelectedOpponentPokemon,
+        handleRemoveSelectedOpponentPokemon,
+        handleChangeSelectedOpponentPokemonForm,
+    } = useSelectedOpponentPokemonKeys(opponentPokemonList);
+
+    const handleRemoveOpponentPokemonWithSelection = (pokemon: Pokemon) => {
+        handleRemoveOpponentPokemon(pokemon);
+        handleRemoveSelectedOpponentPokemon(pokemon);
+    };
+
+    const handleChangeOpponentPokemonFormWithSelection = (
+        currentPokemon: Pokemon,
+        nextPokemon: Pokemon,
+    ) => {
+        handleChangeOpponentPokemonForm(currentPokemon, nextPokemon);
+        handleChangeSelectedOpponentPokemonForm(
+            currentPokemon,
+            nextPokemon,
+        );
+    };
+
     const { pokemonAbilityGroups, pokemonCommonMoves } =
         useOpponentPokemonBattleData({
             opponentPokemonList,
@@ -76,6 +103,9 @@ export default function BattlePreviewPage() {
 
     const [searchKeyword, setSearchKeyword] = useState("");
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+    const [isQuickSubmitting, setIsQuickSubmitting] = useState(false);
+    const [quickErrorMessage, setQuickErrorMessage] = useState("");
+    const isQuickSubmittingRef = useRef(false);
 
     // Add Champions Pokemon
     // useEffect(() => {
@@ -216,6 +246,98 @@ export default function BattlePreviewPage() {
             selectionPokemonLimit: ruleConfig.selectionPokemonLimit,
         });
 
+    const selectedOpponentPokemonList = selectedOpponentPokemonKeys
+        .map((selectedKey) =>
+            opponentPokemonList.find(
+                (pokemon) =>
+                    `${pokemon.key}:${pokemon.form_key}` === selectedKey,
+            ),
+        )
+        .filter((pokemon): pokemon is Pokemon => Boolean(pokemon));
+
+    const canCreateQuickBattleLog =
+        canCreateBattleLog && selectedOpponentPokemonList.length > 0;
+
+    const handleCreateQuickBattleLog = async (result: "win" | "lose") => {
+        if (isQuickSubmittingRef.current) {
+            return;
+        }
+
+        const partyVersion = party.current_version;
+        const firstOpponent = opponentPokemonList[0];
+        const firstSelectedOpponent = selectedOpponentPokemonList[0];
+
+        if (
+            !partyVersion ||
+            !canCreateQuickBattleLog ||
+            !firstOpponent ||
+            !firstSelectedOpponent
+        ) {
+            setQuickErrorMessage(
+                "相手パーティ、自分の選出3匹、相手の実選出1匹以上を選んでください。",
+            );
+
+            return;
+        }
+
+        isQuickSubmittingRef.current = true;
+        setIsQuickSubmitting(true);
+        setQuickErrorMessage("");
+
+        try {
+            await createQuickBattleLog(partyVersion.id, {
+                result,
+
+                opponent_pokemon_1: firstOpponent.key,
+                opponent_form_1: firstOpponent.form_key,
+                opponent_pokemon_2: opponentPokemonList[1]?.key ?? null,
+                opponent_form_2:
+                    opponentPokemonList[1]?.form_key ?? null,
+                opponent_pokemon_3: opponentPokemonList[2]?.key ?? null,
+                opponent_form_3:
+                    opponentPokemonList[2]?.form_key ?? null,
+                opponent_pokemon_4: opponentPokemonList[3]?.key ?? null,
+                opponent_form_4:
+                    opponentPokemonList[3]?.form_key ?? null,
+                opponent_pokemon_5: opponentPokemonList[4]?.key ?? null,
+                opponent_form_5:
+                    opponentPokemonList[4]?.form_key ?? null,
+                opponent_pokemon_6: opponentPokemonList[5]?.key ?? null,
+                opponent_form_6:
+                    opponentPokemonList[5]?.form_key ?? null,
+
+                selected_pokemon_1_id: selectedPartyPokemonIds[0],
+                selected_pokemon_2_id: selectedPartyPokemonIds[1],
+                selected_pokemon_3_id: selectedPartyPokemonIds[2],
+
+                selected_opponent_pokemon_1: firstSelectedOpponent.key,
+                selected_opponent_form_1: firstSelectedOpponent.form_key,
+                selected_opponent_pokemon_2:
+                    selectedOpponentPokemonList[1]?.key ?? null,
+                selected_opponent_form_2:
+                    selectedOpponentPokemonList[1]?.form_key ?? null,
+                selected_opponent_pokemon_3:
+                    selectedOpponentPokemonList[2]?.key ?? null,
+                selected_opponent_form_3:
+                    selectedOpponentPokemonList[2]?.form_key ?? null,
+            });
+
+            router.push(
+                `/parties/${party.id}?notice=battle-log-saved`,
+            );
+        } catch (error) {
+            console.error(error);
+            setQuickErrorMessage(
+                getApiErrorMessage(
+                    error,
+                    "対戦ログの保存に失敗しました。",
+                ),
+            );
+            isQuickSubmittingRef.current = false;
+            setIsQuickSubmitting(false);
+        }
+    };
+
     return (
         <main className="mx-auto max-w-450 p-6">
             <div className="grid items-start gap-4 xl:grid-cols-[minmax(19rem,1fr)_minmax(0,1.35fr)_minmax(19rem,1fr)]">
@@ -275,9 +397,16 @@ export default function BattlePreviewPage() {
                     <BattleLogCreateNavigationSection
                         battleLogCreateHref={battleLogCreateHref}
                         canCreateBattleLog={canCreateBattleLog}
+                        canCreateQuickBattleLog={canCreateQuickBattleLog}
                         opponentPokemonCount={opponentPokemonList.length}
                         selectedPokemonCount={selectedPartyPokemonIds.length}
+                        selectedOpponentPokemonCount={
+                            selectedOpponentPokemonList.length
+                        }
                         selectionPokemonLimit={ruleConfig.selectionPokemonLimit}
+                        isQuickSubmitting={isQuickSubmitting}
+                        quickErrorMessage={quickErrorMessage}
+                        onCreateQuickBattleLog={handleCreateQuickBattleLog}
                     />
 
                     <BattlePreviewDetailAnalysisSection
@@ -300,8 +429,16 @@ export default function BattlePreviewPage() {
                         pokemonList={pokemonList}
                         highlightedStats={opponentHighlightedStats}
                         getPokemonAbilities={getPokemonAbilities}
-                        onRemove={handleRemoveOpponentPokemon}
-                        onChangeForm={handleChangeOpponentPokemonForm}
+                        onRemove={handleRemoveOpponentPokemonWithSelection}
+                        onChangeForm={
+                            handleChangeOpponentPokemonFormWithSelection
+                        }
+                        selectedOpponentPokemonKeys={
+                            selectedOpponentPokemonKeys
+                        }
+                        onToggleOpponentSelection={
+                            handleToggleSelectedOpponentPokemon
+                        }
                     />
                 </div>
             </div>

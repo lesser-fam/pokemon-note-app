@@ -21,11 +21,12 @@ import { suggestBasicSelection } from "@/features/selections/utils/suggestBasicS
 import type { Party } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function PartyDetailPage() {
     const params = useParams<{ partyId: string }>();
+    const searchParams = useSearchParams();
     const partyId = Number(params.partyId);
     const isInvalidPartyId = Number.isNaN(partyId);
 
@@ -34,6 +35,11 @@ export default function PartyDetailPage() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
+
+    const successMessage =
+        searchParams.get("notice") === "battle-log-saved"
+            ? "対戦ログを保存しました。"
+            : "";
 
     useEffect(() => {
         const loadParty = async () => {
@@ -128,6 +134,15 @@ export default function PartyDetailPage() {
                 <Link href="/parties" className="text-sm text-blue-600">
                     ← パーティ一覧へ戻る
                 </Link>
+
+                {successMessage && (
+                    <p
+                        role="status"
+                        className="mt-4 rounded bg-green-100 p-3 text-green-700"
+                    >
+                        {successMessage}
+                    </p>
+                )}
 
                 <PartyDetailHeader
                     party={party}
