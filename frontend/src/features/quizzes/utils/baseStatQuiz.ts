@@ -17,7 +17,8 @@ export const baseStatDefinitions = [
 ] as const;
 
 export type BaseStatKey = (typeof baseStatDefinitions)[number]["key"];
-export type BaseStatAnswer = "base" | "comparison";
+export type BaseStatQuizMode = "random" | BaseStatKey;
+export type BaseStatAnswer = "base" | "comparison" | "same";
 
 export type BaseStatQuizQuestion = {
   basePokemon: Pokemon;
@@ -27,16 +28,29 @@ export type BaseStatQuizQuestion = {
   correctAnswer: BaseStatAnswer;
 };
 
+const getCorrectAnswer = (
+  baseStat: number,
+  comparisonStat: number,
+): BaseStatAnswer => {
+  if (baseStat === comparisonStat) {
+    return "same";
+  }
+
+  return baseStat > comparisonStat ? "base" : "comparison";
+};
+
 export const createBaseStatQuizQuestion = ({
   partyPokemonList,
   pokemonList,
   rule,
   randomSeed,
+  statMode = "random",
 }: {
   partyPokemonList: PartyPokemon[];
   pokemonList: Pokemon[];
   rule: PartyRule;
   randomSeed: number;
+  statMode?: BaseStatQuizMode;
 }): BaseStatQuizQuestion | null => {
   const basePokemonCandidates = partyPokemonList
     .map((partyPokemon) =>
@@ -52,19 +66,24 @@ export const createBaseStatQuizQuestion = ({
     isPokemonAvailableForRule(pokemon, rule),
   );
 
-  if (basePokemonCandidates.length === 0 || availablePokemon.length < 2) {
+  if (basePokemonCandidates.length === 0 || availablePokemon.length === 0) {
     return null;
   }
 
   const random = createSeededRandom(randomSeed);
   const basePokemon = getRandomItem(basePokemonCandidates, random);
-  const statCandidates = shuffleItems(baseStatDefinitions, random);
+  const statCandidates =
+    statMode === "random"
+      ? shuffleItems(baseStatDefinitions, random)
+      : baseStatDefinitions.filter((stat) => stat.key === statMode);
 
   for (const stat of statCandidates) {
     const comparisonCandidates = availablePokemon.filter(
       (pokemon) =>
-        pokemon.key !== basePokemon.key &&
-        pokemon.base_stats[stat.key] !== basePokemon.base_stats[stat.key],
+        !(
+          pokemon.key === basePokemon.key &&
+          pokemon.form_key === basePokemon.form_key
+        ),
     );
 
     if (comparisonCandidates.length === 0) {
@@ -72,17 +91,15 @@ export const createBaseStatQuizQuestion = ({
     }
 
     const comparisonPokemon = getRandomItem(comparisonCandidates, random);
+    const baseStat = basePokemon.base_stats[stat.key];
+    const comparisonStat = comparisonPokemon.base_stats[stat.key];
 
     return {
       basePokemon,
       comparisonPokemon,
       statKey: stat.key,
       statLabel: stat.label,
-      correctAnswer:
-        basePokemon.base_stats[stat.key] >
-        comparisonPokemon.base_stats[stat.key]
-          ? "base"
-          : "comparison",
+      correctAnswer: getCorrectAnswer(baseStat, comparisonStat),
     };
   }
 

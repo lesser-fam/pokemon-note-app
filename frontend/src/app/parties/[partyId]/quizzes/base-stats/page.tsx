@@ -4,14 +4,27 @@ import { AppHeader } from "@/components/AppHeader";
 import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
 import { useBattlePreviewData } from "@/features/battlePreview/hooks/useBattlePreviewData";
 import {
+  baseStatDefinitions,
   createBaseStatQuizQuestion,
   type BaseStatAnswer,
+  type BaseStatQuizMode,
 } from "@/features/quizzes/utils/baseStatQuiz";
 import { createQuizRandomSeed } from "@/features/quizzes/utils/quizRandom";
 import type { Pokemon } from "@/types/pokemon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+
+const statModeOptions: {
+  value: BaseStatQuizMode;
+  label: string;
+}[] = [
+  { value: "random", label: "ランダム" },
+  ...baseStatDefinitions.map((stat) => ({
+    value: stat.key,
+    label: stat.key.toUpperCase(),
+  })),
+];
 
 const PokemonChoice = ({
   pokemon,
@@ -50,6 +63,7 @@ export default function BaseStatQuizPage() {
   const params = useParams<{ partyId: string }>();
   const partyId = Number(params.partyId);
   const isInvalidPartyId = Number.isNaN(partyId);
+  const [statMode, setStatMode] = useState<BaseStatQuizMode>("random");
   const [questionSeed, setQuestionSeed] = useState(createQuizRandomSeed);
   const [selectedAnswer, setSelectedAnswer] = useState<BaseStatAnswer | null>(
     null,
@@ -87,6 +101,7 @@ export default function BaseStatQuizPage() {
     pokemonList,
     rule: party.rule,
     randomSeed: questionSeed,
+    statMode,
   });
 
   if (!question) {
@@ -94,7 +109,7 @@ export default function BaseStatQuizPage() {
       <>
         <AppHeader />
         <PageStateMessage
-          message="現在のルールでは、同値を避けて出題できる組み合わせが見つかりません。"
+          message="現在のルールと条件では、出題できる組み合わせが見つかりません。"
           variant="error"
         />
       </>
@@ -103,10 +118,23 @@ export default function BaseStatQuizPage() {
 
   const isAnswered = selectedAnswer !== null;
   const isCorrect = selectedAnswer === question.correctAnswer;
-  const correctPokemon =
-    question.correctAnswer === "base"
-      ? question.basePokemon
-      : question.comparisonPokemon;
+  let correctAnswerLabel = "同じ";
+
+  if (question.correctAnswer === "base") {
+    correctAnswerLabel = question.basePokemon.name;
+  } else if (question.correctAnswer === "comparison") {
+    correctAnswerLabel = question.comparisonPokemon.name;
+  }
+
+  const handleChangeStatMode = (nextMode: BaseStatQuizMode) => {
+    if (nextMode === statMode) {
+      return;
+    }
+
+    setStatMode(nextMode);
+    setQuestionSeed(createQuizRandomSeed());
+    setSelectedAnswer(null);
+  };
 
   return (
     <>
@@ -134,7 +162,35 @@ export default function BaseStatQuizPage() {
 
         <section className="mt-4 grid w-full gap-4 rounded border bg-white p-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)] lg:p-5">
           <div className="flex min-w-0 flex-col rounded bg-gray-50 p-4 lg:min-h-0">
-            <h2 className="text-center text-lg font-bold">
+            <fieldset>
+              <legend className="text-xs font-semibold text-gray-600">
+                比較する種族値
+              </legend>
+
+              <div className="mt-2 grid grid-cols-4 gap-1.5 sm:grid-cols-7">
+                {statModeOptions.map((option) => {
+                  const isSelected = statMode === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleChangeStatMode(option.value)}
+                      aria-pressed={isSelected}
+                      className={`min-h-10 rounded border px-2 py-2 text-xs font-semibold transition-colors ${
+                        isSelected
+                          ? "border-blue-600 bg-blue-600 text-white"
+                          : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <h2 className="mt-4 text-center text-lg font-bold">
               どちらの方が{question.statLabel}
               の種族値が高い？
             </h2>
@@ -154,6 +210,20 @@ export default function BaseStatQuizPage() {
                 onSelect={() => setSelectedAnswer("comparison")}
               />
             </div>
+
+            <button
+              type="button"
+              disabled={isAnswered}
+              onClick={() => setSelectedAnswer("same")}
+              aria-pressed={selectedAnswer === "same"}
+              className={`mt-3 min-h-11 w-full rounded border px-4 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed ${
+                selectedAnswer === "same"
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-gray-400 bg-white text-gray-800 hover:bg-gray-100 disabled:opacity-70"
+              }`}
+            >
+              同じ
+            </button>
           </div>
 
           <div className="flex min-w-0 flex-col rounded border border-gray-100 p-4 lg:min-h-0">
@@ -171,7 +241,7 @@ export default function BaseStatQuizPage() {
                 <p className="font-bold">
                   {isCorrect ? "正解です。" : "不正解です。"}
                 </p>
-                <p className="mt-2">正解：{correctPokemon.name}</p>
+                <p className="mt-2">正解：{correctAnswerLabel}</p>
                 <p>
                   {question.basePokemon.name}：
                   {question.basePokemon.base_stats[question.statKey]}／{" "}
@@ -181,7 +251,7 @@ export default function BaseStatQuizPage() {
               </div>
             ) : (
               <div className="mt-4 h-40 w-full rounded border border-dashed border-gray-300 p-4 text-sm text-gray-500">
-                高いと思うポケモンを選ぶと、正解と両方の種族値がここに表示されます。
+                高いと思うポケモンのカードを選んでください。同値だと思う場合は「同じ」を選ぶと、正解と両方の種族値がここに表示されます。
               </div>
             )}
 
