@@ -17,22 +17,25 @@ class MoveController extends Controller
             max((int) $request->query('limit', 50), 1),
             100,
         );
+        $fetchAll = $request->boolean('all');
 
         $query = Move::query()
             ->orderBy('name');
 
         if ($search === '') {
-            $moves = $query
-                ->limit($limit)
-                ->get([
-                    'id',
-                    'key',
-                    'name',
-                    'type',
-                    'damage_class',
-                    'power',
-                    'is_scoring_target',
-                ]);
+            if (! $fetchAll) {
+                $query->limit($limit);
+            }
+
+            $moves = $query->get([
+                'id',
+                'key',
+                'name',
+                'type',
+                'damage_class',
+                'power',
+                'is_scoring_target',
+            ]);
         } else {
             $moves = $query
                 ->get([

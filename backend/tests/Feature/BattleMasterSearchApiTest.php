@@ -28,6 +28,23 @@ class BattleMasterSearchApiTest extends TestCase
             ->assertJsonPath('data.0.name', 'ハカイコウセン');
     }
 
+    public function test_all_moves_can_be_fetched_without_the_default_limit(): void
+    {
+        foreach (range(1, 101) as $index) {
+            Move::create([
+                'key' => "move-{$index}",
+                'name' => "技{$index}",
+                'type' => 'ノーマル',
+                'damage_class' => 'physical',
+                'power' => 40,
+            ]);
+        }
+
+        $this->getJson('/api/moves?all=true')
+            ->assertOk()
+            ->assertJsonCount(101, 'data');
+    }
+
     public function test_items_can_be_searched_with_hiragana_keyword(): void
     {
         Item::create([

@@ -34,6 +34,16 @@ export const fetchMoveList = async (
     return response.data.data;
 };
 
+export const fetchAllMoveList = async (): Promise<MoveMaster[]> => {
+    const response = await api.get<{ data: MoveMaster[] }>("/api/moves", {
+        params: {
+            all: true,
+        },
+    });
+
+    return response.data.data;
+};
+
 export const fetchAbilityList = async (
     search = "",
     limit = 50,

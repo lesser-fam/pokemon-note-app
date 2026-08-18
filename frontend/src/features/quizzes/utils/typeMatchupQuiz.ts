@@ -4,11 +4,41 @@ import {
   createSeededRandom,
   getRandomItem,
 } from "@/features/quizzes/utils/quizRandom";
+import type { MoveMaster } from "@/types/battleMaster";
 import type { PartyPokemon } from "@/types/party";
 import type { Pokemon } from "@/types/pokemon";
 
 export type TypeMatchupAnswer =
   "super_effective" | "neutral" | "resisted" | "immune";
+
+export type TypeMatchupMoveMode = "rule" | "all";
+
+type TypeMatchupQuizMove = MoveMaster & {
+  type: PokemonType;
+};
+
+const unsupportedMoveKeys = new Set([
+  // 通常のタイプ表とは異なる相性判定を持つ技
+  "flying-press",
+  "freeze-dry",
+  "thousand-arrows",
+  // 状況・持ち物・フォーム等で技タイプが変わる技
+  "aura-wheel",
+  "hidden-power",
+  "ivy-cudgel",
+  "judgment",
+  "multi-attack",
+  "natural-gift",
+  "raging-bull",
+  "revelation-dance",
+  "techno-blast",
+  "tera-blast",
+  "tera-starstorm",
+  "terrain-pulse",
+  "weather-ball",
+  // 通常のタイプ相性を適用しない技
+  "struggle",
+]);
 
 export const typeMatchupAnswerLabels: Record<TypeMatchupAnswer, string> = {
   super_effective: "抜群以上",
@@ -20,9 +50,27 @@ export const typeMatchupAnswerLabels: Record<TypeMatchupAnswer, string> = {
 export type TypeMatchupQuestion = {
   partyPokemon: PartyPokemon;
   pokemon: Pokemon;
-  attackType: PokemonType;
+  move: TypeMatchupQuizMove;
   multiplier: number;
   correctAnswer: TypeMatchupAnswer;
+};
+
+export const isMoveEligibleForTypeMatchupQuiz = (
+  move: MoveMaster,
+): move is TypeMatchupQuizMove => {
+  const isDamagingMove =
+    move.damage_class === "physical" || move.damage_class === "special";
+  const hasDefinedPower = move.power !== null && move.power > 0;
+  const hasSupportedType = (pokemonTypes as readonly string[]).includes(
+    move.type,
+  );
+
+  return (
+    isDamagingMove &&
+    hasDefinedPower &&
+    hasSupportedType &&
+    !unsupportedMoveKeys.has(move.key)
+  );
 };
 
 export const classifyTypeMultiplier = (
@@ -58,10 +106,12 @@ export const formatTypeMultiplier = (multiplier: number): string => {
 export const createTypeMatchupQuestion = ({
   partyPokemonList,
   pokemonList,
+  moveList,
   randomSeed,
 }: {
   partyPokemonList: PartyPokemon[];
   pokemonList: Pokemon[];
+  moveList: MoveMaster[];
   randomSeed: number;
 }): TypeMatchupQuestion | null => {
   const ownPokemonCandidates = partyPokemonList
@@ -83,21 +133,29 @@ export const createTypeMatchupQuestion = ({
       } => Boolean(candidate),
     );
 
-  if (ownPokemonCandidates.length === 0) {
+  const moveCandidates = Array.from(
+    new Map(
+      moveList
+        .filter(isMoveEligibleForTypeMatchupQuiz)
+        .map((move) => [move.id, move]),
+    ).values(),
+  );
+
+  if (ownPokemonCandidates.length === 0 || moveCandidates.length === 0) {
     return null;
   }
 
   const random = createSeededRandom(randomSeed);
   const ownPokemon = getRandomItem(ownPokemonCandidates, random);
-  const attackType = getRandomItem(pokemonTypes, random);
+  const move = getRandomItem(moveCandidates, random);
   const multiplier = calculateTypeMultiplier(
-    attackType,
+    move.type,
     ownPokemon.pokemon.types,
   );
 
   return {
     ...ownPokemon,
-    attackType,
+    move,
     multiplier,
     correctAnswer: classifyTypeMultiplier(multiplier),
   };
