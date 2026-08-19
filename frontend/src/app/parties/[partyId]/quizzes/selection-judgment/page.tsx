@@ -299,32 +299,40 @@ export default function SelectionJudgmentQuizPage() {
   const comparablePokemon = partyPokemonEvaluations.filter(
     ({ overall }) => overall.rank !== "insufficient",
   );
-  const highestRankValue =
-    comparablePokemon.length > 0
-      ? Math.max(
-          ...comparablePokemon.map(
-            ({ overall }) =>
-              comparableRankOrder[
-                overall.rank as Exclude<
-                  SelectionJudgmentOverallRank,
-                  "insufficient"
-                >
-              ],
-          ),
-        )
-      : null;
   const highestEvaluation =
-    highestRankValue === null
-      ? null
-      : comparablePokemon.find(
-          ({ overall }) =>
-            comparableRankOrder[
-              overall.rank as Exclude<
-                SelectionJudgmentOverallRank,
-                "insufficient"
-              >
-            ] === highestRankValue,
-        ) ?? null;
+    comparablePokemon.reduce<PartyPokemonEvaluation | null>(
+      (highest, candidate) => {
+        if (!highest) {
+          return candidate;
+        }
+
+        const candidateRank =
+          comparableRankOrder[
+            candidate.overall.rank as Exclude<
+              SelectionJudgmentOverallRank,
+              "insufficient"
+            >
+          ];
+        const highestRank =
+          comparableRankOrder[
+            highest.overall.rank as Exclude<
+              SelectionJudgmentOverallRank,
+              "insufficient"
+            >
+          ];
+
+        if (
+          candidateRank > highestRank ||
+          (candidateRank === highestRank &&
+            candidate.overall.score > highest.overall.score)
+        ) {
+          return candidate;
+        }
+
+        return highest;
+      },
+      null,
+    );
 
   let feedbackMessage = "";
   let moreSuitableCandidate: PartyPokemonEvaluation | null = null;
@@ -339,18 +347,28 @@ export default function SelectionJudgmentQuizPage() {
     } else {
       const selectedRankValue =
         comparableRankOrder[selectedEvaluation.overall.rank];
-      const rankDifference =
-        highestRankValue === null ? 0 : highestRankValue - selectedRankValue;
+      const highestRankValue = highestEvaluation
+        ? comparableRankOrder[
+            highestEvaluation.overall.rank as Exclude<
+              SelectionJudgmentOverallRank,
+              "insufficient"
+            >
+          ]
+        : selectedRankValue;
+      const rankDifference = highestRankValue - selectedRankValue;
+      const scoreDifference = highestEvaluation
+        ? highestEvaluation.overall.score - selectedEvaluation.overall.score
+        : 0;
 
-      if (rankDifference === 0) {
+      if (rankDifference === 0 && scoreDifference === 0) {
         feedbackMessage = "とても良い選択です！";
-      } else if (rankDifference === 1) {
+      } else if (rankDifference <= 1) {
         feedbackMessage = "良い選択です！";
       } else {
         feedbackMessage = "他にも対応しやすいポケモンがいます。";
       }
 
-      if (rankDifference > 0) {
+      if (rankDifference > 0 || scoreDifference > 0) {
         moreSuitableCandidate = highestEvaluation;
       }
     }

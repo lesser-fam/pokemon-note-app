@@ -218,6 +218,7 @@ export type SelectionJudgmentOverallEvaluation = {
 
 const getSelectionJudgmentAxisScore = (
   status: SelectionJudgmentEvaluationStatus,
+  weakScore = 0,
 ): { score: number; maxScore: number } => {
   if (status === "strong") {
     return { score: 2, maxScore: 2 };
@@ -228,7 +229,7 @@ const getSelectionJudgmentAxisScore = (
   }
 
   if (status === "weak") {
-    return { score: 0, maxScore: 2 };
+    return { score: weakScore, maxScore: 2 };
   }
 
   return { score: 0, maxScore: 0 };
@@ -242,6 +243,7 @@ export const createSelectionJudgmentOverallEvaluation = (
   );
   const defenseScore = getSelectionJudgmentAxisScore(
     evaluation.defense.status,
+    -1,
   );
   const speedScore = evaluation.speed.status === "faster" ? 1 : 0;
   const score = offenseScore.score + defenseScore.score + speedScore;
