@@ -20,7 +20,6 @@ type TypeMatchupQuizMove = MoveMaster & {
 const unsupportedMoveKeys = new Set([
   // 通常のタイプ表とは異なる相性判定を持つ技
   "flying-press",
-  "freeze-dry",
   "thousand-arrows",
   // 状況・持ち物・フォーム等で技タイプが変わる技
   "aura-wheel",
@@ -71,6 +70,24 @@ export const isMoveEligibleForTypeMatchupQuiz = (
     hasSupportedType &&
     !unsupportedMoveKeys.has(move.key)
   );
+};
+
+export const calculateMoveTypeMultiplier = (
+  move: Pick<MoveMaster, "key" | "type">,
+  defenderTypes: string[],
+): number => {
+  if (move.key !== "freeze-dry") {
+    return calculateTypeMultiplier(move.type, defenderTypes);
+  }
+
+  return defenderTypes.reduce((multiplier, defenderType) => {
+    const typeMultiplier =
+      defenderType === "みず"
+        ? 2
+        : calculateTypeMultiplier(move.type, [defenderType]);
+
+    return multiplier * typeMultiplier;
+  }, 1);
 };
 
 export const classifyTypeMultiplier = (
@@ -148,8 +165,8 @@ export const createTypeMatchupQuestion = ({
   const random = createSeededRandom(randomSeed);
   const ownPokemon = getRandomItem(ownPokemonCandidates, random);
   const move = getRandomItem(moveCandidates, random);
-  const multiplier = calculateTypeMultiplier(
-    move.type,
+  const multiplier = calculateMoveTypeMultiplier(
+    move,
     ownPokemon.pokemon.types,
   );
 

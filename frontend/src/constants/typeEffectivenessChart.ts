@@ -46,6 +46,7 @@ export const typeEffectivenessChart: Record<string, Record<string, number>> = {
         ほのお: 0.5,
         みず: 0.5,
         くさ: 2,
+        こおり: 0.5,
         じめん: 2,
         ひこう: 2,
         ドラゴン: 2,
