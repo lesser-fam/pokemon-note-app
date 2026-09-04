@@ -33,9 +33,17 @@ export const SuggestedSelectionSection = ({
                 <div>
                     <h2 className="text-lg font-bold">おすすめ基本選出</h2>
 
-                    <p className="mt-1 text-xs text-gray-600">
-                        役割タグの点数から、初手・引き先・勝ち筋を仮提案します。
-                    </p>
+                    <div className="mt-1 space-y-1 text-xs leading-relaxed text-gray-600">
+                        <p>
+                            基本選出は、選出に迷ったときの出発点となる3匹です。
+                        </p>
+                        <p>
+                            設定した役割タグをもとに、初手・引き先・勝ち筋の候補を仮提案します。
+                        </p>
+                        <p>
+                            まずはこの3匹を基準にしながら、相手に応じて自分で選出を考えてみましょう。
+                        </p>
+                    </div>
                 </div>
 
                 {currentPokemonCount >= selectionPokemonLimit && (
@@ -49,6 +57,10 @@ export const SuggestedSelectionSection = ({
                     </button>
                 )}
             </div>
+
+            <p className="mt-3 rounded bg-gray-50 p-3 text-xs leading-relaxed text-gray-600">
+                保存すると、このバージョンの基本形として残り、対戦前のおすすめ候補を考える際の参考情報として利用されます。保存しても、この3匹が自動的に最終選出されるわけではありません。
+            </p>
 
             {currentPokemonCount < selectionPokemonLimit ? (
                 <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">

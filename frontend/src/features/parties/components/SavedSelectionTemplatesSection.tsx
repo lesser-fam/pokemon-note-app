@@ -20,8 +20,8 @@ export const SavedSelectionTemplatesSection = ({
         <div className="rounded border bg-white p-5">
             <h2 className="text-lg font-bold">保存済み基本選出</h2>
 
-            <p className="mt-1 text-xs text-gray-600">
-                対戦前の選出候補として使う基本選出です。
+            <p className="mt-1 text-xs leading-relaxed text-gray-600">
+                保存した基本選出は、このバージョンの基本形として確認・編集でき、対戦前のおすすめ候補を考える際の参考にも利用されます。自動でこの3匹に決定されるわけではありません。
             </p>
 
             {selectionTemplates.length > 0 ? (
