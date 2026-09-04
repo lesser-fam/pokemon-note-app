@@ -32,8 +32,8 @@ export default function PartiesPage() {
         <>
             <AppHeader />
 
-            <main className="mx-auto max-w-7xl p-8">
-                <div className="flex items-center justify-between">
+            <main className="mx-auto max-w-7xl p-4 sm:p-8">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold">パーティ一覧</h1>
                         <p className="mt-1 text-sm text-gray-600">
@@ -71,7 +71,7 @@ export default function PartiesPage() {
                         <Link
                             key={party.id}
                             href={`/parties/${party.id}`}
-                            className="flex min-h-64 flex-col rounded border bg-white p-5 transition hover:bg-gray-50"
+                            className="flex min-h-64 min-w-0 flex-col rounded border bg-white p-5 transition hover:bg-gray-50"
                         >
                             <div className="flex flex-wrap items-center gap-2">
                                 <PartyRuleBadge rule={party.rule} />
@@ -97,7 +97,7 @@ export default function PartiesPage() {
                                     </p>
 
                                     <p
-                                        className="mt-1 line-clamp-2 break-word text-sm text-gray-700"
+                                        className="mt-1 line-clamp-2 break-words text-sm text-gray-700"
                                         title={party.concept}
                                     >
                                         {party.concept}
@@ -112,7 +112,7 @@ export default function PartiesPage() {
                                     </p>
 
                                     <p
-                                        className="mt-1 line-clamp-2 break-word text-sm text-gray-500"
+                                        className="mt-1 line-clamp-2 break-words text-sm text-gray-500"
                                         title={party.memo}
                                     >
                                         {party.memo}
