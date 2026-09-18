@@ -15,6 +15,12 @@ export type UpdatePartyPayload = {
     memo?: string;
 };
 
+export type DuplicatePartyPayload = {
+    name: string;
+    concept?: string;
+    memo?: string;
+};
+
 export const fetchParties = async (): Promise<Party[]> => {
     const response = await api.get<{ data: Party[] }>("/api/parties");
 
@@ -31,6 +37,18 @@ export const createParty = async (
 
 export const fetchParty = async (partyId: number): Promise<Party> => {
     const response = await api.get<{ data: Party }>(`/api/parties/${partyId}`);
+
+    return response.data.data;
+};
+
+export const duplicateParty = async (
+    partyId: number,
+    payload: DuplicatePartyPayload,
+): Promise<Party> => {
+    const response = await api.post<{ data: Party }>(
+        `/api/parties/${partyId}/duplicate`,
+        payload,
+    );
 
     return response.data.data;
 };

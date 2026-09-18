@@ -146,6 +146,7 @@ export default function PartyDetailPage() {
 
                 <PartyDetailHeader
                     party={party}
+                    canDuplicateParty={currentPokemonList.length === 6}
                     isDeletingParty={isDeletingParty}
                     onDeleteParty={handleDeleteParty}
                 />

@@ -19,6 +19,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/api/parties', [PartyController::class, 'index']);
     Route::post('/api/parties', [PartyController::class, 'store']);
+    Route::post('/api/parties/{party}/duplicate', [PartyController::class, 'duplicate']);
     Route::get('/api/parties/{party}', [PartyController::class, 'show']);
     Route::put('/api/parties/{party}', [PartyController::class, 'update']);
     Route::delete('/api/parties/{party}', [PartyController::class, 'destroy']);
