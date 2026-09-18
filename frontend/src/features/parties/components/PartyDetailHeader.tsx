@@ -1,20 +1,23 @@
 import { PartyRuleBadge } from "@/features/pokemonRules/PartyRuleBadge";
+import { PartyDuplicateAction } from "@/features/parties/components/PartyDuplicateAction";
 import type { Party } from "@/types/party";
 import Link from "next/link";
 
 type PartyDetailHeaderProps = {
     party: Party;
+    canDuplicateParty: boolean;
     isDeletingParty: boolean;
     onDeleteParty: () => void;
 };
 
 export const PartyDetailHeader = ({
     party,
+    canDuplicateParty,
     isDeletingParty,
     onDeleteParty,
 }: PartyDetailHeaderProps) => {
     return (
-        <div className="mt-4 rounded border p-6">
+        <div className="mt-4 rounded border p-4 sm:p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -48,6 +51,11 @@ export const PartyDetailHeader = ({
                         新バージョン作成
                     </Link>
 
+                    <PartyDuplicateAction
+                        party={party}
+                        canDuplicateParty={canDuplicateParty}
+                    />
+
                     <button
                         type="button"
                         onClick={onDeleteParty}
@@ -58,6 +66,12 @@ export const PartyDetailHeader = ({
                     </button>
                 </div>
             </div>
+
+            {!canDuplicateParty && (
+                <p className="mt-3 text-sm text-gray-600 md:text-right">
+                    パーティを複製するには、現在のバージョンにポケモンを6匹登録してください。
+                </p>
+            )}
 
             {party.concept && (
                 <div className="mt-6">

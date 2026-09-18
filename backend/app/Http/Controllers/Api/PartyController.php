@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DuplicatePartyRequest;
 use App\Http\Requests\StorePartyRequest;
 use App\Http\Requests\UpdatePartyRequest;
 use App\Models\Party;
@@ -93,6 +94,87 @@ class PartyController extends Controller
         return response()->json([
             'data' => $party,
         ]);
+    }
+
+    public function duplicate(
+        DuplicatePartyRequest $request,
+        Party $party,
+    ): JsonResponse {
+        if ($party->user_id !== $request->user()->id) {
+            abort(404);
+        }
+
+        $party->load('currentVersion.pokemon.roleTags');
+
+        $sourceVersion = $party->currentVersion;
+
+        if (! $sourceVersion || $sourceVersion->pokemon->count() !== 6) {
+            return response()->json([
+                'message' => 'パーティを複製するには、現在のバージョンにポケモンを6匹登録してください。',
+            ], 422);
+        }
+
+        $validated = $request->validated();
+
+        $duplicatedParty = DB::transaction(function () use ($request, $party, $sourceVersion, $validated) {
+            $newParty = Party::create([
+                'user_id' => $request->user()->id,
+                'name' => $validated['name'],
+                'rule' => $party->rule,
+                'concept' => $validated['concept'] ?? null,
+                'memo' => $validated['memo'] ?? null,
+            ]);
+
+            $newVersion = $newParty->versions()->create([
+                'version_number' => 1,
+                'change_note' => '初期バージョン',
+                'is_current' => true,
+            ]);
+
+            foreach ($sourceVersion->pokemon as $sourcePokemon) {
+                $newPokemon = $newVersion->pokemon()->create([
+                    'pokemon_key' => $sourcePokemon->pokemon_key,
+                    'form_key' => $sourcePokemon->form_key,
+                    'nickname' => $sourcePokemon->nickname,
+                    'item' => $sourcePokemon->item,
+                    'item_id' => $sourcePokemon->item_id,
+                    'ability' => $sourcePokemon->ability,
+                    'ability_id' => $sourcePokemon->ability_id,
+                    'nature' => $sourcePokemon->nature,
+                    'nature_id' => $sourcePokemon->nature_id,
+                    'ev_h' => $sourcePokemon->ev_h,
+                    'ev_a' => $sourcePokemon->ev_a,
+                    'ev_b' => $sourcePokemon->ev_b,
+                    'ev_c' => $sourcePokemon->ev_c,
+                    'ev_d' => $sourcePokemon->ev_d,
+                    'ev_s' => $sourcePokemon->ev_s,
+                    'move_1' => $sourcePokemon->move_1,
+                    'move_1_id' => $sourcePokemon->move_1_id,
+                    'move_1_type' => $sourcePokemon->move_1_type,
+                    'move_2' => $sourcePokemon->move_2,
+                    'move_2_id' => $sourcePokemon->move_2_id,
+                    'move_2_type' => $sourcePokemon->move_2_type,
+                    'move_3' => $sourcePokemon->move_3,
+                    'move_3_id' => $sourcePokemon->move_3_id,
+                    'move_3_type' => $sourcePokemon->move_3_type,
+                    'move_4' => $sourcePokemon->move_4,
+                    'move_4_id' => $sourcePokemon->move_4_id,
+                    'move_4_type' => $sourcePokemon->move_4_type,
+                    'memo' => $sourcePokemon->memo,
+                ]);
+
+                $newPokemon->roleTags()->sync($sourcePokemon->roleTags->modelKeys());
+            }
+
+            return $newParty;
+        });
+
+        $duplicatedParty->load('currentVersion.pokemon.roleTags');
+
+        return response()->json([
+            'message' => 'パーティを複製しました。',
+            'data' => $duplicatedParty,
+        ], 201);
     }
 
     public function update(UpdatePartyRequest $request, Party $party): JsonResponse
