@@ -10,10 +10,12 @@ use App\Http\Controllers\Api\PokemonCommonMoveController;
 use App\Http\Controllers\Api\SelectionTemplateController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/api/login', [AuthController::class, 'login']);
-Route::post('/api/register', [AuthController::class, 'register']);
+Route::post('/api/login', [AuthController::class, 'login'])
+    ->middleware(['private.no-store', 'throttle:login']);
+Route::post('/api/register', [AuthController::class, 'register'])
+    ->middleware(['private.no-store', 'throttle:register']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['private.no-store', 'auth:sanctum'])->group(function () {
     Route::post('/api/logout', [AuthController::class, 'logout']);
     Route::get('/api/user', [AuthController::class, 'me']);
 

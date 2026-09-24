@@ -576,6 +576,13 @@ erDiagram
 
 `pokemon_key` と `form_key` は、DB上の外部キーではなくポケモンマスタデータを参照するための識別子として使用しています。
 
+## 本番環境の安全設定
+
+- `backend/.env.example` はローカル開発用です。本番では `APP_ENV=production` と `APP_DEBUG=false` を明示してください。
+- 本番DB・セッション・キャッシュ・ログの接続先は、公開環境に合わせて個別に設定してください。ローカル用のSQLite設定をそのまま使用しないでください。
+- `php artisan db:seed` は本番環境では固定の開発用ユーザーを作成しません。マスターデータSeederは従来どおり実行対象です。
+- 管理者は本番環境のコンソールで `php artisan app:create-admin` を実行し、対話形式で作成してください。パスワードをコマンド引数やGit管理ファイルへ保存しないでください。
+
 ## 要件定義・設計資料
 
 - [要件定義書](docs/requirements.md)
