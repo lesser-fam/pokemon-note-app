@@ -244,6 +244,32 @@ php artisan serve
 
 デフォルトでは `http://localhost:8000` で起動します。
 
+### Production用Laravel container（deploy準備）
+
+Renderへの実際のdeploy、DB migration、seedは別手順です。Production用imageは、開発用のSail Composeを変更せずに次のようにbuildできます。
+
+```bash
+cd backend
+docker build -f Dockerfile.production -t matchup-note-backend:production .
+```
+
+起動時には外部から環境変数を渡します。`PORT` はRenderがruntimeで渡す値を使用し、未指定時は `8080` です。Production `APP_KEY` はrepositoryへ保存せず、この手順では有効な値がshell環境へ設定済みである前提です。実際のProduction key生成は後続のDeployment作業で行います。
+
+```bash
+docker run --rm -p 8080:8080 \
+  -e APP_KEY="$APP_KEY" \
+  -e APP_ENV=production \
+  -e APP_DEBUG=false \
+  -e APP_URL=http://localhost:8080 \
+  -e LOG_CHANNEL=stderr \
+  -e PORT=8080 \
+  matchup-note-backend:production
+```
+
+本番では少なくとも `APP_KEY`、`APP_ENV`、`APP_DEBUG`、`APP_URL`、`LOG_CHANNEL`、`DB_CONNECTION`、`DB_HOST`、`DB_PORT`、`DB_DATABASE`、`DB_USERNAME`、`DB_PASSWORD`、`SESSION_DRIVER`、`CACHE_STORE`、`QUEUE_CONNECTION` をサービスの環境変数として設定します。`APP_KEY`やDB認証情報をimage・Dockerfile・repositoryへ含めません。
+
+container起動時には、注入済みの環境変数を使ってLaravelの最適化処理だけを実行します。migration、seed、`key:generate`、`migrate:fresh`は自動実行しません。
+
 ### フロントエンド
 
 ```bash
