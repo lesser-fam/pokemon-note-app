@@ -12,17 +12,13 @@ import axios from "axios";
  * http://10.32.1.20:3000
  * → http://10.32.1.20:8081
  *
- * 本番環境ではNEXT_PUBLIC_API_BASE_URLを使用する。
+ * 本番環境では同一originのNext.js proxyを使用する。
  */
 const getApiBaseUrl = (): string => {
     const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
     if (process.env.NODE_ENV === "production") {
-        if (!configuredApiBaseUrl) {
-            throw new Error("NEXT_PUBLIC_API_BASE_URL is not configured.");
-        }
-
-        return configuredApiBaseUrl;
+        return "";
     }
 
     if (typeof window !== "undefined") {
