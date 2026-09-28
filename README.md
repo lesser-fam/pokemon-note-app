@@ -233,6 +233,22 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 
 `.env.local` はNext.js起動時に読み込まれるため、作成・変更した場合は `npm run dev` を再起動してください。
 
+### Production向けsame-origin API proxy
+
+ProductionではBrowserからLaravelのURLへ直接アクセスせず、Frontendと同じoriginの`/api/*`と`/sanctum/*`へrequestします。Next.jsはbuild / deployment時に利用可能なserver-only環境変数`BACKEND_INTERNAL_URL`を使い、これらのrequestをLaravelへ転送します。
+
+```env
+BACKEND_INTERNAL_URL=https://backend.example
+```
+
+`BACKEND_INTERNAL_URL`は末尾の`/`なしのLaravel originを設定してください。Browser bundleへ含める必要がないため、`NEXT_PUBLIC_*`にはしません。ProductionのBrowser向けAPI base URLはrelative URLとなり、`NEXT_PUBLIC_API_BASE_URL`は使用しません。
+
+Production buildでは原則として`BACKEND_INTERNAL_URL`が必須で、未設定の場合はbuildを失敗させます。Vercel Previewのみ未設定を許可し、専用Backendを用意して明示的にこの変数を設定するまでrewriteを作成しません。PreviewからProduction Backendへ暗黙に接続しないでください。
+
+ローカル開発では従来どおり、Browserは現在開いているhostのport `8081`へ接続し、server-sideでは`NEXT_PUBLIC_API_BASE_URL`をfallbackとして使用します。same-origin proxyをローカルで確認する場合は、`BACKEND_INTERNAL_URL`を設定したProduction buildを使用します。
+
+Laravel側のProduction session候補は`SESSION_DOMAIN`を未設定、`SESSION_SECURE_COOKIE=true`、`SESSION_SAME_SITE=lax`です。実際のVercel / Render環境では、`Set-Cookie`、`Origin`、`Referer`、`X-Forwarded-*`、client IP、trusted proxyを確認してから確定してください。
+
 ## 起動方法
 
 ### バックエンド
