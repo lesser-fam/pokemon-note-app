@@ -68,6 +68,7 @@ class ImportBattleMasterData extends Command
     public function handle(): int
     {
         $resource = (string) $this->argument('resource');
+        $failureCount = 0;
 
         if (! in_array($resource, ['moves', 'abilities', 'items', 'all'], true)) {
             $this->error(
@@ -78,18 +79,27 @@ class ImportBattleMasterData extends Command
         }
 
         if ($resource === 'moves' || $resource === 'all') {
-            $this->importMoves();
+            $failureCount += $this->importMoves();
         }
 
         if ($resource === 'abilities' || $resource === 'all') {
-            $this->importAbilities();
+            $failureCount += $this->importAbilities();
         }
 
         if ($resource === 'items' || $resource === 'all') {
-            $this->importItems();
+            $failureCount += $this->importItems();
         }
 
         $this->newLine();
+
+        if ($failureCount > 0) {
+            $this->error(
+                "マスターデータの取り込みに失敗しました。失敗: {$failureCount}件",
+            );
+
+            return self::FAILURE;
+        }
+
         $this->info('マスターデータの取り込みが完了しました。');
 
         return self::SUCCESS;
@@ -98,12 +108,12 @@ class ImportBattleMasterData extends Command
     /**
      * 技を取り込む。
      */
-    private function importMoves(): void
+    private function importMoves(): int
     {
         $this->newLine();
         $this->info('技データを取り込んでいます。');
 
-        $this->importResources('move', function (array $data): void {
+        return $this->importResources('move', function (array $data): void {
             $damageClass = $data['damage_class']['name'] ?? 'status';
 
             Move::updateOrCreate(
@@ -133,12 +143,12 @@ class ImportBattleMasterData extends Command
     /**
      * 特性を取り込む。
      */
-    private function importAbilities(): void
+    private function importAbilities(): int
     {
         $this->newLine();
         $this->info('特性データを取り込んでいます。');
 
-        $this->importResources('ability', function (array $data): void {
+        return $this->importResources('ability', function (array $data): void {
             Ability::updateOrCreate(
                 [
                     'key' => $data['name'],
@@ -156,12 +166,12 @@ class ImportBattleMasterData extends Command
     /**
      * 持ち物を取り込む。
      */
-    private function importItems(): void
+    private function importItems(): int
     {
         $this->newLine();
         $this->info('持ち物データを取り込んでいます。');
 
-        $this->importResources('item', function (array $data): void {
+        return $this->importResources('item', function (array $data): void {
             Item::updateOrCreate(
                 [
                     'key' => $data['name'],
@@ -185,7 +195,7 @@ class ImportBattleMasterData extends Command
     private function importResources(
         string $endpoint,
         callable $saveResource,
-    ): void {
+    ): int {
         $resources = $this->fetchResourceList($endpoint);
         $limit = max((int) $this->option('limit'), 0);
 
@@ -226,6 +236,8 @@ class ImportBattleMasterData extends Command
         $this->newLine(2);
         $this->info("成功: {$successCount}件");
         $this->info("失敗: {$failureCount}件");
+
+        return $failureCount;
     }
 
     /**
