@@ -20,6 +20,8 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends libonig-dev libxml2-dev \
     && docker-php-ext-install -j"$(nproc)" mbstring pdo_mysql xml \
     && a2enmod rewrite \
+    && groupadd --gid 1000 render-secret \
+    && usermod -a -G 1000 www-data \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=vendor /var/www/html/vendor ./vendor
