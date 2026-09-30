@@ -34,9 +34,6 @@ import { getApiErrorMessage } from "@/utils/apiError";
 import { useParams, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
-// Add Champions Pokemon
-// import { convertChampionsDexNumbersToIdentifiers } from "@/features/pokemonRules/tmp/convertChampionsPokemon";
-
 export default function BattlePreviewPage() {
     const router = useRouter();
     const params = useParams<{ partyId: string }>();
@@ -106,22 +103,6 @@ export default function BattlePreviewPage() {
     const [isQuickSubmitting, setIsQuickSubmitting] = useState(false);
     const [quickErrorMessage, setQuickErrorMessage] = useState("");
     const isQuickSubmittingRef = useRef(false);
-
-    // Add Champions Pokemon
-    // useEffect(() => {
-    //     if (pokemonList.length === 0) {
-    //         return;
-    //     }
-
-    //     const result = convertChampionsDexNumbersToIdentifiers(pokemonList);
-
-    //     console.log("sourceCount", result.sourceCount);
-    //     console.log("matchedCount", result.matchedCount);
-    //     console.log("missingCount", result.missingCount);
-    //     console.log("missingDexNumbers", result.missingDexNumbers);
-    //     console.log("matchedPokemon", result.matchedPokemon);
-    //     console.log("matched", result.matched);
-    // }, [pokemonList]);
 
     const { ownHighlightedStats, opponentHighlightedStats } =
         getHighlightedStatsByComparisonMode(comparisonMode);
