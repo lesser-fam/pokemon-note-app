@@ -27,7 +27,19 @@ export default function RootLayout({
       lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {children}
+        <footer className="mt-auto border-t border-black/10 bg-[var(--background)] px-4 py-6 text-sm leading-6 text-[var(--foreground)] sm:px-6">
+          <div className="mx-auto max-w-7xl space-y-2 opacity-75">
+            <p>
+              Matchup Noteは個人が運営する非公式のファンサイトです。株式会社ポケモン、任天堂株式会社、株式会社ゲームフリーク、株式会社クリーチャーズ、およびその他の関連企業とは一切関係ありません。
+            </p>
+            <p>
+              「ポケットモンスター」「ポケモン」「Pokémon」および関連する名称・画像・商標等の権利は、各権利者に帰属します。
+            </p>
+          </div>
+        </footer>
+      </body>
     </html>
   );
 }
