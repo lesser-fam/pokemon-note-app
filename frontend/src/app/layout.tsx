@@ -37,6 +37,15 @@ export default function RootLayout({
             <p>
               「ポケットモンスター」「ポケモン」「Pokémon」および関連する名称・画像・商標等の権利は、各権利者に帰属します。
             </p>
+            <p>
+              Battle data provided by{" "}
+              <a
+                href="https://championsbattledata.com/"
+                className="underline underline-offset-2"
+              >
+                Pokémon Champions Battle Data
+              </a>
+            </p>
           </div>
         </footer>
       </body>
