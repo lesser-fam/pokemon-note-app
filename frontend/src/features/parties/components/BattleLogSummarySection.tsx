@@ -57,7 +57,7 @@ export const BattleLogSummarySection = ({
             <div
                 className={
                     layout === "row"
-                        ? "mt-3 grid grid-cols-3 gap-2"
+                        ? "mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3"
                         : "mt-3 space-y-1.5"
                 }
             >
@@ -183,106 +183,105 @@ export const BattleLogSummarySection = ({
 
             <p className="mt-1 text-xs text-gray-600">{description}</p>
 
-            {battleLogSummary.totalBattles === 0 ? (
+            {battleLogSummary.totalBattles === 0 && (
                 <p className="mt-4 rounded bg-gray-50 p-4 text-sm text-gray-600">
-                    対戦ログを保存すると、ここに集計が表示されます。
+                    対戦ログを保存すると、成績や振り返りを確認できます。
                 </p>
-            ) : (
-                <div className="mt-4 space-y-6">
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-3 gap-2">
-                            <div className="min-w-0 rounded bg-gray-50 p-3">
-                                <p className="text-xs text-gray-500">対戦数</p>
-                                <p className="mt-1 truncate text-2xl font-bold sm:text-3xl">
-                                    {battleLogSummary.totalBattles}
-                                </p>
-                            </div>
-
-                            <div className="min-w-0 rounded bg-gray-50 p-3">
-                                <p className="text-xs text-gray-500">勝敗</p>
-                                <p className="mt-1 truncate text-xl font-bold sm:text-2xl">
-                                    {battleLogSummary.winCount}勝 /{" "}
-                                    {battleLogSummary.loseCount}敗
-                                </p>
-                            </div>
-
-                            <div className="min-w-0 rounded bg-gray-50 p-3">
-                                <p className="text-xs text-gray-500">勝率</p>
-                                <p className="mt-1 truncate text-2xl font-bold sm:text-3xl">
-                                    {battleLogSummary.winRate}%
-                                </p>
-                            </div>
+            )}
+            <div className="mt-4 space-y-6">
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                        <div className="min-w-0 rounded bg-gray-50 p-3">
+                            <p className="text-xs text-gray-500">対戦数</p>
+                            <p className="mt-1 truncate text-2xl font-bold sm:text-3xl">
+                                {battleLogSummary.totalBattles}
+                            </p>
                         </div>
 
-                        <div className="rounded bg-gray-50 p-3">
-                            <h3 className="text-sm font-bold">
-                                よく選出する味方
-                            </h3>
+                        <div className="min-w-0 rounded bg-gray-50 p-3">
+                            <p className="text-xs text-gray-500">勝敗</p>
+                            <p className="mt-1 truncate text-xl font-bold sm:text-2xl">
+                                {battleLogSummary.winCount}勝 /{" "}
+                                {battleLogSummary.loseCount}敗
+                            </p>
+                        </div>
 
-                            {renderPartyPokemonSummaryItems(
-                                battleLogSummary.selectedPokemonCounts,
-                                3,
-                                "row",
-                            )}
+                        <div className="min-w-0 rounded bg-gray-50 p-3">
+                            <p className="text-xs text-gray-500">勝率</p>
+                            <p className="mt-1 truncate text-2xl font-bold sm:text-3xl">
+                                {battleLogSummary.winRate}%
+                            </p>
                         </div>
                     </div>
 
-                    <div className="grid gap-4 lg:grid-cols-3">
-                        <div className="rounded bg-gray-50 p-3">
-                            <h3 className="text-sm font-bold">
-                                よく重かった相手
-                            </h3>
+                    <div className="rounded bg-gray-50 p-3">
+                        <h3 className="text-sm font-bold">
+                            よく選出する味方
+                        </h3>
 
-                            {renderHeavyOpponentSummaryItems(
-                                battleLogSummary.heavyOpponentCounts,
-                            )}
-                        </div>
-
-                        <div className="rounded bg-gray-50 p-3">
-                            <h3 className="whitespace-nowrap text-sm font-bold">
-                                よく必要だった味方
-                            </h3>
-
-                            {renderPartyPokemonSummaryItems(
-                                battleLogSummary.neededPokemonCounts,
-                                3,
-                            )}
-                        </div>
-
-                        <div className="rounded bg-gray-50 p-3">
-                            <h3 className="text-sm font-bold">
-                                よく出る敗因タグ
-                            </h3>
-
-                            {battleLogSummary.lossTagCounts.length > 0 ? (
-                                <div className="mt-3 space-y-1.5">
-                                    {battleLogSummary.lossTagCounts
-                                        .slice(0, 5)
-                                        .map((item) => (
-                                            <div
-                                                key={item.key}
-                                                className="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-sm"
-                                                title={item.label}
-                                            >
-                                                <span className="truncate">
-                                                    {item.label}
-                                                </span>
-
-                                                <span className="shrink-0 text-xs text-gray-500">
-                                                    {item.count}回
-                                                </span>
-                                            </div>
-                                        ))}
-                                </div>
-                            ) : (
-                                <p className="mt-3 text-sm text-gray-600">
-                                    まだ記録がありません。
-                                </p>
-                            )}
-                        </div>
+                        {renderPartyPokemonSummaryItems(
+                            battleLogSummary.selectedPokemonCounts,
+                            3,
+                            "row",
+                        )}
                     </div>
                 </div>
-            )}
+
+                <div className="grid gap-4 lg:grid-cols-3">
+                    <div className="rounded bg-gray-50 p-3">
+                        <h3 className="text-sm font-bold">
+                            よく重かった相手
+                        </h3>
+
+                        {renderHeavyOpponentSummaryItems(
+                            battleLogSummary.heavyOpponentCounts,
+                        )}
+                    </div>
+
+                    <div className="rounded bg-gray-50 p-3">
+                        <h3 className="whitespace-nowrap text-sm font-bold">
+                            よく必要だった味方
+                        </h3>
+
+                        {renderPartyPokemonSummaryItems(
+                            battleLogSummary.neededPokemonCounts,
+                            3,
+                        )}
+                    </div>
+
+                    <div className="rounded bg-gray-50 p-3">
+                        <h3 className="text-sm font-bold">
+                            よく出る敗因タグ
+                        </h3>
+
+                        {battleLogSummary.lossTagCounts.length > 0 ? (
+                            <div className="mt-3 space-y-1.5">
+                                {battleLogSummary.lossTagCounts
+                                    .slice(0, 5)
+                                    .map((item) => (
+                                        <div
+                                            key={item.key}
+                                            className="flex items-center justify-between gap-3 rounded bg-white px-3 py-2 text-sm"
+                                            title={item.label}
+                                        >
+                                            <span className="truncate">
+                                                {item.label}
+                                            </span>
+
+                                            <span className="shrink-0 text-xs text-gray-500">
+                                                {item.count}回
+                                            </span>
+                                        </div>
+                                    ))}
+                            </div>
+                        ) : (
+                            <p className="mt-3 text-sm text-gray-600">
+                                まだ記録がありません。
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
         </section>
     );
 };
