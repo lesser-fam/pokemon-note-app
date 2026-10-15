@@ -2,12 +2,10 @@
 
 import { AppHeader } from "@/components/AppHeader";
 import { PageStateMessage } from "@/components/pageStates/PageStateMessage";
-import { summarizeBattleLogs } from "@/features/battleLogs/utils/summarizeBattleLogs";
 import { fetchPokemonList } from "@/features/master/api/masterApi";
 import { findPokemonMaster } from "@/features/master/utils/findPokemonMaster";
 import { fetchParty } from "@/features/parties/api/partyApi";
-import { BattleLogListSection } from "@/features/parties/components/BattleLogListSection";
-import { BattleLogSummarySection } from "@/features/parties/components/BattleLogSummarySection";
+import { BattleLogAnalysisSection } from "@/features/parties/components/BattleLogAnalysisSection";
 import { PartyDetailHeader } from "@/features/parties/components/PartyDetailHeader";
 import { PartyDetailNavigationLinks } from "@/features/parties/components/PartyDetailNavigationLinks";
 import { PartyVersionHistory } from "@/features/parties/components/PartyVersionHistory";
@@ -69,16 +67,7 @@ export default function PartyDetailPage() {
     const ruleConfig = party ? getPartyRuleConfig(party.rule) : null;
 
     const currentPokemonList = party?.current_version?.pokemon ?? [];
-    const allVersionPokemonList =
-        party?.versions?.flatMap((version) => version.pokemon ?? []) ??
-        currentPokemonList;
     const suggestedSelection = suggestBasicSelection(currentPokemonList);
-    const currentBattleLogs = party?.current_version?.battle_logs ?? [];
-    const allBattleLogs =
-        party?.versions?.flatMap((version) => version.battle_logs ?? []) ??
-        currentBattleLogs;
-    const currentBattleLogSummary = summarizeBattleLogs(currentBattleLogs);
-    const allBattleLogSummary = summarizeBattleLogs(allBattleLogs);
 
     const {
         isSavingSelection,
@@ -185,45 +174,13 @@ export default function PartyDetailPage() {
                     />
                 </section>
 
-                <div className="grid gap-5 xl:grid-cols-2">
-                    <BattleLogSummarySection
-                        title="現在バージョンの対戦ログ集計"
-                        description="今のパーティ構築で保存した対戦ログの集計です。"
-                        battleLogSummary={currentBattleLogSummary}
-                        partyPokemonList={currentPokemonList}
-                        pokemonList={pokemonList}
-                    />
-
-                    <BattleLogSummarySection
-                        title="パーティ総合の対戦ログ集計"
-                        description="このパーティを管理し始めてから、全バージョンで保存した対戦ログの集計です。"
-                        battleLogSummary={allBattleLogSummary}
-                        partyPokemonList={allVersionPokemonList}
-                        pokemonList={pokemonList}
-                    />
-                </div>
-
-                <div className="mt-8 grid gap-5 xl:grid-cols-2">
-                    <BattleLogListSection
-                        partyId={party.id}
-                        title="現在バージョンの対戦ログ"
-                        description="今のパーティ構築で保存した対戦ログです。"
-                        battleLogs={currentBattleLogs}
-                        pokemonList={pokemonList}
-                        deletingBattleLogId={deletingBattleLogId}
-                        onDeleteBattleLog={handleDeleteBattleLog}
-                    />
-
-                    <BattleLogListSection
-                        partyId={party.id}
-                        title="パーティ総合の対戦ログ"
-                        description="このパーティを管理し始めてから、全バージョンで保存した対戦ログです。"
-                        battleLogs={allBattleLogs}
-                        pokemonList={pokemonList}
-                        deletingBattleLogId={deletingBattleLogId}
-                        onDeleteBattleLog={handleDeleteBattleLog}
-                    />
-                </div>
+                <BattleLogAnalysisSection
+                    key={party.id}
+                    party={party}
+                    pokemonList={pokemonList}
+                    deletingBattleLogId={deletingBattleLogId}
+                    onDeleteBattleLog={handleDeleteBattleLog}
+                />
 
                 <PartyVersionHistory
                     versions={party.versions ?? []}
