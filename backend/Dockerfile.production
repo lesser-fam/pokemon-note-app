@@ -12,7 +12,7 @@ RUN composer install \
     --no-progress \
     --no-scripts
 
-FROM php:8.4-apache AS production
+FROM php:8.4.27-apache AS production
 
 WORKDIR /var/www/html
 
